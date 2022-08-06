@@ -1,0 +1,139 @@
+documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{verbatim}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{appendix}
+\usepackage{lscape} 
+\usepackage{ragged2e}
+\usepackage{array,multirow,graphicx}
+\usepackage[spanish]{babel}
+\renewcommand\spanishtablename{Tabla} %CAMBIA el caption de "CUADRO" a "TABLA"
+\selectlanguage{spanish}
+\usepackage[usenames]{color}
+\usepackage{amssymb, amsmath, amsbsy} 
+\usepackage{subfig}
+%Tablas 
+\usepackage{longtable}
+\usepackage{hyperref} 
+%COLORES LINKS Y REFERENCIAS
+\hypersetup{
+     colorlinks = true,
+     linkcolor = blue,
+     anchorcolor = blue,
+     citecolor = blue,
+     filecolor = blue,
+     urlcolor = blue
+     }
+%COLORES LINKS Y REFERENCIAS
+
+\usepackage[spanish]{babel} 
+\usepackage[utf8]{inputenc} 
+\usepackage{multirow}
+\usepackage{graphicx} % graficos
+\usepackage{float} % para usar [H]
+\usepackage{vmargin}
+\usepackage{array}
+\usepackage{subfig}
+\setlength{\parskip}{1.5em}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%BIBTEX%%%%%%%%%%%%%%%
+\usepackage[style=authoryear,sorting=nyt]{biblatex} % Bibliografía
+\addbibresource{bibliography.bib}
+
+ %%%%%%%%%%%%%%%% PARA QUE EL HYPERLINK ESTE EN EL NOMBRE DEL ARTICULO ADEMAS DEL AÑO %%%%%%%%%%%%%%%%
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{\usebibmacro{citeyear}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+    \printtext[bibhyperref]{\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+    \printtext[bibhyperref]{\usebibmacro{citeyear}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+  \printtext[bibhyperref]{ \usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{\usebibmacro{cite}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {\boolfalse{cbx:parens}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{\usebibmacro{textcite}}}
+  {\ifbool{cbx:parens}
+     {\bibcloseparen\global\boolfalse{cbx:parens}}
+     {}%
+   \multicitedelim}
+  {\usebibmacro{textcite:postnote}}
+
+ %%%%%%%%%%%%%%%% PARA QUE EL HYPERLINK ESTE EN EL NOMBRE DEL ARTICULO ADEMAS DEL AÑO %%%%%%%%%%%%%%%%
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%BIBTEX%%%%%%%%%%%%%%%
+
+\usepackage{float}
+\graphicspath{ {images/} }
+
+\setpapersize{A4}
+\setmargins{1.5cm}    % margen izquierdo
+{1cm}                 % margen superior
+{17.5cm}              % ancho del texto
+{23.42cm}             % altura del texto
+{7pt}                 % altura de los encabezados
+{1cm}                 % espacio entre el texto y los encabezados 
+{0pt}                 % altura del pie de página
+{1cm}                 % espacio entre el texto y el pie de página
+
+\renewcommand{\baselinestretch}{1.20}
+
+\usepackage{lipsum}%% a garbage package you don't need except to create examples.
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\rhead{Juan Andrés Cabral \& Juan Bautista Sosa} 
+\renewcommand{\headrulewidth}{0.4pt}
+
+
+\begin{document}
+
+\begin{center}
+\bf\LARGE {Econometría espacial}\\
+	\bf\Large {Homework \#1}\\
+\end{center} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Modelo de regresión}
+Se estima el modelo especificado en las consignas.
+\begin{equation*}
+    ln(precioUSD)=const + \beta_1 Antig +\beta_2 M2total + \beta_3 Ambientes + \beta_4 banos + u
+\end{equation*}
+
+\section*{Resultados de regresión}

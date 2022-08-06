@@ -1,0 +1,44 @@
+Esta es la posta:
+
+https://www.youtube.com/watch?v=i7Njb3xO4Fw&ab_channel=SpyderIDE
+ya tengo instalado miniconda3
+
+abris el anaconda prompt (buscar)
+
+y ponés el código:
+cd C:\ProgramData\Miniconda3
+conda create -n spyder-env -y
+conda activate spyder-env
+conda install spyder-kernels scikit-learn -y
+
+
+
+
+
+Esto es si lo quiero bajar desde el cmd al python fuera de spyder, y despues copiar y pegar el paaquete en la carpeta de spyder (no se si funciona bien):
+
+C:\Users\juanb>cd C:\Program Files\Spyder\Python
+
+C:\Program Files\Spyder\Python>pip install sklearn
+
+y por algun motivo se guardan aca:
+
+C:\Users\juanb\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages
+
+
+----------------------
+
+Ahora (feb 2022)
+
+!pip install paquete
+
+----------------------
+
+Paquetes a instalar:
+
+geopandas (este requiere fiona, gdal y cosas raras)
+numpy
+matplotlib
+plotly
+seaborn
+os

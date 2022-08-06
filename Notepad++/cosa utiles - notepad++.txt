@@ -1,0 +1,2 @@
+# Poner colores a las columnas de los archiuvos .csv:
+ir a plugins -- plugins admin -- buscar CSV Lint, instalarlo, ir a Language y seleccionar "CSV Lint"

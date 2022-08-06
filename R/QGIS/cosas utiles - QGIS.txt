@@ -1,0 +1,5 @@
+# Arreglar geometrias invalidas:
+Si un geoprocessing tool no te arregla porque tenes "invalid geometries" vas a la Toolbox y buscas "Fix Geometries"
+
+# Rellenar agujeros en un poligono
+Toolbox - "Delete holes"
