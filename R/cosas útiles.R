@@ -288,6 +288,17 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 
 
+# Normalizar una variable entre 0 y un valor
+a <- c(1,4,3,5,67,8123,2342,23465,123,12)
+norm_minmax <- function(var, k){(var - min(var)) / (max(var)-min(var)) * k}
+norm_minmax(a,10)
+
+# Crear una variable usando un string / crear un variables de un data frame con nombres dinamicos dentro de un loop
+for (i in 1:3){
+    db[[ glue::glue("ejemplo_{i}")[1] ]] <- 1:nrow(db) # mas facil con paste que con glue, arreglar
+}
+
+
 # Crear una lista de objetos poniendo definiendo los nombres de los objetos de la lista como sus nombres originales
 lista <- tibble::lst(db1, db2, vector1)
 names(lista) #aca verias los nombres
@@ -826,9 +837,12 @@ df$var <- gsub(pattern = "cambiarestepatron", replacement = "poreste", df$date)
 # Hcer una tabulación de una variable (ver los valores únicos y sus frecuencias):
 table(db$variable)
 # Convertir la tabulación a un data frame (por ej par aluego exportar a xlsx)
-tab <- data.frame(table(db$variable))
+tab <- as.data.frame(table(db$variable))
 
-# Hcer una tabulación de dos variables / hacer una tabla two way (ver los valores únicos y sus frecuencias): (y convertirla a un data frame)
+# Hacer una tabulación de una variable usando un ponderador / contar valores únicos ponderados
+questionr::wtd.table(db$var, weights=db$ponderadores)
+
+# Hacer una tabulación de dos variables / hacer una tabla two way (ver los valores únicos y sus frecuencias): (y convertirla a un data frame)
 tab2 <- as.data.frame.matrix((table(db$var1, db$var2)))
 
 
@@ -1304,6 +1318,14 @@ db <- db %>%
   dplyr::mutate(LONGITUDE = sf::st_coordinates(.)[,1],
                 LATITUDE = sf::st_coordinates(.)[,2])
 
+#· CRS:
+# Buscador de CRSs: https://epsg.io/
+# CRS de CABA: https://epsg.io/9498
+# CRS de CIUDAD DE MEXICO: https://epsg.io/4487
+
+# Ver el CRS de un objeto espacial
+sf::st_crs(x)
+
 # Cambiar el CRS de un data frame
 df = sf::st_transform(df, crs=5349)
 
@@ -1316,6 +1338,9 @@ good_points <- st_filter(point.sf, poly)
 # Crear una caja alrededor de un poligono
 poligono_box <- sf::st_bbox(poligono)
 
+# Obtener los limites de un poligono (lo mismo que una caja)
+limites <- raster::extent(poligono)
+
 # Seleccionar los puntos dentro de una caja creada
 df = subset(df, LONGITUDE > poligono_box[1] & LONGITUDE < poligono_box[3] & LATITUDE > poligono_box[2] & LATITUDE < poligono_box[4])
 
@@ -1324,9 +1349,6 @@ mapview::mapshot(
   mapview::mapview(df),
   url = "C:/Users/juanb/mapita.html"
 )
-
-# Ver el CRS de un objeto espacial
-st_crs(x)
 
 # Geoservicios de INDEC / cómo usar geoservicios WFS
 indec <- "WFS:http://geoservicios.indec.gov.ar/geoserver/ows?service=wfs&version=1.3.0&request=GetCapabilities"
@@ -1363,6 +1385,11 @@ mapview::mapview(sp_db, zcol = "var", legend=TRUE, col.regions=paleta_de_colores
 # zcol: la variable para usar como grupos de colores
 # col.regions: definir la paleta de colores
 # legend: mostrar la leyenda de los colores
+  # La otra opcion es separar la db en varias segun la variable que quiera, y crear un mapview para cada una. Ej:
+mapview::mapview(sp_db[sp_db$var==1,], color="red", col.regions="red", cex=1) +
+  mapview::mapview(sp_db[sp_db$var==2,], color="yellow", col.regions="yellow", cex=1)
+# color: color de la linea del punto o poligono
+# col.region: color del relleno de punto o poligono
 
 # Crear un mapa interactivo. Cambiar el tamaño de los puntos
 mapview::mapview(sp_db, cex=3) # el default es 8
@@ -1389,3 +1416,7 @@ ggplot(sp_db) +
 # Seleccionar una columna del data frame espacial / usar una columna de un data frame espacial excluyendo la columna geom / slice a column of a spatial data frame excluding geometry and without using "$" operator
 ggplot(db) +
   geom_sf(aes(fill = as.data.frame(db)[,"var"]))
+
+# Trabajar con RASTERS: https://www.neonscience.org/resources/learning-hub/tutorials/raster-data-r
+
+# Crear una grilla a partir de un poligono: https://rpubs.com/huanfaChen/grid_from_polygon
