@@ -1,0 +1,17 @@
+Wake on LAN es una funcón para encender tu computadora desde otro dispositivo usando TeamViewer.
+
+Para habilitarlo hay que hacer varias cosas.
+
+(Perdí todas las referencias que usé, estoy tratando de acordarme los pasos, pero hay que repasar para que quede bien)
+
+- Tiene que ser através de un cable de red sí o sí.
+- Habilitar el wake on LAN en el BIOS de la computadora. Ver cómo acceder al BIOS (son las opciones del motherboard). Y puede estar en "power management" o en ... (no me acuerdo dónde estaba en el MSI)
+- Ver que en las propiedades de la conexión a internet esté habilitado el wake on LAN (algo así).
+- Entrar a las opciopnes del router (se hace poniendo la IP en un explorador de internet). Habilitar el port forwarding. Para Telecentro es un custom app, le puse port 9 en start y end, y modo UPND o algo así
+(aunque antes también habilitñe un puerto PSD/UPND, algo así, con numero algo tipo 5998, que lei por ahi que a teamviewer le gustaba. La verdad es que no estoy seguro cual funciono.
+- Hacerse una cuenta en TeamViewer
+- Asignar los dos dispositivos a la cuenta (desde cada uno)
+- Obtener el IP publico de tu router (hay paginas de internet que estan hechas solo para hacer eso)
+- Desde la pc que queres prender, ir a extras-options en TeamViewer, configur wake on lan, y agregar con public access y poner el IP publico.
+- Con la compu apagada o en sleep, entrar al teamviewer de la otra, ver opcion de computadoras, va a parecer la apagada offline, y tocar wake up.
+

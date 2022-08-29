@@ -287,6 +287,17 @@ library(readr) #solo hay que correr eso y se define la variable
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 
+# Hacer referencia a una variable con un string (ej. en dplyr):
+var <- "cyl"
+resultado <- mtcars %>% filter((!!sym(var)) == 4)
+
+# Ver todos los comandos / todas las funciones disponibles en un paquete
+require(ggplot2)
+ls("package:ggplot2")
+
+# Visualizar una matrix con colores
+m <- matrix(rnorm(100), ncol = 10)
+image(t(m[nrow(m):1,] ), axes=FALSE, zlim=c(-4,4), col=gray.colors(100))
 
 # Normalizar una variable entre 0 y un valor
 a <- c(1,4,3,5,67,8123,2342,23465,123,12)
@@ -1281,6 +1292,11 @@ hist(Temperature, col="violet")
 dev.off
 #!!! es mejor usar ggsave(), cambiar!
 
+# GGPAIRS: graficos de correlaciones / correlogramas /scatters / coeficientes de correlacion
+data(flea)
+GGally::ggpairs(flea, columns = 2:4)
+    # Cambiar el tamaño (y otra estetica) de los nombre de las variables en un correlograma
+GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(size=15))
 
 # Comandos para manejo de DATOS ESPACIALES --------------------------------
 
@@ -1307,7 +1323,7 @@ shape <- sf::st_read(path)
 # Convertir un data frame en un geo data frame
 df = sf::st_as_sf(df, coords = c("LONGITUDE", "LATITUDE"), crs = 4326)
 
-# Convertir un geo data frame a un data frame
+# Convertir un geo data frame a un data frame / eliminar el componente espacial de un spatial data frame
 sf::st_drop_geometry(sp_df)
 #  o sino ver esto
 df %>% sf::st_set_geometry(NULL)
@@ -1324,7 +1340,7 @@ db <- db %>%
 # CRS de CIUDAD DE MEXICO: https://epsg.io/4487
 
 # Ver el CRS de un objeto espacial
-sf::st_crs(x)
+sf::st_crs(sp_db)
 
 # Cambiar el CRS de un data frame
 df = sf::st_transform(df, crs=5349)
@@ -1420,3 +1436,30 @@ ggplot(db) +
 # Trabajar con RASTERS: https://www.neonscience.org/resources/learning-hub/tutorials/raster-data-r
 
 # Crear una grilla a partir de un poligono: https://rpubs.com/huanfaChen/grid_from_polygon
+
+# Acceder a los datos dentro de un SpatialPolygonsDataFrame
+    # se leen con rgdal::readOGR. Primero leo una base de ejemplo que viene con el paquete
+    set_thin_PROJ6_warnings(TRUE)
+    ogrDrivers()
+    dsn <- system.file("vectors", package = "rgdal")[1]
+    ogrListLayers(dsn)
+    ogrInfo(dsn)
+    ogrInfo(dsn=dsn, layer="cities")
+    owd <- getwd()
+    setwd(dsn)
+    ogrInfo(dsn="cities.shp")
+    ogrInfo(dsn="cities.shp", layer="cities")
+    setwd(owd)
+    ow <- options("warn")$warn
+    options("warn"=1)
+    cities <- readOGR(dsn=dsn, layer="cities")
+# Despues se accede a todo con el simbolo arroba @
+cities@data
+
+
+# Econometría espacial ----------------------------------------------------
+
+# Libro increible: https://spatialanalysis.github.io/handsonspatialdata/index.html
+
+# Crear el rezago espacial de una variable (https://gist.github.com/chrishanretty/664e337c267a53a7de97)
+df$sp.lag <- spdep::lag.listw(df$var, matriz_w)
