@@ -350,6 +350,7 @@ db <- tibble::rownames_to_column(db, var = "nueva_var")
 
 # Cambiar la posicion de una columna en un data frame / cambiar el orden de una columna
 db <- db %>% relocate(var2, .before = var1)
+db <- db %>% relocate(var2) # mover una columna al principio del data frame, en la primera posicion
 
 # Para cada fila encontrar un string de una columna en el string de otra columna
 db$str_match <- FALSE
@@ -399,6 +400,11 @@ db <- db %>%
     group_by(var1, var2) %>% 
     mutate(conteo = n()) %>%
     ungroup() #opcional
+
+# Sumar por grupo
+df %>%
+    group_by(col_to_group_by) %>%
+    summarise(Freq = sum(col_to_aggregate))
 
 # Extraer los números de un string / texto /cadena:
 string <- c("20 years old", "1 years old")
@@ -492,7 +498,7 @@ db$var <- ifelse(db$var=="valor_a_cambiar", "valor_nuevo", db$var)
 # Eliminar todos los objetos en el entorno que tengan determinado patron en su nombre     
 rm(list = ls(pattern = "patron"))
     
-# Eliminar todos los objetos en el entorno que tengan determinado patron en su nombre     
+# Eliminar todos los objetos en el entorno que tengan determinado patron en su nombre / eliminar todos los objetos que empiecen con / startswith
 rm(list = ls(pattern = "^prefijo_"))
     
 # Evaluar un string como un objeto o variable
