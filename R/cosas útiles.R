@@ -10,6 +10,16 @@
 
 # COMBINACIONES DE TECLADO / KEYBOARD SHORTCUTS ---------------------------
 
+### !!! OJO. Cada usuario puede cambiar esto a su gusto
+
+# Abrir el "document outline" que es como un resumen de las secciones de tu codigo
+Ctr + Shift + O
+
+# Colapsar todos los "folds" (son los pedazos de codigo que se agrupan con {} )
+Alt + O
+# Volver a expandirlos
+Alt + Shift + O
+
 # Cambiar la direccion de las barras / en una linea de codigo (lo agregué yo, es parte de un addin)
 Ctrl + Shift + F
 
@@ -43,9 +53,16 @@ ctrl + {
 
 # PAQUETES ÚTILES ---------------------------------------------------------
 
-# Eliminar objetos de la memoria que no se estan usando
-gc()
-  
+## ARGENTINA (https://github.com/PoliticaArgentina/polArverse)
+# Datos espaciales Argentina
+library(geoAr)
+# Datos legislatura Argentina
+library(lesgislAr)
+# Datos legislatura Argentina
+library(lesgislAr)
+# Datos elecciones Argentina
+library(electorAr)
+
 # Conectarse a bases relacionales en SQL
 library(RSQLite)
   
@@ -287,6 +304,19 @@ library(readr) #solo hay que correr eso y se define la variable
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 
+# Crear una lista de data frames repetidos / replicar el mismo data frame en una lista n veces
+df_list <- rep(list(df), 3)
+
+# Obtener el nombre de un objeto:
+deparse(substitute(location))
+# ejemplo:
+objeto_con_nombre <- cars
+nombre <- deparse(substitute(objeto_con_nombre))
+print(nombre)
+
+# Eliminar objetos de la memoria que no se estan usando
+gc()
+
 # Hacer referencia a una variable con un string (ej. en dplyr):
 var <- "cyl"
 resultado <- mtcars %>% filter((!!sym(var)) == 4)
@@ -364,6 +394,12 @@ db.sum2 <- db %>%
 # Crear cuantiles por grupo
 db <- db %>% dplyr::group_by(group_var) %>% mutate(q99_var = quantile(var, probs=0.99)) # aca percentil 99
 
+# Contar filas por grupo
+db <- db %>% 
+    group_by(var1, var2) %>% 
+    mutate(conteo = n()) %>%
+    ungroup() #opcional
+
 # Extraer los números de un string / texto /cadena:
 string <- c("20 years old", "1 years old")
 resultado <- as.numeric(gsub("([0-9]+).*$", "\\1", string))
@@ -383,6 +419,10 @@ iris2 <- read.csv.sql("iris.csv",
 
 # Evitar la notación científica
 options(scipen=999)
+
+# Apagar y prender los warnings / advertencias
+options(warn=-1)
+options(warn=0)
 
 # OCR / Leer palabras de una imagen
 img1 <- magick::image_read("https://ggplot2.tidyverse.org/logo.png")
@@ -796,6 +836,16 @@ duplicados <- c(which(duplicated(db$variable)))
 db <- db[-duplicados,]
 # Otra forma
 db <- db[!duplicated(db$x),]
+
+# Identificar valores duplicados de acuerdo a una o mas variables.
+# En este caso se crea una variable "num_dups" que indica la cantidad de filas idénticas para cada fila, dup_id que ennumera los duplicados desde 1 hasta la cantidad de duplicados, y is_duplicated que identifica a los duplicados cuyo id es mayor a 1 (lo ideal es antes ordenar la base de acuerdo a una variable de interes, entonces te aseguras que el ID 1 sea la primera observacion de acuerdo a ese criteiro) (en este caso despues elimino los duplicados)
+db <- db %>% 
+    group_by(var1, var2) %>% 
+    mutate(num_dups = n(), 
+           dup_id = row_number()) %>% 
+    ungroup() %>% 
+    mutate(is_duplicated = dup_id > 1) %>% 
+    filter(is_duplicated==TRUE)
 
 #Agregar digitos a una serie de numeros, add leading zeroes:
 db$variable <- sprintf("%04d", db$variable)
@@ -1279,6 +1329,12 @@ as_tibble(trees) %>%
   print(n = 5, width = Inf)
 
 
+# REGEX -------------------------------------------------------------------
+
+# "Escapar", encontrar o hacer referencia a un string cuando tiene algun significado determinado en regex (ej ., ,, $)
+stringr::str_detect("hola$chau", "\\$")
+stringr::str_split("hola$chau", "\\$")
+
 
 # Comandos para GRÁFICOS --------------------------------------------------
 
@@ -1463,3 +1519,20 @@ cities@data
 
 # Crear el rezago espacial de una variable (https://gist.github.com/chrishanretty/664e337c267a53a7de97)
 df$sp.lag <- spdep::lag.listw(df$var, matriz_w)
+
+
+# R MARKDOWN --------------------------------------------------------------
+
+# !!! hacer esto en un md
+
+# Hacer que un código no se corra (el equivalente a comentar el código
+
+```{r eval=FALSE, include=FALSE}
+print("Hola")
+```
+
+# Elegir si ejecutar un chunk o no
+```{r, eval=FALSE}
+print("Hola")
+```
+# por ejemplo, se puede poner un chunk al principio que definia parametros igual a TRUE o a FALSE para elegir que correr, y despues poner eval=un_parametro en el chunk
