@@ -304,6 +304,12 @@ library(readr) #solo hay que correr eso y se define la variable
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 
+
+# Crear un indice por grupo
+db <- db %>%
+    group_by(vargrupo1) %>%
+    mutate(id = cumsum(!duplicated(vargrupo2))) #revisar
+
 # Crear una lista de data frames repetidos / replicar el mismo data frame en una lista n veces
 df_list <- rep(list(df), 3)
 
@@ -1131,10 +1137,10 @@ seq(5, 10, length=30)
 # Repetir un numero o un objeto x veces:
 rep(c(0, 1, 2), times = 10)
 
-# Repetir cada elemnto de un objeto x veces:
+# Repetir cada elemento de un objeto x veces:
 rep(c(0, 1, 2), each = 10)
 
-# Pegar / concatenar / unir los elementos de un vector
+# Pegar los elementos de un vector / unir los elementos de un vector
 my_char <-c('My', 'name', 'is')
 paste(my_char, collapse = " ")
 
@@ -1542,3 +1548,12 @@ print("Hola")
 print("Hola")
 ```
 # por ejemplo, se puede poner un chunk al principio que definia parametros igual a TRUE o a FALSE para elegir que correr, y despues poner eval=un_parametro en el chunk
+
+# Insertar una linea / enter
+    #poner dos espacios despues del texto
+#o  poner "\" (sin comillas) despues del texto
+one\
+two
+
+# Formato de texto: bold
+**bold**
