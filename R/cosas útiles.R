@@ -280,11 +280,12 @@ library(googledrive){
 #__________________________________________________________________________
 
 
-# Addins ------------------------------------------------------------------
+# Addins / Snippets ------------------------------------------------------------------
 
 # Addin para invertir las barras de un directorio, insertar un pipe %>%, y otra cosa más
-devtools::install_github("sfr/RStudio-Addin-Snippets", type = "source")
-    # Puse el de flip slash como keyboard shortcut en CTRL+Shift+F
+devtools::install_github("sfr/RStudio-Addin-Snippets", type = "source") # Instalar
+    # Reiniciar R
+    # Puse el de "flip slash" como keyboard shortcut en CTRL+Shift+F (Tools->Modify Keyboard Shortcuts)
     
 # Abrir el archivo con los snippets y agregar snippets o modificar snippets
 usethis::edit_rstudio_snippets()
