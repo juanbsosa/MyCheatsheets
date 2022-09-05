@@ -53,6 +53,9 @@ ctrl + {
 
 # PAQUETES ÚTILES ---------------------------------------------------------
 
+# ]Momentos estadísticos
+library(moments)
+  
 ## ARGENTINA (https://github.com/PoliticaArgentina/polArverse)
 # Datos espaciales Argentina
 library(geoAr)
@@ -215,9 +218,6 @@ library(infer)
 library(tsibble)
 library(feasts)
 library(fable)
-library()
-library()
-library()
 
 #__________ Tema: Optimizacion de procesamiento
 
