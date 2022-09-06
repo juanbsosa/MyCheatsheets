@@ -304,6 +304,17 @@ library(readr) #solo hay que correr eso y se define la variable
 
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
+#(se lee de abajo para arriba)
+
+# Agregar un termino a una formula
+formula <- y ~ 1 + x*y
+formula <- update(formula, ~ . + z) 
+
+# Hacer un merge entre dos data frames y actualizar una columna en comun entre los dos (la columna no es parte de la llave utilizada para unir los dfs). Es decir, si encuentra columnas duplicadas entre los dfs, en vez de agregar una columna nueva para cada una utilizando un sufijo, que actualice los valores de la columna existente en el df de la izquierda.
+df <- powerjoin::power_left_join(df1, df2, by = c("var1", "var2", "var3"), conflict = powerjoin::coalesce_yx)
+
+# Crear un objeto en el ambiente padre / asignar un objeto en el ambiente por fuera de una funcion
+assign("le_pongo_este_nombre", este_es_el_objeto, envir=parent.frame())
 
 
 # Crear un indice por grupo
@@ -1524,6 +1535,9 @@ ggplot(db) +
     cities <- readOGR(dsn=dsn, layer="cities")
 # Despues se accede a todo con el simbolo arroba @
 cities@data
+
+# Convertir un numero a una unidad / convert numeric to meter units
+units::as_units(num, "meter")
 
 
 # Econometría espacial ----------------------------------------------------
