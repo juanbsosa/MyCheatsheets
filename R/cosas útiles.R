@@ -306,6 +306,13 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Identificar columnas con valores negativos (crea un data frame)
+sum <- df %>%
+        select_if(is.numeric) %>%
+        gather(var, val) %>%
+        group_by(var) %>%
+        summarise(res = any(val[!is.na(val)] < 0)) 
+
 # Agregar un termino a una formula
 formula <- y ~ 1 + x*y
 formula <- update(formula, ~ . + z) 
@@ -1546,6 +1553,9 @@ units::as_units(num, "meter")
 
 # Crear el rezago espacial de una variable (https://gist.github.com/chrishanretty/664e337c267a53a7de97)
 df$sp.lag <- spdep::lag.listw(df$var, matriz_w)
+
+# Test I de Moran
+spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.sided")
 
 
 # R MARKDOWN --------------------------------------------------------------
