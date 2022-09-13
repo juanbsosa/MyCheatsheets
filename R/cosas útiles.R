@@ -12,6 +12,9 @@
 
 ### !!! OJO. Cada usuario puede cambiar esto a su gusto
 
+# Posicionar dos cursores, uno atras y otro adelante de un texto seleccionado:
+CTRL + ALT + A
+
 # Abrir el "document outline" que es como un resumen de las secciones de tu codigo
 Ctr + Shift + O
 
@@ -425,6 +428,12 @@ db <- db %>%
     group_by(var1, var2) %>% 
     mutate(conteo = n()) %>%
     ungroup() #opcional
+
+# Agrupar usando un vector de strings con los nombres de las columnas
+cols <- c("cyl", "disp")
+mtcars %>% 
+    group_by_at(cols) %>% 
+    summarise(n = n())
 
 # Sumar por grupo
 df %>%
@@ -1369,6 +1378,11 @@ stringr::str_split("hola$chau", "\\$")
 
 # Comandos para GRÁFICOS --------------------------------------------------
 
+# Mostrar multiples graficos uno al lado del otro con el paquete basico de R graphics
+par(mfrow=c(1,2))
+plot(mtcars$mpg, mtcars$disp)
+plot(mtcars$hp, mtcars$disp)
+
 # Guardar un gráfico como PNG
 png(file="C:/grafico.png", width=600, height=350)
 hist(Temperature, col="gold") # cualquier grafico
@@ -1548,6 +1562,26 @@ units::as_units(num, "meter")
 
 
 # Econometría espacial ----------------------------------------------------
+
+# Convertir la matriz de pesos espaciales en sparse (https://cmdlinetips.com/2019/05/introduction-to-sparse-matrices-in-r/)
+# crear matrix de contiguidad
+wm_q <- spdep::poly2nb(SP,queen=TRUE)
+# convierte la matriz a lista
+wm_q <- spdep::nb2listw(wm_q ,style="W" , zero.policy = TRUE)
+# se queda con los pesos para cada poligono, como un vector
+list.we <- unlist(wm_q$weights)
+# Se queda con los vecinos de cada poligono, como un vector
+list.nb <- unlist(wm_q$neighbours)
+# Crea un vector que tiene cada id del poligono repetido tantas veces como vecinos tenga (ej si el pol 1 tiene 3 vecinos, el cetor empieza como 1, 1, 1)
+list.id <- c(1:length(wm_q$neighbours))
+list.id <- rep(list.id,lengths(wm_q$neighbours))
+# Elimina poligonos sin vecinos (de la lista de ids y de vecinos)
+list.id <- list.id[-which(list.nb==0)]
+list.nb <- list.nb[-which(list.nb==0)]
+# Crea la matriz sparse
+matriz <- Matrix::sparseMatrix(list.id,list.nb,x=list.we,dims=c(nrow(caba),nrow(caba)))
+# La convierte a lista de weights
+pol.w <- mat2listw(matriz)
 
 # Libro increible: https://spatialanalysis.github.io/handsonspatialdata/index.html
 
