@@ -533,7 +533,10 @@ db$var <- ifelse(db$var=="valor_a_cambiar", "valor_nuevo", db$var)
 rm(list = ls(pattern = "patron"))
     
 # Eliminar todos los objetos en el entorno que tengan determinado patron en su nombre / eliminar todos los objetos que empiecen con / startswith
-rm(list = ls(pattern = "^prefijo_"))
+rm(list = ls(pattern = "^prefijo"))
+
+# Obtener una lista con todos los objetos del ambiente (que empiecen con ...)
+objetos <- mget(ls(pattern = "^prefijo"))
     
 # Evaluar un string como un objeto o variable
 eval(parse(text="db"))    
@@ -1369,6 +1372,17 @@ as_tibble(trees) %>%
   print(n = 5, width = Inf)
 
 
+
+# Operaciones con strings -------------------------------------------------
+
+# Obtener la posicion de un string
+stringr::str_locate("ABCDEC", "C") # la primera vez que aparece
+stringr::str_locate_all("ABCDEC", "C") # todas las veces que aparezcqa
+
+# Determinar si un string se encuentra dentro de otro
+stringr::str_detect("HOLA JUAN", "HOLA")
+
+
 # REGEX -------------------------------------------------------------------
 
 # "Escapar", encontrar o hacer referencia a un string cuando tiene algun significado determinado en regex (ej ., ,, $)
@@ -1595,6 +1609,12 @@ spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.side
 # R MARKDOWN --------------------------------------------------------------
 
 # !!! hacer esto en un md
+
+# Que el codigo se ajuste al ancho del documento / wrap code (creo que es solo para PDFs)
+# Agregar esto en las opciones iniciales
+header-includes:
+    \usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 
 # Hacer que un código no se corra (el equivalente a comentar el código
 
