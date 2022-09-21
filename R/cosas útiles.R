@@ -1526,6 +1526,18 @@ ggplot(db) +
 cities@data
 
 
+# Econometría -------------------------------------------------------------
+
+# Calcular la funcion de máxima verosimilitud de un modelo del tipo "plm"
+logLik.plm <- function(object){
+  out <- -plm::nobs(object) * log(2 * var(object$residuals) * pi)/2 - deviance(object)/(2 * var(object$residuals))
+  
+  attr(out,"df") <- nobs(object) - object$df.residual
+  attr(out,"nobs") <- plm::nobs(object)
+  return(out)
+}
+
+
 # Econometría espacial ----------------------------------------------------
 
 # Libro increible: https://spatialanalysis.github.io/handsonspatialdata/index.html
