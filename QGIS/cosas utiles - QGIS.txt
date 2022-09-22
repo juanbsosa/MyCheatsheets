@@ -3,3 +3,6 @@ Si un geoprocessing tool no te arregla porque tenes "invalid geometries" vas a l
 
 # Rellenar agujeros en un poligono
 Toolbox - "Delete holes"
+
+# Descargar plugin CKAN Browser. Permite acceder desde QGIS a datos abiertos de un CKAN (aca abajo son las instrucciones para uno de Canadá. Conseguir el de Arg y arreglar.)
+https://extensions.ckan.org/extension/qgis-ckan-browser/

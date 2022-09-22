@@ -12,6 +12,9 @@
 
 ### !!! OJO. Cada usuario puede cambiar esto a su gusto
 
+# Posicionar dos cursores, uno atras y otro adelante de un texto seleccionado:
+CTRL + ALT + A
+
 # Abrir el "document outline" que es como un resumen de las secciones de tu codigo
 Ctr + Shift + O
 
@@ -304,6 +307,24 @@ library(readr) #solo hay que correr eso y se define la variable
 
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
+#(se lee de abajo para arriba)
+
+# Identificar columnas con valores negativos (crea un data frame)
+sum <- df %>%
+        select_if(is.numeric) %>%
+        gather(var, val) %>%
+        group_by(var) %>%
+        summarise(res = any(val[!is.na(val)] < 0)) 
+
+# Agregar un termino a una formula
+formula <- y ~ 1 + x*y
+formula <- update(formula, ~ . + z) 
+
+# Hacer un merge entre dos data frames y actualizar una columna en comun entre los dos (la columna no es parte de la llave utilizada para unir los dfs). Es decir, si encuentra columnas duplicadas entre los dfs, en vez de agregar una columna nueva para cada una utilizando un sufijo, que actualice los valores de la columna existente en el df de la izquierda.
+df <- powerjoin::power_left_join(df1, df2, by = c("var1", "var2", "var3"), conflict = powerjoin::coalesce_yx)
+
+# Crear un objeto en el ambiente padre / asignar un objeto en el ambiente por fuera de una funcion
+assign("le_pongo_este_nombre", este_es_el_objeto, envir=parent.frame())
 
 
 # Crear un indice por grupo
@@ -408,6 +429,12 @@ db <- db %>%
     mutate(conteo = n()) %>%
     ungroup() #opcional
 
+# Agrupar usando un vector de strings con los nombres de las columnas
+cols <- c("cyl", "disp")
+mtcars %>% 
+    group_by_at(cols) %>% 
+    summarise(n = n())
+
 # Sumar por grupo
 df %>%
     group_by(col_to_group_by) %>%
@@ -506,7 +533,10 @@ db$var <- ifelse(db$var=="valor_a_cambiar", "valor_nuevo", db$var)
 rm(list = ls(pattern = "patron"))
     
 # Eliminar todos los objetos en el entorno que tengan determinado patron en su nombre / eliminar todos los objetos que empiecen con / startswith
-rm(list = ls(pattern = "^prefijo_"))
+rm(list = ls(pattern = "^prefijo"))
+
+# Obtener una lista con todos los objetos del ambiente (que empiecen con ...)
+objetos <- mget(ls(pattern = "^prefijo"))
     
 # Evaluar un string como un objeto o variable
 eval(parse(text="db"))    
@@ -1342,6 +1372,17 @@ as_tibble(trees) %>%
   print(n = 5, width = Inf)
 
 
+
+# Operaciones con strings -------------------------------------------------
+
+# Obtener la posicion de un string
+stringr::str_locate("ABCDEC", "C") # la primera vez que aparece
+stringr::str_locate_all("ABCDEC", "C") # todas las veces que aparezcqa
+
+# Determinar si un string se encuentra dentro de otro
+stringr::str_detect("HOLA JUAN", "HOLA")
+
+
 # REGEX -------------------------------------------------------------------
 
 # "Escapar", encontrar o hacer referencia a un string cuando tiene algun significado determinado en regex (ej ., ,, $)
@@ -1350,6 +1391,11 @@ stringr::str_split("hola$chau", "\\$")
 
 
 # Comandos para GRÁFICOS --------------------------------------------------
+
+# Mostrar multiples graficos uno al lado del otro con el paquete basico de R graphics
+par(mfrow=c(1,2))
+plot(mtcars$mpg, mtcars$disp)
+plot(mtcars$hp, mtcars$disp)
 
 # Guardar un gráfico como PNG
 png(file="C:/grafico.png", width=600, height=350)
@@ -1525,6 +1571,9 @@ ggplot(db) +
 # Despues se accede a todo con el simbolo arroba @
 cities@data
 
+# Convertir un numero a una unidad / convert numeric to meter units
+units::as_units(num, "meter")
+
 
 # Econometría -------------------------------------------------------------
 
@@ -1540,15 +1589,44 @@ logLik.plm <- function(object){
 
 # Econometría espacial ----------------------------------------------------
 
+# Convertir la matriz de pesos espaciales en sparse (https://cmdlinetips.com/2019/05/introduction-to-sparse-matrices-in-r/)
+# crear matrix de contiguidad
+wm_q <- spdep::poly2nb(SP,queen=TRUE)
+# convierte la matriz a lista
+wm_q <- spdep::nb2listw(wm_q ,style="W" , zero.policy = TRUE)
+# se queda con los pesos para cada poligono, como un vector
+list.we <- unlist(wm_q$weights)
+# Se queda con los vecinos de cada poligono, como un vector
+list.nb <- unlist(wm_q$neighbours)
+# Crea un vector que tiene cada id del poligono repetido tantas veces como vecinos tenga (ej si el pol 1 tiene 3 vecinos, el cetor empieza como 1, 1, 1)
+list.id <- c(1:length(wm_q$neighbours))
+list.id <- rep(list.id,lengths(wm_q$neighbours))
+# Elimina poligonos sin vecinos (de la lista de ids y de vecinos)
+list.id <- list.id[-which(list.nb==0)]
+list.nb <- list.nb[-which(list.nb==0)]
+# Crea la matriz sparse
+matriz <- Matrix::sparseMatrix(list.id,list.nb,x=list.we,dims=c(nrow(caba),nrow(caba)))
+# La convierte a lista de weights
+pol.w <- mat2listw(matriz)
+
 # Libro increible: https://spatialanalysis.github.io/handsonspatialdata/index.html
 
 # Crear el rezago espacial de una variable (https://gist.github.com/chrishanretty/664e337c267a53a7de97)
 df$sp.lag <- spdep::lag.listw(df$var, matriz_w)
 
+# Test I de Moran
+spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.sided")
+
 
 # R MARKDOWN --------------------------------------------------------------
 
 # !!! hacer esto en un md
+
+# Que el codigo se ajuste al ancho del documento / wrap code (creo que es solo para PDFs)
+# Agregar esto en las opciones iniciales
+header-includes:
+    \usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 
 # Hacer que un código no se corra (el equivalente a comentar el código
 
