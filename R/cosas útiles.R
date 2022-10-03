@@ -309,6 +309,20 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Evaluar una instruccion que puede dar error sin frenar el procesamiento
+a <- NA
+try(a <- "f" + 2, silent=T)
+a
+try(a <- 3 + 2, silent=T)
+a
+
+# Ver cuántos núcleos tiene tu computadora (count pc's cores)
+parallel::detectCores()
+
+# Usar un string para nombrar una variable en las funciones del paquete dplyr
+col <- "var2"
+df <- df %>% group_by(var1) %>% mutate(var3 = !!as.symbol(col)) # a veces con !!sym(col) basta
+
 # Identificar columnas con valores negativos (crea un data frame)
 sum <- df %>%
         select_if(is.numeric) %>%
