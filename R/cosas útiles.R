@@ -309,6 +309,9 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Quedarse con los valores numericos de un objeto con nombres
+unname(x)
+
 # Evaluar una instruccion que puede dar error sin frenar el procesamiento
 a <- NA
 try(a <- "f" + 2, silent=T)
@@ -1400,8 +1403,15 @@ stringr::str_detect("HOLA JUAN", "HOLA")
 # REGEX -------------------------------------------------------------------
 
 # "Escapar", encontrar o hacer referencia a un string cuando tiene algun significado determinado en regex (ej ., ,, $)
-stringr::str_detect("hola$chau", "\\$")
+stringr::str_detect("hola$chau", "\\$") #!!! me suena a que se necesita solo a 1 barra
 stringr::str_split("hola$chau", "\\$")
+
+# Empieza con / starts with // termina con / ends with
+"^inicio.*fin$"
+# el ^ significa "empieza con"
+# el . significa "cualquier caracter"
+# el * significa "0 o más del caracter anterior" (que en este caso es cualquier caracter)
+# el $ significa que ese es el final del caracter
 
 
 # Comandos para GRÁFICOS --------------------------------------------------
@@ -1590,6 +1600,9 @@ units::as_units(num, "meter")
 
 
 # Econometría -------------------------------------------------------------
+
+# Weak instrument Test / Test Cragg Donald para instrumentos débiles
+# https://cran.r-project.org/web/packages/cragg/vignettes/introduction.html
 
 # Calcular la funcion de máxima verosimilitud de un modelo del tipo "plm"
 logLik.plm <- function(object){
