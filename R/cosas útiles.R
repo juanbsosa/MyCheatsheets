@@ -309,6 +309,20 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Calcular los valores propios de una matrix
+
+
+# Ver la ubicación de los paquetes
+.libPaths()
+
+# Obtener mas de un elemento definidio en el ambiente
+a <- 1
+b <- 2
+c <- mget(c("a", "b"))
+
+# Obtener el directrio del script actual abvierto en RStudio
+dirname(rstudioapi::getSourceEditorContext()$path)
+
 # Quedarse con los valores numericos de un objeto con nombres
 unname(x)
 
@@ -1600,6 +1614,10 @@ units::as_units(num, "meter")
 
 
 # Econometría -------------------------------------------------------------
+
+# Recuperar los EFECTOS FIJOS de una regresión
+    # Para el modelos estimados con el paquete "plm"
+plm::fixef(modelo)
 
 # Weak instrument Test / Test Cragg Donald para instrumentos débiles
 # https://cran.r-project.org/web/packages/cragg/vignettes/introduction.html
