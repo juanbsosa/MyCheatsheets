@@ -309,8 +309,35 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
-# Calcular los valores propios de una matrix
+# Fast table for summary statistics / Tabla rapida de estadisticas descriptivas
+psych::describe(mtcars)
 
+# FUNCIONES: R automaticamente te devuelve el ultimo elemento definidio en una funcion, sin tener que poner return. Estas funciones dan todas lo mismo:
+f1 <- function(x){2*x}
+a <- f1(3)
+a
+f2 <- function(x){
+    res <- 2*x
+    res
+    }
+a <- f2(3)
+a
+f3 <- function(x){
+    res <- 2*x
+}
+a <- f3(3)
+a
+
+
+
+# Hacer que R espere determinado tiempo / que tarde X segundos
+Sys.sleep(5)
+
+# Actualizar un paquete
+update.packages("splm")
+
+# Calcular los valores propios de una matrix
+eigen(matriz)
 
 # Ver la ubicación de los paquetes
 .libPaths()
@@ -1349,6 +1376,7 @@ str(airquality)
 
 # Medir el tiempo que tardo un comando:
 system.time(rnorm(1000000,2,3)) #el user time es el tiempo que le cuesta a la CPU, y el elapsed time es el tiempo que tardas vos en ver el resultado. A veces el user puede ser menor al elapsed (por ej cuando una funcion llama a una pagina web, vos esperas a que internet te devuelva algo, lo cual suma al elapsed time, pero no al user time porque ahi el cpu no hace nada. Otras veces el user puede ser menor al elapsed, por ejemplo cuando usas mas de un nucleo para procesar, ej si usas dos nucleos el user va a ser la suma del tiempo de cada nucleo, pero como vos paralelizaste solo ves que te tarda lo que tardo uno solo)
+# !!! aca no se si hay que poner llaves alrededor de "rnorm(...)"
 
 # Otra forma de medir el tiempo de un codigo
 library(tictoc)
@@ -1613,6 +1641,26 @@ cities@data
 units::as_units(num, "meter")
 
 
+
+# Algebra lineal ----------------------------------------------------------
+
+# Crear una matriz (vacia)
+matrix(ncol=3, nrow=3)
+
+# Crear una matriz diagonal (todos ceros excepto en la diagonal principal)
+diag(ncol=3, nrow=3)
+# Tambien sirve para extraer los elementos de la diagonal principal de una matriz
+diag(matriz)
+
+# Calcular el determinante de una matrix
+det(matriz)
+
+# Invertir una matriz
+solve(matriz)
+
+# Calcular la traza de una matriz (la suma de los elemntos de la diagonal principal)
+sum(diag(matriz))
+
 # Econometría -------------------------------------------------------------
 
 # Recuperar los EFECTOS FIJOS de una regresión
@@ -1693,3 +1741,36 @@ two
 
 # Formato de texto: bold
 **bold**
+break
+
+# Parallel processing (in Windows) -----------------------------------------------------
+
+# Step-by-step
+
+    # Define objects
+a <- 1
+b <- 2
+
+    # Create a function whose argument is a vector with the number of times we will run it
+multiply <- function(trials){a*b}
+
+    # Create vector with number of trials
+n <- 1:10
+
+    # Load necessary libraries
+library(parallel)
+library(doParallel)
+
+    # Set the number of cores to use
+leave_out_cores <- 2
+numCores <- detectCores() - leave_out_cores
+    # Create "numCores" copies of R running in parallel
+cl <- makeCluster(numCores)
+    # Register cluster
+registerDoParallel(cl)
+    # Export our function to the cluster (together with all objects that will be used in the function)
+clusterExport(cl=cl, varlist=list('multiply', 'a', 'b')) # !!! careful: this only handles object defined in the current or upper frame, not in lower frames
+    # Run function "n" times
+results <- c(parLapply(cl=cl, X=n, fun=multiply))
+results
+stopCluster(cl=cl)
