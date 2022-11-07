@@ -309,6 +309,10 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Create a copy of an R object with different memory address/ create a deep copy of an object // Crear una copia de un objeto en R que no este vinculada al objecto original
+mtcars1 <- data.table::copy(mtcars)
+tracemem(mtcars1) == tracemem(mtcars) # esto es para ver si los objetos tienen la misma direccion en la memoria
+
 # Fast table for summary statistics / Tabla rapida de estadisticas descriptivas
 psych::describe(mtcars)
 
