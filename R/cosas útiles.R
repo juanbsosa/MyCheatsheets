@@ -309,6 +309,9 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Citar un paquete en formato bibtex (sino citarlo solo con citation("base"))
+toBibtex(citation("base")) # ojo que te devuelve el @ con mayusculas, y en latex va con minusculas
+
 # Create a copy of an R object with different memory address/ create a deep copy of an object // Crear una copia de un objeto en R que no este vinculada al objecto original
 mtcars1 <- data.table::copy(mtcars)
 tracemem(mtcars1) == tracemem(mtcars) # esto es para ver si los objetos tienen la misma direccion en la memoria
@@ -1474,7 +1477,7 @@ dev.off()
 # Guardar un gráfico como PDF
 pdf(file="saving_plot4.pdf")
 hist(Temperature, col="violet")
-dev.off
+dev.off()
 #!!! es mejor usar ggsave(), cambiar!
 
 # GGPAIRS: graficos de correlaciones / correlogramas /scatters / coeficientes de correlacion
