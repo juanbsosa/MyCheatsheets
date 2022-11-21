@@ -309,6 +309,9 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Transponer un data frame y hacer que la primera columna sea los nombres de las columnas
+df_t = setNames(data.frame(t(df[,-1])), df[,1])
+
 # Citar un paquete en formato bibtex (sino citarlo solo con citation("base"))
 toBibtex(citation("base")) # ojo que te devuelve el @ con mayusculas, y en latex va con minusculas
 

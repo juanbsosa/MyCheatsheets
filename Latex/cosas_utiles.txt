@@ -1,0 +1,5 @@
+% Place footnotes to the left of text margin (in this example, 0.25 inches)
+\usepackage{xpatch}
+\makeatletter
+\xpatchcmd{\@footnotetext}{\@parboxrestore}{\@parboxrestore\leftskip-0.25in}{}{}
+\makeatother

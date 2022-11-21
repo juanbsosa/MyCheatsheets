@@ -26,6 +26,9 @@ pd.set_option('max_row', None) #esta otra no sé qué hace
 
 ###----------------------------------###
 
+
+
+
 # Appendear / Agregar filas de otro data frame que no esten en el data frame actual
 df_diff = df2[~df2.col1.isin(A.col1)]
 df_full = pd.concat([df1, df_diff], ignore_index=True)
@@ -42,8 +45,7 @@ df.rename(columns=cambio_cols,
 df['fecha'] = pd.to_datetime(dict(year=df.anio, month=df.mes, day=1)) # aca no tengo dia y le pongo 1
 
 # Crear una columna / crear una variable en un data frame que tome diferentes valores de acuerdo una condicion
-db['var'] = np.where(db['var2']=='valor', valorsitrue, valorsifal
-    se)
+db['var'] = np.where(db['var2']=='valor', valorsitrue, valorsifalse)
 
 # Crear una columna / crear una variable en un data frame que tome diferentes valores de acuerdo mas de una condicion
 df = pd.DataFrame({'Type':list('ABBC'), 'Set':list('ZZXY')})
@@ -631,3 +633,342 @@ base_plot = poligono.plot()
 puntos.plot(ax=base_plot, color='blue');
 
 # Ver ipynb "arreglo_espacioal_estaciones_servicio"
+
+
+
+# %% BASIC COMMANDS
+
+# Look for the position of an element in a list/dictionary/etc according to its value
+x=["a","b"]
+x.index("b")
+
+# Create a list of numbers from 1 to n
+list(range(1,5))
+
+# Create a dictionary from two lists
+list_a=["a", "b", "c"]
+list_b=[1,2,3]
+dict1 = dict(zip(list_a, list_b))
+
+# %% DICTIONARIES
+a= {"saludo":"hola"}
+
+# Get keys
+a.keys()
+
+# Add/change a key-value pair
+a["saludar"] = "holar"
+
+# Delete key-value pairs
+del(a["saludar"])
+
+# Check if value is part of keys
+"saludar" in a
+
+# Dictionary of dictionaries
+europe = { 'spain': { 'capital':'madrid', 'population':46.77 },
+           'france': { 'capital':'paris', 'population':66.03 },
+           'germany': { 'capital':'berlin', 'population':80.62 },
+           'norway': { 'capital':'oslo', 'population':5.084 } }
+    # Use chained square brackets
+print(europe["france"]["capital"])
+
+# %% LOOPS
+
+# for lop
+
+# pair index with value
+fam =[1,3,5,1]
+for index, value in enumerate(fam):
+    print("index " + str(index) + ": " + str(value))
+    
+# Iterate through key-value pairs in a dictionary
+europe = {'spain':'madrid', 'france':'paris', 'germany':'berlin',
+          'norway':'oslo', 'italy':'rome', 'poland':'warsaw', 'austria':'vienna' }
+for country, capital in europe.items():
+    print(country, " ", capital)
+    
+# Iterate over elements of a 2D numpy array
+for x in np.nditer(my_array) :
+    ...
+
+# %% NUMPY - ARRAYS
+
+# Logical equivalents of AND and OR and NOT
+np.logical_and()
+np.logical_or()
+np.logical_not()
+
+# %% NUMPY - RANDOM NUMBERS
+from numpy import random
+
+# Set seed
+random.seed(123)
+
+# %% PANDAS - DATA FRAMES
+import pandas as pd
+
+# Build a DataFrame from a dictionary of lists (column by column)
+names = ['United States', 'Australia', 'Japan', 'India', 'Russia', 'Morocco', 'Egypt']
+dr =  [True, False, False, False, True, True, True]
+cpc = [809, 731, 588, 18, 200, 70, 45]
+cars_dict = { 'country':names, 'drives_right':dr, 'cars_per_cap':cpc }
+cars = pd.DataFrame(cars_dict)
+
+# Build a DataFrame from a list of dictionaries (row by row)
+list_of_dicts[{"country":"United States", 'drives_right':"True", 'cars_per_cap':809},
+{"country":"Australia", 'drives_right':"False", 'cars_per_cap':731}]
+cars=pd.DataFrame(list_of_dicts)
+
+# Access/change row index
+row_labels = ['US', 'AUS', 'JPN', 'IN', 'RU', 'MOR', 'EG']
+cars.index = row_labels
+
+# Read a csv file
+pd.read_csv("file.path") # index_col to say which column corresponds to row index
+
+# Write a csv file / convert data frame to csv
+df.to_csv("file.csv")
+
+# Select a column of a data frame (several ways)
+cars["cars_per_cap"] # returns a pandas series
+type(cars["cars_per_cap"])
+
+cars[["cars_per_cap"]] # returns a pandas (sub) data frame
+type(cars[["cars_per_cap"]])
+
+# Select multiple columns of data frame
+df[["col1, col2"]]
+#or
+cols = ["col1, col2"]
+df[cols]
+
+# Select rows by index
+cars[0:5]
+
+# Slice by rows/columns
+
+# Select rows by row names
+cars.loc["US"]
+cars.loc[["US", "RU"]]
+
+# Select rows by row names and column names
+cars.loc[["RU"], ["country"]]
+
+# Select all rows from columns
+cars.loc[:, ["country", "drives_right"]]
+
+# Subset data frame based on positions of rows/columns
+cars.iloc[[1, 4]]
+cars.iloc[[1, 4], [0, 1]]
+cars.iloc[:, [0, 1]]
+
+# Iterate over column names of data frame
+for col in cars:
+    print(col)
+
+# Iterate over rows of data frame (row labes and row data)
+for lab, row in cars.iterrows():
+    print(lab)
+    print(row)
+    
+# Create new columns by using apply on a function
+    # eg the length of the name of the country
+cars["length_country_name"] = cars["country"].apply(len)
+cars
+
+# Display column names, data types and missing values
+df.info()
+
+# Data frame dimension attribute
+df.shape
+
+# Overview of descriptive statistics of data frame
+df.describe()
+
+# Values of data frame (attribute) / get data frame values as array
+df.values
+
+# Columns of data frame (attribute)
+df.columns
+
+# Row names / row indexes (attribute)
+df.index
+
+# Sort rows of data frame
+df.sort_values("column_name")
+df.sort_values("column_name", ascending=False)
+# Sort data frame accoridn to multiple columns
+df.sort_values(["column_name", "col_name2"], ascending=[True, False])
+
+# Subsetting according to logicla condition
+df[df["col"]>10]
+df[df["col"]=="value"]
+df[(df["col"]>10) & (df["col"]=="value")] # !!! add parenthesis
+
+# Subsetting using .isin()
+df[df["col"].isin(["v1", "v2"])]
+
+# Create a new column
+df["col"] = df["col2"]*2
+
+## SUMMARY STATISTICS
+df["col"].mean() # mean of column
+df["col"].median() # median of column
+df["col"].mode() # mode of column
+df["col"].min() # minimum of column
+df["col"].max() # maximum of column
+df["col"].var() # variance of column
+df["col"].std() # standard deviation of column
+df["col"].sum() # sum of column
+df["col"].quantile() # quantile of column
+df["col"].cumsum() # cumulative sum of column
+# NOTE: this are all calculated based on the "index" axis of the data frame, which means "by rows", because of the default value
+df.mean(axis="index")
+# But you can also calculate summary statistics for each row (across columns)
+df.mean(axis="columns")
+# If you dont specify any column, the operation is computed over all columns
+df.mean()
+
+# Custom summary statistics using ".agg()" method (example: get 30th percentile)
+def pct30(column):
+    return column.quantile(0.3)
+df["col"].agg(pct30) # there can be more than one function as arguments
+df["col"].agg([pct30, median])
+
+## COUNTING
+# Count unique values of a column
+df["col"].value_counts()
+# count unique values and sort by frequency in descending order
+df["col"].value_counts(sort=True)
+# turn the counts into proportions of the total
+df["col"].value_counts(normalize=True)
+
+# Drop duplicates
+df.drop_duplicates(subset=["column1", "column2"])
+
+# Group by column
+df.groupby(["col1", "col3"])["col2", "col4"].agg([np.min, np.max, np.mean(), np.median()])
+df.groupby("col").agg({'col2':'count'})
+
+# Pivot tables
+df.pivot_table(values="col1", index="col_group") # mean by default
+df.pivot_table(values="col1", index="col_group", aggfunc=[np.mean, np.median])
+df.pivot_table(values="col1", index="col_group1", columns="col_group2") # group by two columns
+df.pivot_table(values="col1", index="col_group1", columns="col_group2", fill_value=0) # group by two columns, fill missing values
+df.pivot_table(values="col1", index="col_group1", columns="col_group2", fill_value=0, margins=True) # group by two columns, add row and column totals
+
+## ROW INDEXES
+
+# Set column as row INDEX
+df = df.set_index("col")
+# Reset data frame index
+df.reset_index() # turns index as column
+df.reset_index(drop=True) # discard index column
+# Row indexes are useful because they allow you to subset much more easily. Instead of writing
+df[df["col"].isin(["val1", "val2"])]
+# you can write
+df.loc[["val1", "val2"]]
+# You can use multiple columns as index / multi-level/hierarchichal index
+df = df.set_index(["col1", "col2"])
+# Subsetting is done slightly differently
+df.loc[[("val1_col1", "val1_col2"), ("val2_col1", "val2_col2")]]
+# Sort by index
+df.sort_index(level=["ind1", "ind2"], ascending=True)
+
+# Slicing a data frame by index
+    # first sort index
+df.loc["val0":"val11"] # last value is included (this is different from list subsetting)
+    # with multiple indexes
+df.loc[("val1_ind1","val1_ind2"):("val2_ind1","val11_ind2")]
+# This is particularly useful when indexes are dates. For example, you can pass a year as an argument without specifying month or day
+df.loc["2013":"2015"]
+df.loc["2013-01":"2015-12"]
+
+# Slicing a data frame by column/s
+df.loc[:, "col1":"col3"]
+
+# Subsetting a data frame by row/column number / position
+df.iloc[1:3, 6:8]
+
+# Access the components of a date
+df["col1"].dt.month
+df["col1"].dt.year
+# For example, if you have a column with a date, you can create a new column with the year
+df["year"] = df["date"].dt.year
+
+# Get all missing values of df == True
+df.isna()
+
+# Check if there are any missing values in each column
+df.isna().any()
+
+# Count missing values of columns
+df.isna().sum()
+df.isna().sum().plot(kind="bar") # plot nº of NaNs in a bar chart
+
+# Remove rows with missing values
+df.dropna()
+
+# Replace missing values with another value
+df.fillna("MISSING")
+
+# %% JOINING DATA - PANDAS
+
+## INNER JOIN: return rows with matching values in both tables
+df.merge(df2, on="col", suffixes=("_df1", "_df2"))
+
+# %% GRAPHS - MATPLOTLIB
+
+import matplotlib.pyplot as plt
+
+x=[1,2,3,4]
+
+y=[4,65,12,4]
+
+z=[3,3,2,1]
+
+
+# To visualize graph, show it
+plt.show()
+
+# To close visualization
+plt.clf()
+
+# Line plot
+plt.plot(x, y, kind="line") # here "line" is default, so not necessary
+
+# Scater plot
+plt.scatter(x, y) # or df.plot(x,y,kind="scatter")
+    # Set dot size according to a variable
+plt.scatter(x, y, s=z)
+
+# Histogram
+plt.hist(x)
+# control bin number
+plt.hist(bins=29)
+
+# Title
+plt.title("Title")
+
+# X and Y labels
+plt.xlabel()
+plt.ylabel()
+
+# Change to logarithmic scale
+plt.scale("log")
+
+# Bar plot
+plt.plot(kind="bar")
+df.plot(kind="bar")
+
+# Place two or more graphs in the same plot
+df.plt.hist(alpha=0.7)
+df2.plt.hist(alpha=0.7)
+plt.show()
+
+# Plot multiplie histogramas at a time, but not on the same plot
+df.[["col1", "col2"]].hist()
+
+# Add legend to plot
+plt.legen(["A", "B"])
