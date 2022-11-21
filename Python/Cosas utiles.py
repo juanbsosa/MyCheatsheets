@@ -735,6 +735,10 @@ for country, capital in europe.items():
 for x in np.nditer(my_array) :
     ...
 
+# Continue code in the next line
+df.groupby("col") \
+    .mean()
+
 # %% NUMPY - ARRAYS
 
 # Logical equivalents of AND and OR and NOT
@@ -956,10 +960,33 @@ df.dropna()
 # Replace missing values with another value
 df.fillna("MISSING")
 
-# %% JOINING DATA - PANDAS
+# %% JOINING DATA - MUTATING JOINS - PANDAS
 
 ## INNER JOIN: return rows with matching values in both tables
 df.merge(df2, on="col", suffixes=("_df1", "_df2"))
+
+## LEFT JOIN
+df.merge(df2, on='col', how='left') # default is 'inner'
+
+## RIGHT JOIN
+df.merge(df2, on='col', how='right') # default is 'inner'
+
+## OUTER JOIN
+df.merge(df2, on='col', how='outer') # default is 'inner'
+# it can be used to find rows that do not have a match
+
+# Merge according to columns with differnt names
+df.merge(df2, left_on='col1', right_on='col1_right')
+
+## MERGE A TABLE TO ITSELF: you can do this with any type of merge
+
+# Merge on data frame indexes> the sintax is the same as before (on='id') except when keys do not have the same name, where you have to add
+df.merge(df2, on='id', left_on='col_df', right_on='right_col', left_index=True, right_index=True) # you need to set this last two to True
+
+# Read csv and set column as index
+pd.read_csv('file.csv',  index_col='col')
+
+# FILTERING JOINS !!!aclarar que todo lo anterior eran mutating joins
 
 # %% GRAPHS - MATPLOTLIB
 
