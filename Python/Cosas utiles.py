@@ -26,8 +26,51 @@ pd.set_option('max_row', None) #esta otra no sé qué hace
 
 ###----------------------------------###
 
+###------- USEFUL COMMANDS -------###
 
+## METODOS DE STRINGS
+# Reemplazar una parte de un string por otra
+saludo = 'hola'
+print(saludo.replace('la', 'mbre'))
 
+# Cambiar todo a mayuscula
+place = "poolhouse"
+print(place.upper())
+
+# Cambiar la primera letra a mayuscula
+print('hola'.capitalize())
+
+## METODOS DE LISTAS
+# Contar la cantidad de veces que aparece un elemento en una lista
+lista1 = [1,2,3,4,1,1]
+print(lista1.count(1))
+
+# Obtener el indice de un objeto dentro de una lista / obtener la posicion de un elemento en una lista
+lista1 = [1,2,3,4]
+print(lista1.index(3))
+
+# The ; sign is used to place commands on the same line. The following two code chunks are equivalent:
+# Same line
+print('Hello'); print('Bye')
+
+# Separate lines
+print('Hello')
+print('Bye')
+
+# Copiar objetos (listas)
+lista1 = [1,2,3,4]
+lista2 = lista1 # aca estas copiando la referencia a la lista1, no los objetos
+del[lista2[2]]
+print(lista1)
+    # Para copiar los elementos, y no solo la referencia, hay que escribir
+y = list[lista1]
+# o
+y = x[:]
+
+# Eliminar un elemento de una lista
+lista1 = [1,2,3,4]
+del[lista1[2]]
+print(lista1)
 
 # Appendear / Agregar filas de otro data frame que no esten en el data frame actual
 df_diff = df2[~df2.col1.isin(A.col1)]

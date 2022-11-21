@@ -1468,6 +1468,14 @@ stringr::str_split("hola$chau", "\\$")
 
 # Comandos para GRÁFICOS --------------------------------------------------
 
+# Modificar los ticks de un grafico de manera facil
+grafico <- ggplot(df_eph_hog, aes(x = IPCF)) +
+  geom_histogram(color = "black", fill="white") +
+  xlab("Ingreso per cápita familiar") +
+  ylab("Frecuencia") +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) # esto
+
+
 # Mostrar multiples graficos uno al lado del otro con el paquete basico de R graphics
 par(mfrow=c(1,2))
 plot(mtcars$mpg, mtcars$disp)
