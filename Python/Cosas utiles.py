@@ -897,6 +897,8 @@ df.drop_duplicates(subset=["column1", "column2"])
 # Group by column
 df.groupby(["col1", "col3"])["col2", "col4"].agg([np.min, np.max, np.mean(), np.median()])
 df.groupby("col").agg({'col2':'count'})
+    # Group by index (when you have a multiindex)
+df.groupby(level=0).agg({'col2':'count'}) # first index
 
 # Pivot tables
 df.pivot_table(values="col1", index="col_group") # mean by default
@@ -978,6 +980,9 @@ df.merge(df2, on='col', how='outer') # default is 'inner'
 # Merge according to columns with differnt names
 df.merge(df2, left_on='col1', right_on='col1_right')
 
+# Add a column that specifies the result of the merge for each row
+df1.merge(df2, on="id", indicator=True)
+
 ## MERGE A TABLE TO ITSELF: you can do this with any type of merge
 
 # Merge on data frame indexes> the sintax is the same as before (on='id') except when keys do not have the same name, where you have to add
@@ -986,7 +991,41 @@ df.merge(df2, on='id', left_on='col_df', right_on='right_col', left_index=True, 
 # Read csv and set column as index
 pd.read_csv('file.csv',  index_col='col')
 
-# FILTERING JOINS !!!aclarar que todo lo anterior eran mutating joins
+# %% JOINING DATA - FILTERING JOINS - PANDAS
+
+# Filter observations from one table based on whether or not they match an observation in another table
+
+# SEMI JOIN:
+# - Returns observations in the left table that have a match in the right table.
+# Only the columns from the left table are shown. 
+# No duplicate rows are returned, even if there is a one-to-many relationship
+df_3 = df1.merge(df2, on="id") # first do an inner join
+df1["id"].isin(df_3["id"])
+
+# ANTI JOIN:
+# - Returns observations in the left table that DO NOT have a match in the right table.
+# - Only the columns from the left table are shown. 
+df_3 = df1.merge(df2, on="id", how="left", indicator=True) # first do an inner join
+df_3.loc[df_3["_merge"] == 'left_only', 'gid']
+
+# %% JOINING DATA - CONCATENATION - PANDAS
+
+# Vertical bind / row bind (default)
+pd.concat([df1, df2, df3])
+    # You can ignore the index
+pd.concat([df1, df2, df3], ignore_index=True)
+    # Add keys labels to identify which row came from which data frame
+pd.concat([df1, df2, df3], ignore_index=False, keys=["1", "2", "3"])
+    # You can bind two tables where one has more rows than the other. The method will keep all columns. You can sort columns alphabetically
+pd.concat([df1, df2, df3], sort=True)
+    # Only keep matching columns
+pd.concat([df1, df2, df3], join='inner') # default is 'outer'
+
+# Append method on data frames: simplified version of concat
+df.append([df2, df3], ignore_index=True, sort=True)
+
+# Horizontal bind / row bind (default)
+pd.concat([df1, df2, df3])
 
 # %% GRAPHS - MATPLOTLIB
 
