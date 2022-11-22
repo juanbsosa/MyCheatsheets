@@ -962,6 +962,7 @@ df.dropna()
 # Replace missing values with another value
 df.fillna("MISSING")
 
+
 # %% JOINING DATA - MUTATING JOINS - PANDAS
 
 ## INNER JOIN: return rows with matching values in both tables
@@ -991,6 +992,27 @@ df.merge(df2, on='id', left_on='col_df', right_on='right_col', left_index=True, 
 # Read csv and set column as index
 pd.read_csv('file.csv',  index_col='col')
 
+# Verifying merges
+df.merge(df2, on='id', validate='one_to_one') # default is "none"
+df.merge(df2, on='id', validate='one_to_many')
+df.merge(df2, on='id', validate='many_to_many')
+df.merge(df2, on='id', validate='many_to_one')
+
+# Merge ORDERED data or TIME SERIES data
+
+# MERGE ORDERED
+pd.merge_ordered(df1, df1, on='date') # default of how argument is 'outer'
+# You can INTERPOLATE missing data 
+pd.merge_ordered(df1, df1, on='date', fill_method='ffill') # forward fill: with the last value
+# When using merge_ordered() to merge on multiple columns, the order is important when you combine it with the forward fill feature. The function sorts the merge on columns in the order provided.
+
+# MERGE AS OF (also very useful for TIME SERIES data)
+# similar to a left merge_ordered, but matches on the nearest key column and not on exact matches
+pd.merge_asof(df1, df2, on='date') # default 'direction' argument is 'backwards': assigns the last row where the key column value in the right table is less than or equal to the key column value in the left table
+pd.merge_asof(df1, df2, on='date', direction='forward') # assings the last row in the right table where the key is equal or greater than the one in the left
+pd.merge_asof(df1, df2, on='date', direction='nearest')
+
+
 # %% JOINING DATA - FILTERING JOINS - PANDAS
 
 # Filter observations from one table based on whether or not they match an observation in another table
@@ -1007,6 +1029,7 @@ df1["id"].isin(df_3["id"])
 # - Only the columns from the left table are shown. 
 df_3 = df1.merge(df2, on="id", how="left", indicator=True) # first do an inner join
 df_3.loc[df_3["_merge"] == 'left_only', 'gid']
+
 
 # %% JOINING DATA - CONCATENATION - PANDAS
 
@@ -1026,6 +1049,24 @@ df.append([df2, df3], ignore_index=True, sort=True)
 
 # Horizontal bind / row bind (default)
 pd.concat([df1, df2, df3])
+
+# Verifying concatenations
+df.concat(verify_integrity=True) # deafult is False. True verifies if there are duplicated indexes
+
+# %% SELECTING DATA - QUERY 
+# Similar to the WHERE clause of a SQL statement
+df.query('col > 10') # returns all rows where col is grater than 10
+df.query('col > 10 and col < 20')
+df.query('col > 10 or col2 == "value"') # use double quotes inside the statement
+
+# %% RESHAPING DATA - melt
+# Reshape data from wide to long format
+df.melt(id_vars=['col1', 'col2'])
+# chose which variables will remain unpivoted
+df.melt(id_vars=['col1', 'col2'], value_vars=['2019', '2020'])
+# Set names for the new variable column and the values column
+df.melt(id_vars=['col1', 'col2'], var_name='years', value_name='dollars')
+
 
 # %% GRAPHS - MATPLOTLIB
 
