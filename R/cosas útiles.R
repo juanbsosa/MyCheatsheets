@@ -532,6 +532,12 @@ options(scipen=999)
 options(warn=-1)
 options(warn=0)
 
+# Allow more prints in console
+options(max.print=10000000)
+
+# Allow full width of console
+options("width"=200)
+
 # OCR / Leer palabras de una imagen
 img1 <- magick::image_read("https://ggplot2.tidyverse.org/logo.png")
 print(img1)

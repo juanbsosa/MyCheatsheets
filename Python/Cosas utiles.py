@@ -895,7 +895,7 @@ df["col"].value_counts(normalize=True)
 df.drop_duplicates(subset=["column1", "column2"])
 
 # Group by column
-df.groupby(["col1", "col3"])["col2", "col4"].agg([np.min, np.max, np.mean(), np.median()])
+df.groupby(["col1", "col3"])["col2", "col4"].agg([np.min, np.max, np.mean, np.median])
 df.groupby("col").agg({'col2':'count'})
     # Group by index (when you have a multiindex)
 df.groupby(level=0).agg({'col2':'count'}) # first index
@@ -1060,11 +1060,12 @@ df.query('col > 10 and col < 20')
 df.query('col > 10 or col2 == "value"') # use double quotes inside the statement
 
 # %% RESHAPING DATA - melt
+
 # Reshape data from wide to long format
 df.melt(id_vars=['col1', 'col2'])
-# chose which variables will remain unpivoted
+    # chose which variables will remain unpivoted
 df.melt(id_vars=['col1', 'col2'], value_vars=['2019', '2020'])
-# Set names for the new variable column and the values column
+    # Set names for the new variable column and the values column
 df.melt(id_vars=['col1', 'col2'], var_name='years', value_name='dollars')
 
 
@@ -1077,7 +1078,6 @@ x=[1,2,3,4]
 y=[4,65,12,4]
 
 z=[3,3,2,1]
-
 
 # To visualize graph, show it
 plt.show()
@@ -1122,3 +1122,36 @@ df.[["col1", "col2"]].hist()
 
 # Add legend to plot
 plt.legen(["A", "B"])
+
+# %% STATISTICS
+
+# Calculate the mode
+import statistics
+statistics.mode(df['col'])
+
+# Variance
+np.var(df['col']) # population variance
+np.var(df['col'], ddof=1) #  sample variance
+
+# Standar deviation
+np.std(df['col']) # population
+np.std(df['col'], ddof=1) #  sample
+
+# Mean absolute deviation (like variance but without squaring. It penalizes distances equally)
+np.mean(np.abs(df['col']-mean(df$col)))
+
+# Quantiles
+np.quantile(df['col'], 0.5) # median
+np.quantile(df['col'], [0.5,0.9])
+np.quantile(df['col'], np.linspace(0,1,5)) # five quantiles with equal distance
+
+# Interquantile range
+from scipy.stats import iqr
+iqr(df['col'])
+
+# Outliers according to boxplot criterion
+from scipy.stats import iqr
+iqr(df['col'])
+lower_threshold = np.quantile
+
+# %%
