@@ -634,7 +634,7 @@ def comando_cuantiles(df, variable, cuantiles, ponderador=None):
     # else:
     #     df.quantile(q=cuantiles)
         
-#     bar_df = gdf.groupby('percentil').agg({ponderador:'sum'})
+#     bar_df = gdf.groupby('percentil').agg({'ponderador':'sum'})
 #     bar_df = bar_df.reset_index()
 #     plt.bar(bar_df['percentil'], bar_df[ponderador])
 
@@ -751,6 +751,7 @@ from numpy import random
 
 # Set seed
 random.seed(123)
+np.random.seed(123)
 
 # %% PANDAS - DATA FRAMES
 import pandas as pd
@@ -1146,7 +1147,7 @@ np.quantile(df['col'], [0.5,0.9])
 np.quantile(df['col'], np.linspace(0,1,5)) # five quantiles with equal distance
 
 # Interquantile range
-from scipy.stats import iqr
+from scipy.statshist import iqr
 iqr(df['col'])
 
 # Outliers according to boxplot criterion
@@ -1154,4 +1155,27 @@ from scipy.stats import iqr
 iqr(df['col'])
 lower_threshold = np.quantile
 
+# Sample
+df.sample(n=10) # without replacement
+df.sample(n=10, replace=True) # with replacement
+
+# Calculate cumulative probabilities (less than or equal to) of a Uniform distribution
+from scipy.stats import uniform
+uniform.cdf(7, 0, 12) # pointvalue=7, lower=0, upper=12. Prob of getting 7 in a uniform range of 0-12
+
+# Generate random numbers with a uniform distribution
+from scipy.stats import uniform
+uniform.rvs(0, 5, size=10) # min, max, n
+
+# Generate a variable with binomial distribution
+from scipy.stats import uniform
+binom.rvs(1, 0.5, size=100) # n of coins, prob of success, n of trials
+
+# Calculate point probabilities of a binomail distribution
+from scipy.stats import binom
+binom.pmf(5, 100, 0.5) #n of success, n trials, prop of success
+
+# Calculate cumulative probabilities (less than or equal to) of a Uniform distribution
+from scipy.stats import binom
+binom.cdf(5, 100, 0.5) #n of success, n trials, prop of success
 # %%
