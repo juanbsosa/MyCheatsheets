@@ -1124,7 +1124,17 @@ df.[["col1", "col2"]].hist()
 # Add legend to plot
 plt.legen(["A", "B"])
 
-# %% STATISTICS
+
+# %% GRAPHS - SEABORN
+import seaborn as sns
+
+# Scatter plot
+sns.scatterplot(x='col1', y='col2', data=df)
+
+# Add a trendline to a scatter plot
+sns.lmplot(x='col1', y='col2', data=df, ci=None) # ci es confidence interval
+
+# %% INTRODUCTION TO STATISTICS
 
 # Calculate the mode
 import statistics
@@ -1171,11 +1181,41 @@ uniform.rvs(0, 5, size=10) # min, max, n
 from scipy.stats import uniform
 binom.rvs(1, 0.5, size=100) # n of coins, prob of success, n of trials
 
-# Calculate point probabilities of a binomail distribution
+# Calculate point probabilities of a Binomial distribution
 from scipy.stats import binom
 binom.pmf(5, 100, 0.5) #n of success, n trials, prop of success
 
-# Calculate cumulative probabilities (less than or equal to) of a Uniform distribution
+# Calculate cumulative probabilities (less than or equal to) of a Binomial distribution
 from scipy.stats import binom
 binom.cdf(5, 100, 0.5) #n of success, n trials, prop of success
+
+# Calculate cumulative probabilities (less than or equal to) of a normal distribution
+from scipy.stats import norm
+norm.cdf(50, 47, 5) # value, mean, sd
+
+# Calculate point values of percentiles of a normal distribution
+from scipy.stats import norm
+norm.ppf(0.9, 47, 5) # value, mean, sd
+
+# Generate random numbers with a normal distribution
+norm.rvs(0, 1, size=100) # mean, sd, n
+
+# Calculate point probabilities of a Poisson distribution
+from scipy.stats import poisson
+poisson.pmf(5, 8) # value, lambda (mean rate)
+
+# Calculate cumulative probabilities (less than or equal to) of a Poisson distribution
+from scipy.stats import norm
+poisson.cdf(5, 8) # value, lambda (mean rate)
+
+# Generate random numbers with a Poisson distribution
+norm.rvs(8, size=100) # lambda, size
+
+# Calculate cumulative probabilities (less than or equal to) of a Exponential distribution
+from scipy.stats import expon
+expon.cdf(5, 8) # value, 1/lambda (1/mean Poisson rate)
+
+# Calculate the (Pearson) correlation between two variables
+df['col1'].corr(df['col2'])
+
 # %%
