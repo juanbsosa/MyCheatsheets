@@ -891,6 +891,8 @@ df["col"].value_counts()
 df["col"].value_counts(sort=True)
 # turn the counts into proportions of the total
 df["col"].value_counts(normalize=True)
+# Count by groups
+df.groupby(['col1']).agg({'col2': 'count'}).reset_index()
 
 # Drop duplicates
 df.drop_duplicates(subset=["column1", "column2"])
@@ -993,7 +995,7 @@ df.merge(df2, on='id', left_on='col_df', right_on='right_col', left_index=True, 
 # Read csv and set column as index
 pd.read_csv('file.csv',  index_col='col')
 
-# Verifying merges
+# Verifying merges (if not valid, returns error message)
 df.merge(df2, on='id', validate='one_to_one') # default is "none"
 df.merge(df2, on='id', validate='one_to_many')
 df.merge(df2, on='id', validate='many_to_many')
