@@ -1127,6 +1127,72 @@ df.[["col1", "col2"]].hist()
 plt.legen(["A", "B"])
 
 
+# (INTRODUCTION TO DATA VISUALIZATION WITH MATPLOTLIB)
+
+# Create figure and axis objects
+# Figure: container that holds everything you see on the page
+# Axis: part of the page that holds the data
+fig, ax = plt.subplots()
+plt.show()
+
+# Plotting command: methods of the axis object
+ax.plot(df['col1'], df['col2'])
+plt.show()
+
+# Add more data (multiple line plots in the same figure)
+fig, ax = plt.subplots()
+ax.plot(df['col1'], df['col2'])
+ax.plot(df2['col1'], df2['col2'])
+plt.show()
+
+# Line plot with dots (markers)
+fig, ax = plt.subplots()
+ax.plot(df['col1'], df['col2'], marker='o') # other options: https://matplotlib.org/stable/api/markers_api.html
+plt.show()
+
+# Change the linestyle of a line plot
+fig, ax = plt.subplots()
+ax.plot(df['col1'], df['col2'], linestyle="--") # other options: https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
+plt.show() # another option is "None"
+
+# Change color of line graph
+ax.plot(df['col1'], df['col2'], color='r') # Red
+
+# Customize axis labels
+ax.set_xlabel('Time')
+ax.set_ylabel('Time')
+
+# Title
+ax.set_title('Title')
+
+# Multiple plots in the same figure ('Small multiples': similar data across diferent groups/subjects)
+fig, ax = plt.subplots(3, 2) # figure object with 3 rows, 2 columns
+plt.show()
+# Now "ax" is an array of axis objects
+# See dimensions of axis
+ax.shape
+# Add a plot to one of the axis objects
+ax[0,0].plot(df['col1'], df['col2']) # top left subplot
+# only one column
+fig, ax = plt.subplots(3, ) # figure object with 3 rows, 1 columns
+plt.show()
+ax[0].plot(df['col1'], df['col2']) # top subplot
+
+# Set equal range of axis in subplots
+fig, ax = plt.subplots(2, 1, sharey=True)
+
+# Plotting TIME SERIES data
+# First set date column as index of pandas data frame
+df = pd.read_csv('df.csv', parse_dates=['date'], index_col='date')
+# Add the index as the X axis
+ax.plot(df.index, df['col'])
+
+
+
+
+
+
+
 # %% GRAPHS - SEABORN
 import seaborn as sns
 
@@ -1135,6 +1201,7 @@ sns.scatterplot(x='col1', y='col2', data=df)
 
 # Add a trendline to a scatter plot
 sns.lmplot(x='col1', y='col2', data=df, ci=None) # ci es confidence interval
+
 
 # %% INTRODUCTION TO STATISTICS
 
