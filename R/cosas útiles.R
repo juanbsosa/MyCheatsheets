@@ -309,6 +309,17 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Calcular la tasa de cambio de todas las columnas de un data frame (o la primera diferencia si sacamos la division)
+pct_chage <- function(vector){
+    
+    diff <- diff(vector, lag=1)
+    pct_diff <- diff/vector[-length(vector)]
+    
+    return(pct_diff)
+    
+}
+as.data.frame(lapply(df, pct_chage))
+
 # Transponer un data frame y hacer que la primera columna sea los nombres de las columnas
 df_t = setNames(data.frame(t(df[,-1])), df[,1])
 
@@ -386,7 +397,10 @@ sum <- df %>%
 
 # Agregar un termino a una formula
 formula <- y ~ 1 + x*y
-formula <- update(formula, ~ . + z) 
+formula <- update(formula, ~ . + z)
+
+# Convertir un string en una formula
+as.formula("y ~ x1 + x2")
 
 # Hacer un merge entre dos data frames y actualizar una columna en comun entre los dos (la columna no es parte de la llave utilizada para unir los dfs). Es decir, si encuentra columnas duplicadas entre los dfs, en vez de agregar una columna nueva para cada una utilizando un sufijo, que actualice los valores de la columna existente en el df de la izquierda.
 df <- powerjoin::power_left_join(df1, df2, by = c("var1", "var2", "var3"), conflict = powerjoin::coalesce_yx)

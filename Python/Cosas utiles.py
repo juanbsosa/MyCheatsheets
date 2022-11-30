@@ -1072,7 +1072,12 @@ df.melt(id_vars=['col1', 'col2'], value_vars=['2019', '2020'])
 df.melt(id_vars=['col1', 'col2'], var_name='years', value_name='dollars')
 
 
-# %% GRAPHS - MATPLOTLIB
+# %% DATA VISUALIZATION WITH MATPLOTLIB
+
+# Gallery: https://matplotlib.org/2.0.2/gallery.html
+# Working with images: https://matplotlib.org/stable/tutorials/introductory/images.html
+# Animations: https://matplotlib.org/stable/api/animation_api.html
+# Geospatial data: https://scitools.org.uk/cartopy/docs/latest/
 
 import matplotlib.pyplot as plt
 
@@ -1124,7 +1129,7 @@ plt.show()
 df.[["col1", "col2"]].hist()
 
 # Add legend to plot
-plt.legen(["A", "B"])
+plt.legend(["A", "B"])
 
 
 # (INTRODUCTION TO DATA VISUALIZATION WITH MATPLOTLIB)
@@ -1134,6 +1139,8 @@ plt.legen(["A", "B"])
 # Axis: part of the page that holds the data
 fig, ax = plt.subplots()
 plt.show()
+
+# LINE CHARTS
 
 # Plotting command: methods of the axis object
 ax.plot(df['col1'], df['col2'])
@@ -1187,17 +1194,230 @@ df = pd.read_csv('df.csv', parse_dates=['date'], index_col='date')
 # Add the index as the X axis
 ax.plot(df.index, df['col'])
 
+# Use two Y axis scales
+fig, ax = plt.subplots()
+ax.plot(df.index, df['col1'], color='blue')
+ax.set_ylabel('Axis 1', color='blue') # color may also be passed here
+ax.tick_params('y', colors='blue') # you can also set color of ticks and ticks label 
+ax2 = ax.twinx() # share the same x axis, but not the same y axis
+ax2.plot(df.index, df['col2'], color='red')
+ax2.set_ylabel('Axis 2', color='red')
+ax2.tick_params('y', colors='red') # you can also set color of ticks and ticks label 
+plt.show()
+
+# Create a function to plot a time series
+def plot_timeseries(axes, x, y color, xlabel, ylabel):
+    axes.plot(x, y, color=color)
+    axes.set_xlabel(xlabel)
+    axes.set_ylabel(ylabel)
+    axes.tick_params('y', colors=color)
+# Replicating the exercise above
+fig, ax = plt.subplots()
+plot_timeseries(ax, df.index, df['col1'], 'blue', 'Xlab', 'Ylab')
+plot_timeseries(ax, df.index, df['col2'], 'red', 'Xlab2', 'Ylab2')
+plt.show()
+
+# Add annotations (to a time series plot)
+ax.annotate("Annotation", xy = (pd.Timestamp('2015-10-06'), 1), \ # xy is the position of the point
+    xytext = (pd.Timestamp('2015-10-06'), -0.2), \# xytext is the position of the text
+    arrowprops={"arrowstyle":"->", "color":"gray"}) # "Arrow properties": Add an arrow that points from the text to the data point
+# More options at: https://matplotlib.org/stable/tutorials/text/annotations.html
+
+
+# BAR CHARTS
+
+# Create a bar chart
+fig, ax = plt.sbuplots()
+ax.bar(df.index, df['col'])
+plt.show()
+
+# Rotate tick labels
+ax.set_xticklabels(df.index, rotation=90)
+
+# Stacked bar chart
+fig, ax = plt.sbuplots()
+ax.bar(df.index, df['col1'])
+ax.bar(df.index, df['col2'], bottom=df['col1']) # the bottom of col2 bars should be the height of col1 bars
+ax.bar(df.index, df['col3'], bottom=df['col1']+df['col1'])
+plt.show()
+
+# Add a legend to stackedd bar chart
+fig, ax = plt.sbuplots()
+ax.bar(df.index, df['col1'], label="COL 1")
+ax.bar(df.index, df['col2'], bottom=df['col1'], label="COL 2") # first, define labels
+ax.bar(df.index, df['col3'], bottom=df['col1']+df['col1'], label="COL 3")
+ax.legend() # call axes legend method
+plt.show()
+
+# HISTOGRAMS
+
+# Multiple histograms in the same plot
+fig, ax = subplots()
+ax.hist(df['col1'], label="C1")
+ax.hist(df['col2'], label="C2")
+ax.legend()
+plt.show()
+
+# Set number of bins of a histogram. Two options
+    # Quantity of bins
+ax.hist(df.col, bins=5)
+    # Sequence of values
+ax.hist(df.col, bins=[10, 20, 30, 40, 50])
+
+# Change histogram type
+ax.hist(df.col, bins=5, histtype="step") # displays the histogram with thin lines instead of solid bars
+
+# STATISTICAL PLOTTING
+
+# Add error bars to bar charts
+fig, ax = subplots()
+ax.bar("group1", df['g1'].mean(), yerr=df['g1'].std())
+
+# Add error bars to line charts
+fig, ax = subplots()
+ax.errorbar(df['col1'], df['col2'], yerr=df['col2_std'])
+
+# BOXPLOTS
+# Create two boxplots in the same plot
+fig, ax = subplots()
+ax.boxplot([df['col1'], df['col2']])
+ax.set_xticklabels(['Col1', 'Col2'])
+plt.show()
+
+# SCATTER PLOTS
+fig, ax = subplots()
+ax.scatter(df['col1'], df['col2'])
+plt.show()
+
+# Create scatter plot with multiple groups of points
+# eg with time series
+sixties = df["1960-01-01": "1960-12-31"]
+seventies = df["1970-01-01": "1970-12-31"]
+fig, ax = subplots()
+ax.scatter(sixties['col1'], sixties['col2'], color='blue', label='sixties')
+ax.scatter(seventies['col1'], seventies['col2'], color='red', label='seventies')
+ax.legend()
+plt.show()
+
+# Encoding a third variable by color (as a gradient of color)
+fig, ax = subplots()
+ax.scatter(df['col1'], df['col2'], c=df.index) # here index could be a time series index
+
+# PREPARING YOUR FIGURES TO SHARE WITH OTHERS
+
+# Changing the overall style of the figure / Set figure style
+plt.style.use("ggplot") # This style will apply to all figures in the session until you change it to another style
+fig, ax = plt.subplots()
+ax.plot(df['col1'], df['col2'])
+ax.plot(df2['col1'], df2['col2'])
+plt.show()
+# Go back to default style
+plt.style.use("default") 
+# See all styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# Guidelines:
+    # - Avoid dark backgrounds
+    # - Preer colorblind options ("seaborn-colorblind", "tableau-colorblind10")
+    # If printed with color, use less ink
+    # f printed black and white, use "grayscale"
+
+# SAVING FIGURES
+
+# Replace plt.show() with a call to fig.savefig()
+fig, ax = plt.subplots()
+ax.plot(df['col1'], df['col2'])
+fig.savefig("file.png", quality=50) # Also "jpg", "svg". Avid quality values above 95
+# Or control dpi (dots per inch, resolution)
+fig.savefig("file.png", dpi=300)
+
+# Control figure size
+fig, ax = plt.subplots()
+ax.plot(df['col1'], df['col2'])
+fig.set_size_inches([4,5]) # Height and width
+fig.savefig("file.png", dpi=300)
 
 
 
 
 
+# %% DATA VISUALIZATION WITH SEABORN
+# https://seaborn.pydata.org/
 
-# %% GRAPHS - SEABORN
+# Built in dataset
+tips = sns.load_dataset("tips")
+
+# Built on matplotlib, used to work with pandas data frames.
+
 import seaborn as sns
+import matplotlib.pyplot as plt # you also need to import matplotlib
 
-# Scatter plot
+# COUNT PLOT / BAR CHART
+sports = ['football', 'baseball', 'baseball', 'baseball', 'baseball', 'football']
+sns.countplot(x=sports) # or sns.countplot(y=sports)
+plt.show()
+
+# Using pandas with seaborn
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+# Scatter plot (in Seaborn "relplots" are prefered to scatterplots)
 sns.scatterplot(x='col1', y='col2', data=df)
+plt.show()
+
+# Add a third variable as hue (color) (color by group)
+tips = sns.load_dataset("tips")
+sns.scatterplot(x="total_bill", y="tip", data=tips,
+    hue="smoker", # variable for hue (legend is added automatically)
+    hue_order=["Yes", "No"], # order of labels in legend
+    palette={"Yes":"black", "No":"red"} # define palette of colors
+    ) 
+plt.show()
+
+# RELATIONAL PLOTS
+
+# Creating multiple plots in figure (relplot())
+# Relplot - SCATTERPLOTS
+tips = sns.load_dataset("tips")
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="smoker")
+plt.show()
+# Arrange multiple plots vertically
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", row="smoker")
+# Use two dimensions
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="smoker", row="time")
+# Set number of plots per row
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="day", col_wrap=2)
+# Change the order of the plots
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="day", col_wrap=2, col_order=["Thur", "Fri", "Sat", "Sun"])
+
+# Customizing scatterplots (can be used in both scatterplots and relplots)
+tips = sns.load_dataset("tips")
+    # Varying the point size accoridng to a column
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", size="size")
+    # Add color variation according to point size
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", size="size", hue="size") # size is quantitative variable
+    # Varying point style
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", hue="smoker", style="smoker")
+    # Varying point transparency
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", alpha=0.4)
+
+# LINE PLOTS
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.relplot(x='col1', y='col2', data=df, kind="line")
+plt.show()
+
+# Multiple line plots with different colors and line styles
+sns.relplot(x='col1', y='col2', data=df, kind="line", hue="col3", style="col3")
+# if you dont want the line style to vary by group, remove style argument and add argument dashes=False
+# If a line plot is fed multiple observations for each X-value, it aggregates them and shows the mean and a 95% confidence interval for the mean
+# If instead of a 95% confidence interval you want 1 standard deviation, use
+sns.relplot(x='col1', y='col2', data=df, kind="line", ci="sd")
+# Or turn it off
+sns.relplot(x='col1', y='col2', data=df, kind="line", ci=None)
+
+
+# Different point markers
+sns.relplot(x='col1', y='col2', data=df, kind="line", hue="col3", style="col3", markers=True)
+
 
 # Add a trendline to a scatter plot
 sns.lmplot(x='col1', y='col2', data=df, ci=None) # ci es confidence interval
