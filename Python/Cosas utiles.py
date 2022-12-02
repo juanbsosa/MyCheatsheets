@@ -820,6 +820,7 @@ for lab, row in cars.iterrows():
     print(lab)
     print(row)
     
+# AAPLY METHOD: pass a function to a column of  data frame (it can be a lambda function)
 # Create new columns by using apply on a function
     # eg the length of the name of the country
 cars["length_country_name"] = cars["country"].apply(len)
@@ -961,6 +962,7 @@ df.isna().sum().plot(kind="bar") # plot nº of NaNs in a bar chart
 
 # Remove rows with missing values
 df.dropna()
+df.dropna(subset = ['col1', 'col2']) # remove rows with missing values on specific columns
 
 # Replace missing values with another value
 df.fillna("MISSING")
@@ -1337,6 +1339,9 @@ fig.savefig("file.png", dpi=300)
 
 
 
+# JOINTPLOTS: scatter plots together with histograms of both variables
+sns.jointplot(x = paid_apps['Price'], y = paid_apps['Rating'])
+
 
 
 # %% DATA VISUALIZATION WITH SEABORN
@@ -1548,7 +1553,7 @@ from scipy.stats import iqr
 iqr(df['col'])
 lower_threshold = np.quantile
 
-# Sample
+# Sample a data frame
 df.sample(n=10) # without replacement
 df.sample(n=10, replace=True) # with replacement
 
@@ -1623,6 +1628,7 @@ np.ramdom.ramdom((3,6)) # random numbers between 0 and 1 (function "random" of n
 np.arange(-3,4) # evenly spaced array of consecutive integers, from -3 to 4 (excluded)
 np.arange(4) # beings at 0
 np.arange(-3, 4, 3) # steps of 3
+np.array(range(1,13)) # Create a sequence of numbers
 
 # Return the dimension of an array
 array.shape
@@ -1698,13 +1704,239 @@ np.delete(array, 1, axis=0) # in the position of 1 there can be a slice, index o
 # Delete column of array
 np.delete(array, 3, axis=1)
 
-# SUMMARISING DATA
+# SUMMARIZING DATA
+# AGREGATING METHODS
+array.sum() # sums all elements in array
+array.sum(axis=0) # sum all rows in each column (create column totals)
+array.sum(axis=1) # sum all columns in each row (create row totals)
+array.sum(axis=1, keepdims=True) # If True, the dimensions that are collapsed when aggregating are left in the output array and set to 1 (for dimension compatibility)
+array.min()
+array.max()
+array.mean()
+array.cumsum(axis=0)
+
+# VECTORIZED OPERATIONS
+# Use of optimized code in C language
+array + 3 # add a scalar
+array * 3 # multiply
+array1 + array2 # add compatible arrays
+array1 * array2
+array > 3 # boolean mask
+
+# Convert Python functions to a numpy vectorized function
+array = np.array(["NumPy", "is", "awesome"]) # eg, check the length of each element
+len(array) > 2 # this does not work element-wise because len is a Python function
+vectorized_len = np.vectorize(len) # create vectorized function
+vectorized_len(array) > 2
+
+# BROADCASTING: math operations between arrays of different shapes
+# Summing a scalar to an array is an example
+# Still arrays have to be somewhat compatible
+# Numpy compares sets of array dimensions from right to left
+# Two dimensions are compatible when one of them has a length of one or they are of equal lengths
+# Both arrays have to be compatible across all of their dimensions. But the two arrays do not need to have the same number of dimensions.
+# Examples: (10,5) and (10, 1) / (10,5) and (5,) are compatible. (10,5) and (5,10) / (10,5) and (10,) are NOT compatible
+np.arange(10.reshape((2,5))) + np.array([0,1,2,3,4])
+# The assumption is that the user is trying to broadcast row-wise
+# Eg this does not work
+np.arange(10).reshape((2,5)) + np.array([0,1])
+# But this does
+np.arange(10).reshape((2,5)) + np.array([0,1]).reshape((2,1))
+
+# SAVING AND LOADING ARRAYS
+
+# RGB ARRAY: each value describes the red, green and blue component of a single picture
+rgb = np.array([[[255,0,0], [255,0,0], [255,0,0]],
+                [[0,255,0], [0,255,0], [0,255,0]],
+                [[0,0,255], [0,0,255], [0,0,255]]
+                ])
+plt.imshow(rgb)
+plt.show()
+
+# Arays con be saved in .csv, .txt, .pkl, and .npy (ideal)
+
+# Load a numpy array
+with open("file.npy", "rb") as f: # Open takes 2 arguments: the name of the file and the open mode (here: "read binary")
+    file_array = np.load(f)
+
+# Save a numpy array
+with open("file2.npy", "wb") as f: # wb: "write binary"
+    np.save(f, file2)
+
+# Call the documentation of a numpy method
+help(np.ndarray.flatten)
+
+# ARRAY ACROBATICS: changing axis order (useful for data augmentation, eg flipping images)
+
+# Flip an array along every axis
+np.flip(array)
+np.flip(array, axis=(0,1)) # flip along specific axis
+
+# Transpose an array
+np.transpose(array)
+np.transpose(array, axes=(1,0,2)) # specify transpose order (here makes column to rows but leaves 3rd dim untouched) (!!! its "axEs" not "axis". Order matters here)
+
+# STACKING AND SPLITTING
+# Split an array
+red, green, blue = np.split(rgb_array, 3, axis=2) # array, number of equally sized arrays desired after the split, the axis to plit along (here: split rgb along the third axis into 3 arrays to isolte red green and blue values of an rgb image)
+# Each object created will have the same number of dimensions as the original array
+
+# Stack arrays
+# Remember that it is not possible to concatenate data in a new dimension. Instead we use stacking
+# All arrays must have the same shape and number of dimensions
+np.stack([array1, array2], axis=2) # axis 
 
 
 
+# %% PYTHON DATA SCIENCE TOOLBOX 1
 
+# Define a function
+def square(value):   # function header, parameter
+    new_value= value**2 # function body
+    return new_value
+square(5) # now 5 is the "argument"
 
+# DOCSTRINGS
+# Describe what your function does, serves as documentation
+def square(value):   # function header, parameter
+    """ Return the square of a value."""
+    new_value= value**2 # function body
+    return new_value
 
+# Return multiple values
+def raise_both(value1, value2):
+    """ Raise value1 to the power of value2 and vice versa."""
+    new_value1 = value1**value2
+    new_value2 = value2**value1
+
+    new_tuple=(new_value1, new_value2)
+
+    return new_tuple
+raise_both(2,3)
+
+# SCOPE in functions
+# Not all objects area ccessible everywhere in a script
+# Scope: part of the program where an object or name may be accesbile 
+# 2 types of scopes: global,local
+# Global: defined in the main body of a script
+# Local: name defined inside a function (when the function is done, the name ceases to exist)
+# Built-in-scope: names in th epre-defined built-ins module
+# If Python cannot find a name in the local scope, it will look in the upper scope until it reaches global
+
+# Alter the value of a GLOBAL name WITHIN a function call
+new_val = 10
+def square(value):
+    """ Return the square of a value."""
+    global new_val # searches new_val in global environment
+    new_value= new_val**2
+    return new_value
+square(5)
+
+# See Python's built-in scope
+import builtins
+dir(builtins)
+
+# NESTED functions
+def mod2plus5(x1, x2, x3):
+    """Returns the remainder plus 5 of three values."""
+
+    def inner(x):
+        """Returns the remainder plus 5 of a value"""
+        return x % 2 + 5
+    
+    return(inner(x1), inner(x2), inner(x3))
+print(mod2plus5(1,2,3))
+
+# A function to return a function
+def raise_val(n):
+    """Return the inner function."""
+
+    def inner(x):
+        """Raise x to the power of n."""
+        raised = x ** n
+        return raised
+
+    return inner
+square = raise_val(2)
+cube = raise_val(3)
+print(square(4), cube(3))
+
+# Create and changed names in an enclosing scope (the 'upper' scope)
+def outer():
+    """Prints the value of n."""
+    n = 1
+
+    def inner():
+        nonlocal n # n's value in the enclosing scope ('outer') will be modified but whatever is done in this scope 
+        n = 2
+        print(n)
+    inner()
+    print(n)
+outer()
+
+# DEFAULT ARGUMENTS
+def power(number, pow=1): # pow takes a default value of 1
+    """Raise number to the power of powe."""
+    new_value = number ** powreturn new_value
+power(9,2)
+
+# FLEXIBLE ARGUMENTS
+def add_all(*args): # *args turns all arguments passed to the funtion into a tupple
+# Args do not need to have a keyword
+    """Sum all values in *args together."""
+    sum_all = 0
+    for num in args:
+        sum_all += num
+    return sum_all
+add_all(1,4,5)
+add_all(1,4,5,123,-76)
+# Flexible amount of KEYWORD ARGUMENTS
+def print_all(**kwargs):
+    """"Print out key-value pairs in **kwargs."""
+    for key, value in kwargs.items():
+        print( key + ': ' + value)
+print_all(name='Harry', job='student')
+
+# LAMBDA FUNCTIONS
+# A quicker way to write functions
+raise_to_power = lambda x, y: x ** y # arguments: instructions
+raise_to_power(3,5)
+# ANONYMOUS FUNCTIONS
+# Pass functions to sequences using map
+nums = [3,7,5,9]
+square_all = map(lambda num: num ** 2, nums) # apply this lambda function to the list "nums"
+print(square_all) # returns a map object
+print(list(square_all)) # returns results in a list
+# Apply a lambda function in a filter // filter the elements of a list according to a condition
+list1 = ['asedfa', 'da', 'sadasda'] # eg return strings with more than 2 characters
+result = filter(lambda string: len(string)>2, list1)
+print(list(result))
+# Reduce() and lambda functions
+# Reduce loops through the elements of a list, and performs the function over the result of the previous iteration (algo así)
+from functools import reduce
+stark = ['robb', 'sansa', 'arya', 'brandon', 'rickon']
+result = reduce(lambda item1, item2: item1 + item2, stark)
+print(result)
+
+# ERROR HANDLING
+# Catch exceptions with try-except clause
+def sqrt(x):
+    try:
+        return x ** 0.5
+    except TypeError: # here we catch only one kind of error
+        print("x must be an int or float")
+sqrt(1)
+sqrt('1')
+# Raise an error: when you wish your function not to work in specific circumnstances, regardless of whether Python would raise an error or not
+sqrt(-1) # this runs ok with the previous function
+def sqrt(x):
+    if x<0:
+        raise ValueError('x must be non-negative')
+    try:
+        return x ** 0.5
+    except TypeError: # here we catch only one kind of error, but you can specify none, just write 'except'
+        print("x must be an int or float")
+sqrt(-1)
 
 
 
