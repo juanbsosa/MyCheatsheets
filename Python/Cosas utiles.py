@@ -1350,7 +1350,7 @@ tips = sns.load_dataset("tips")
 import seaborn as sns
 import matplotlib.pyplot as plt # you also need to import matplotlib
 
-# COUNT PLOT / BAR CHART
+# Make a plot with seaborn
 sports = ['football', 'baseball', 'baseball', 'baseball', 'baseball', 'football']
 sns.countplot(x=sports) # or sns.countplot(y=sports)
 plt.show()
@@ -1377,10 +1377,10 @@ plt.show()
 # Creating multiple plots in figure (relplot())
 # Relplot - SCATTERPLOTS
 tips = sns.load_dataset("tips")
-sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="smoker")
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="smoker") # use the col argument
 plt.show()
 # Arrange multiple plots vertically
-sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", row="smoker")
+sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", row="smoker") # or row argument
 # Use two dimensions
 sns.relplot(x="tota_bill", y="tip", data=tips, kind="scatter", col="smoker", row="time")
 # Set number of plots per row
@@ -1405,6 +1405,9 @@ import matplotlib.pyplot as plt
 sns.relplot(x='col1', y='col2', data=df, kind="line")
 plt.show()
 
+# Add a trendline to a scatter plot
+sns.lmplot(x='col1', y='col2', data=df, ci=None)
+
 # Multiple line plots with different colors and line styles
 sns.relplot(x='col1', y='col2', data=df, kind="line", hue="col3", style="col3")
 # if you dont want the line style to vary by group, remove style argument and add argument dashes=False
@@ -1414,13 +1417,104 @@ sns.relplot(x='col1', y='col2', data=df, kind="line", ci="sd")
 # Or turn it off
 sns.relplot(x='col1', y='col2', data=df, kind="line", ci=None)
 
-
 # Different point markers
 sns.relplot(x='col1', y='col2', data=df, kind="line", hue="col3", style="col3", markers=True)
 
+# CATEGORICAL PLOTS: COUNT PLOT, BAR PLOT and POINT PLOT
+sns.catplot(x='col1', data=df, kind="count") # count plot
+sns.catplot(x='col1', y='col2', data=df, kind="bar") # bar plot (shows mean of variable with CIs)
 
-# Add a trendline to a scatter plot
-sns.lmplot(x='col1', y='col2', data=df, ci=None) # ci es confidence interval
+# Order the bars of a categorical plot
+cat_order = ['cat1', 'cat2']
+sns.catplot(x='col1', data=df, kind="count", order=cat_order)
+
+# Change the orientation of the bars in a categorical plot
+sns.catplot(x='col2', y='col1', data=df, kind="bar") # just switch the X and Y variables
+sns.catplot(y='col1', data=df, kind="count", order=cat_order)
+
+# BOX PLOTS
+sns.catplot(x='var_grupo', y='col1', data=df, kind='box')
+
+# Change the order of the boxplots
+cat_order = ['cat1', 'cat2']
+sns.catplot(x='var_grupo', y='col1', data=df, kind='box', order=cat_order)
+
+# Omit outliers
+sns.catplot(x='var_grupo', y='col1', data=df, kind='box', sym='') # sym can also be changed to change te appearence of the outliers
+
+# Change the whiskers
+sns.catplot(x='var_grupo', y='col1', data=df, kind='box', whis=2.0) # Extend to 2x interquantile range
+sns.catplot(x='var_grupo', y='col1', data=df, kind='box', whis=[5,95]) # Extend to a specific percentile
+sns.catplot(x='var_grupo', y='col1', data=df, kind='box', whis=[0,100]) # Extend to min and max values
+
+# POINT PLOTS: show the mean of a quantitative variable for the mean of observations in each category, with 95% CI
+sns.catplot(x='cat_var', y='var1', data=df, kind='point')
+sns.catplot(x='cat_var', y='var1', data=df, kind='point', hue='var2') # add multiple lines with diff colors
+sns.catplot(x='cat_var', y='var1', data=df, kind='point', join=False) # do not join points
+# Us median instead of mean
+from numpy import median
+sns.catplot(x='cat_var', y='var1', data=df, kind='point', estimator=median)
+# Add caps to the confidence intervals
+sns.catplot(x='cat_var', y='var1', data=df, kind='point', capsize=0.2)
+
+# Pre-set FIGURE STYLES: white (default), dark, whitegrid, darkgrid, ticks
+# Set figure style
+sns.set_style("whitegrid")
+# 'whitegrid'  Add a grid in the background
+# 'ticks'  Add tick marks
+# 'dark'  Add a grey background
+# 'dark'  Add a grey background and white grid
+
+# Pre-set seaborn DIVERGING PALETTES: "RdBu", "PRGn"
+# Set color palette
+sns.set_palette("RdBu")
+sns.catplot(x='col1', data=df, kind="count")
+# Reverse a palette: "RdBu_r", "PRGn_r"
+
+# Pre-set seaborn SEQUENTIAL PALETTES: Greys, Blues, PuRd, GnBu (best for continuous variable)
+sns.set_palette("Blues")
+
+# Create custom palette
+custom_palette = ['red', 'green', 'orange', 'blue', 'yellow', 'purple']
+sns.set_palette(custom_palette)
+custom_palette = ['#FBB4AE', '#B3CDE3', '#CCEBC5', '#DECBE4', '#FED9A6', '#FFFFCC'] # with hex color codes
+sns.set_palette(custom_palette)
+
+# Change the SCALE STYLE / SIZE of a plot: paper (default), notebook, talk, poster (basically, the size of the labels relative to the plot increases as you go right in the options)
+sns.set_context('notebook')
+
+# PLOT TITLES AND AXIS LABELS
+# Seaborn plots create two different types of objects: FacetGrid and AxesSubplot
+# How to see this:
+g = sns.scatterplot(x='col1', y='col2', data=df)
+type(g) # returns "matplotlib.axes._subplots.AxesSubplot"
+# While
+g = sns.catplot(x='col1', y='col2', data=df, kind='box')
+type(g) # returns 'seaborn.axisgrid.FacetGrid'
+# a FacetGrid consists of one or more axes suplots. relplot() and catplot() can create subplots
+# AxesSubplots, on the other hand, can only contain one plot. Like scatterplot() or countplot(), etc, which return a single AxesSubplot object
+
+# Add a TITLE to a FacetGrid object
+g = sns.catplot(x='col1', y='col2', data=df, kind='box') # First assign the plot to an object
+g.fig.suptitle('New title') # now use subtitle method
+# Adjust the height of the title
+g.fig.suptitle('New title', y=1.05) 
+
+# Add a TITLE to an AxesSubplot object
+g = sns.scatterplot(x='col1', y='col2', data=df)
+g.set_title('New title', y=1.05)
+# Set it for various subplots
+g = sns.catplot(x='col1', y='col2', data=df, kind='box', col='var3')
+g.set_titles('This is {col_name}', y=1.05)
+
+# Add AXIS LABELS
+g = sns.catplot(x='col1', y='col2', data=df, kind='box', col='var3')
+g.set(xlabel= 'xlab',
+    ylabel='ylab')
+
+# ROTATE tick labels
+g = sns.catplot(x='col1', y='col2', data=df, kind='box', col='var3')
+plt.xticks(rotation=90)
 
 
 # %% INTRODUCTION TO STATISTICS
@@ -1507,4 +1601,110 @@ expon.cdf(5, 8) # value, 1/lambda (1/mean Poisson rate)
 # Calculate the (Pearson) correlation between two variables
 df['col1'].corr(df['col2'])
 
-# %%
+# %% INTRODUCTION TO NUMPY
+# It is a foundational library on which others like scikit-learn, scipy, matplotlib, pandas and tensorflow are built
+# Array: a grid like object that holds data. Can have any number of dimensions, and each dimension can have any length. Admit only one data type, uses less memory.
+import numpy as np
+
+# Create an array from a list
+list1=[1,5,1,2,3,6]
+array=np.array(list1)
+type(array)
+# 2 dimensions
+list_of_lists= [[1,4,3],
+                [7,4,7],
+                [10,5,2]]
+np.array(list_of_lists)
+# 3 dimensions: list of lists of lists
+
+# Other ways of creating arrays
+np.zeros((2,3)) # 2 rows, 3 columns of zeros
+np.ramdom.ramdom((3,6)) # random numbers between 0 and 1 (function "random" of numpy module "random")
+np.arange(-3,4) # evenly spaced array of consecutive integers, from -3 to 4 (excluded)
+np.arange(4) # beings at 0
+np.arange(-3, 4, 3) # steps of 3
+
+# Return the dimension of an array
+array.shape
+
+# Convert a mult-dimensional array into a one-dimensional array
+array.flatten()
+
+# Redefine the shape of an array
+array.reshape((2,3)) # the tuple passed must be compatible with the number of elements of the original array
+
+# NUMPY DATA TYPES: more specific than Python data types
+# They include the type of data (integer, float, string) AND the available memory in bits
+# Eg: 'np.int64', 'np.float32', '<U12' (unicode string with max length 12), 'bool_'
+
+# Return the data type of an array
+array.dtype
+
+# You can determine the data type when creating an array
+np.array([1.23,4.5,1], dtype=np.float32)
+
+# Convert array data type (for example to reduce memory usage)
+arra.astype(np.int8)
+
+# INDEXING arrays
+array[0] # one dimension
+array[2,4] # two dimensions. third row of fifth column
+array[1] # second row
+array[:, 3] # fourth column
+
+# SLICING arrays
+array[2:4] # one dimension (2 is included, 4 is not)
+array[2:4, 5:8] # two dimensions
+array[2:4:1, 5:8:1] # two dimensions, with step value (skip one in columns)
+
+# SORTING an array along an axis
+np.sort(array) # axis 1, by column (so each row is ordered from smallest to largest)
+# The default axis is the last axis of the array passed to it. If the array is 2D, then the last axis is columns
+np.sort(array, axis=0) # axis 0, by rows (so each column is ordered from smallest to largest)
+
+# FILTERING
+# Boolean mask: an array of booleans with the same shape as the filtered array
+# Fancy indexing: returns an array of elements which meet a certain condition
+one_to_five = np.array([1,2,3,4,5])
+mask = one_to_five % 2 == 0
+one_to_five[mask]
+# ... with 2D arrays
+classroom_ids_and_sizes = np.array([[1,22], [2,21], [3,27], [4,26]])
+# eg check which values in second column are even
+mask = classroom_ids_and_sizes[:, 1] % 2 == 0
+# then index the first column using that mask, to return the class ids
+classroom_ids_and_sizes[:, 0][mask]
+
+# Filtering with NP.WHERE: returns an array of indices of elements that meet a certain condition
+np.where(classroom_ids_and_sizes[:, 1] % 2 == 0) # returns a tupple of arrays, one for each dimension index
+# For 2D arrays, it returns two tupples of arrays, because identifying each element requires two indices
+row_index, col_index = np.where(sudoku==0) # it is helpful to unpack the indices in two objects
+
+# Replace all elements of an array with a specific value
+np.where(array == value, 'replace_with_this_if_condition_is_met', array) # change to that string, otherwise return original element
+
+# ADDING AND REMOVING ELEMENTS OF AN ARRAY
+
+# Concatenation (arrays must have compatible shapes and dimensions. it never adds new dimensions)
+np.concatenate((array1, array2)) # along the first axis (default axis=0, adding new rows) 
+np.concatenate((array1, array2), axis=1) # along the second axixs, adds new columns
+# To concatenate a 2D array with a 1D array, first you need to reshape the 1D array
+array_1D = np.array([1,2,3])
+column_array_2D = array.1D.reshape((3,1)) # here you "add" the column
+column_array_2D
+
+# Delete row of array
+np.delete(array, 1, axis=0) # in the position of 1 there can be a slice, index or array of indices. Here you  delete the second row.
+# Delete column of array
+np.delete(array, 3, axis=1)
+
+# SUMMARISING DATA
+
+
+
+
+
+
+
+
+
