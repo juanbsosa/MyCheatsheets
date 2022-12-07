@@ -28,6 +28,10 @@ pd.set_option('max_row', None) #esta otra no sé qué hace
 
 ###------- USEFUL COMMANDS -------###
 
+# Transform years into decades
+import numpy as np
+(np.floor(df['year']/10)*10).astype(np.int64)
+
 ## METODOS DE STRINGS
 # Reemplazar una parte de un string por otra
 saludo = 'hola'
@@ -1337,14 +1341,12 @@ ax.plot(df['col1'], df['col2'])
 fig.set_size_inches([4,5]) # Height and width
 fig.savefig("file.png", dpi=300)
 
-
-
 # JOINTPLOTS: scatter plots together with histograms of both variables
 sns.jointplot(x = paid_apps['Price'], y = paid_apps['Rating'])
 
 
 
-# %% DATA VISUALIZATION WITH SEABORN
+# %% INTRODUCTION TO DATA VISUALIZATION WITH SEABORN
 # https://seaborn.pydata.org/
 
 # Built in dataset
@@ -1522,6 +1524,188 @@ g = sns.catplot(x='col1', y='col2', data=df, kind='box', col='var3')
 plt.xticks(rotation=90)
 
 
+# %% INTERMEDIATE DATA VISUALIZATION WITH SEABORN
+import matplotlib.pyplot as plt
+import seaborn as sns
+tips = sns.load_dataset("tips")
+
+# HISTOGRAM
+sns.histplot(tips['total_bill'])
+
+# More general: DISTRIBUTION PLOT (best plot to start with)
+sns.displot(tips['total_bill']) # default is histogram
+# KERNEL DENSITY PLOT
+sns.displot(tips['total_bill'], kind='kde')
+# Set number of bins, add kernel density plot
+sns.displot(tips['total_bill'], bins=10, kde=True)
+# Add tick marks for each observation
+sns.displot(tips['total_bill'], rug=True)
+sns.displot(tips['total_bill'], kind='kde', rug=True, fill=True)
+# Estimated cumulative density function
+sns.displot(tips['total_bill'], kind='ecdf') 
+
+# REGRESSION PLOTS
+sns.regplot(data=tips, x='total_bill', y='tip')
+
+# FACETING: the use of plotting multiple graphs by changing only a single variable
+
+# LM PLOT: relation between 2 variables
+sns.lmplot(data=tips, x='total_bill', y='tip', hue='sex') # regression line for each value of "hue" variable
+sns.lmplot(data=tips, x='total_bill', y='tip', col='sex') # one graph for each value of "hue" variable
+sns.lmplot(data=tips, x='total_bill', y='tip', row='sex')
+
+# SEABORN STYLES
+# Compare styles
+for style in ['white', 'dark', 'whitegrid', 'darkgrid', 'ticks']:
+    sns.set_style(style)
+    sns.displot(tips['total_bill'])
+    plt.show()
+
+# Remove axis lines
+sns.histplot(tips['total_bill'])
+sns.despine(left=True) # left Y axis. Also top, right, bottom
+
+# COLORS
+
+# Use matplotlib color codes
+sns.set(color_codes = True)
+sns.displot(tips['total_bill'], color= 'g')
+
+# Define PALETTE of colors
+palettes = ['deep', 'muted', 'pastel', 'bright', 'dark', 'colorblind']
+for p in palettes:
+    sns.set_palette(p)
+    sns.palplot(sns.color_palette()) # Display a color palette
+    plt.show()
+# You can also define it within a plot
+sns.violinplot(data=df,
+         x='Award_Amount',
+         y='Model Selected',
+         palette='husl')
+
+# Defining custom color palettes
+# Circular colors: when data is not ordered
+sns.palplot(sns.color_palette("Paired", 12)) # 12 colors. palplot is to plot the palette
+# Sequential colors: when data has a consistent range from high to low
+sns.palplot(sns.color_palette("Blues", 12))
+# Diverging colors: when both the low and high values are interesting
+sns.palplot(sns.color_palette("BrBG", 12))
+
+# Customizing with matplotlib
+# Set a limit to the axis scale
+fig, ax = plt.subplots()
+sns.histplot(tips['total_bill'], ax=ax)
+ax.set(xlim = (0,40)) # you can either 
+
+# Set figure size
+fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, sharey=True, figsize=(7,4))
+sns.histplot(tips['total_bill'], ax=ax0)
+sns.histplot(tips['size'], ax=ax1)
+# Graph a vertical line
+ax0.axvline(x=20, label='line', linestyle='--', linewidth=2)
+ax0.legend()
+
+## CATEGORICAL PLOTS
+# 3 GROUPS:
+# 1) The ones that show all individual observations on the plot: STRIPPLOT and SWARMPLOT
+# 2) Abstract representations: BOXPLOT, VIOLIN PLOT, BOXENPLOT
+# 3) Statistical estimates: BARPLOT, POINTPLOT, COUNTPLOT
+tips = sns.load_dataset("tips")
+
+# STRIPPLOT
+sns.stripplot(data=tips, y='total_bill', x='sex')
+sns.stripplot(data=tips, y='total_bill', x='sex', jitter=True) # jitter adds a random jitter (like wiggle) sideways so that points are more easily visualized
+
+# SWARMPLOT: points will not overlap, but it is not so convenient for very large data sets
+sns.swarmplot(data=tips, y='total_bill', x='sex') 
+
+# VIOLIN PLOT: combination of a kernel density plot and a boxplot (takes time to render)
+sns.violinplot
+
+# BOXENPLOT: enhanced box plot (quicker than a violin plot)
+sns.boxenplot(data=tips, y='total_bill', x='sex')
+
+# BARPLOT
+sns.barplot(data=tips, y='total_bill', x='smoker', hue='sex')
+
+# POINTPLOT
+sns.pointplot(data=tips, y='total_bill', x='smoker', hue='sex')
+
+
+## REGRESSION PLOTS
+
+# REGPLOT
+sns.regplot(data=tips, y='total_bill', x='tip') # linear regression line
+# Add a marker to each point
+sns.regplot(data=tips, y='total_bill', x='tip', marker='+')
+# Polinomial regression
+sns.regplot(data=tips, y='total_bill', x='tip', order=2) # of order 2
+# Add an estimator
+sns.regplot(data=tips, y='total_bill', x='tip', x_estimator=np.mean) # !!! fix example
+# Disable the regression line (just the scatter plot)
+sns.regplot(data=tips, y='total_bill', x='tip', fit_reg=False)
+
+# RESIDUAL PLOT: plots the residuals of regression between y and x
+sns.residplot(data=tips, y='total_bill', x='tip') # linear regression
+sns.residplot(data=tips, y='total_bill', x='tip', order=2) # polynomial of order 2
+
+## MATRIX PLOTS
+
+# Create a matrix-like object from two variables of a data frame / CROSS-TABULATION
+mat = pd.crosstab(tips['day'], tips['time'], values=tips['total_bill'], aggfunc='mean')
+
+# HEATMAP
+sns.heatmap(mat)
+# Turn on annotations in individual cells / display cell value in numbers
+sns.heatmap(mat, annot=True)
+# Define a color map
+sns.heatmap(mat, annot=True, cmap="YlGnBu")
+# Hide the color bar
+sns.heatmap(mat, annot=True, cmap="YlGnBu", cbar=False)
+# Define the width of the lines between the cells
+sns.heatmap(mat, annot=True, cmap="YlGnBu", cbar=False, linewidths=.5)
+# Center the color scheme on a psecific value 
+sns.heatmap(mat, annot=True, cmap="YlGnBu", cbar=False, linewidths=.5, center=mat.loc[1,2])
+
+# CORRELATION MATRIX PLOT
+sns.heatmap(tips[list(tips.columns)].corr(), cmap='YlGnBu')
+
+# FACETTING: eg. multiple plots of the same variable across categories
+g = sns.FacetGrid(tips, col='sex')
+g.map(sns.boxplot, 'total_bill')
+# catplot() is a shortcut to create a facet grid more easily
+sns.catplot(x='total_bill', data=tips, col='sex', kind='box')
+# Facet grid accept matplootlib plots
+import matplotlib.pyplot as plt
+g = sns.FacetGrid(tips, col='sex')
+g.map(plt.scatter, 'total_bill', 'tip')
+# lmplot() plots scatter and regression plots on a FacetGrid
+sns.lmplot(data=tips, x='total_bill', y='tip', col='sex', col_order=['Male', 'Female'], row='day', fit_reg=False)
+
+# PAIRGRID: shows pairwise relationships between data elements
+g = sns.PairGrid(tips, vars=['total_bill', 'tip'])
+g.map(sns.scatterplot)
+# Define graphs on diagonals and off diagonls
+g = sns.PairGrid(tips, vars=['total_bill', 'tip'])
+g.map_diag(sns.histplot)
+g.map_offdiag(sns.scatterplot)
+# pairplot is a shortcut function to a pair grid
+sns.pairplot(tips, vars=['total_bill', 'tip'], kind='reg', diag_kind='hist', hue='sex', palette='husl')
+# Increase transparency
+sns.pairplot(tips, vars=['total_bill', 'tip'], diag_kind='hist', hue='sex', palette='husl', plot_kws={'alpha':0.5})
+
+# JOINT GRID: compare distribution between two variables
+g = sns.JointGrid(tips, x='total_bill', y='tip')
+g.plot(sns.regplot, sns.histplot)
+# Advanced jointgrid: bivariate kernel density plot
+g = sns.JointGrid(tips, x='total_bill', y='tip')
+g.plot_joint(sns.kdeplot)
+g.plot_marginals(sns.kdeplot, fill=True)
+# Shortcut with jointplot()
+sns.jointplot(data=tips, x='total_bill', y='tip', kind='hex')
+# Overlay a kernel density plot over the scatter plot
+sns.jointplot(data=tips, x='total_bill', y='tip', kind='scatter').plot_joint(sns.kdeplot)
+
 # %% INTRODUCTION TO STATISTICS
 
 # Calculate the mode
@@ -1650,7 +1834,7 @@ array.dtype
 np.array([1.23,4.5,1], dtype=np.float32)
 
 # Convert array data type (for example to reduce memory usage)
-arra.astype(np.int8)
+array.astype(np.int8)
 
 # INDEXING arrays
 array[0] # one dimension
@@ -1939,4 +2123,140 @@ def sqrt(x):
 sqrt(-1)
 
 
+# %% PYTHON DATA SCIENCE TOOLBOX 2
 
+## ITERATORS
+# ITERABLE: an object that has an associated iter() method (an iterator)
+# For example: lists, strings, dictionaries, range objects, and file connections are iterables, and have their associated iterators
+# A for loop, for example, applies the function iter() "Under the hood" to an iterable object
+
+# Iterate over a string
+word = 'ask'
+it = iter(word)
+next(it)
+
+# Star operator: unpack all elements of an iterator at once
+word = 'ask'
+it = iter(word)
+print(*it)
+
+# Iterate over the key-value pairs of a dictionary
+dic = {'country':'ARG', 'city':'CABA'}
+for key, value in dic.items():
+    print(key, value)
+
+# Iterate over file connections
+file = open('file.txt')
+it = iter(file)
+print(next(it))
+
+# ENUMERATE: takes an iterable as an argument and returns a tuple with pairs of the elements of the iterable and their index
+list1 = ['vsd', 'asdq', 'asdf']
+for index, value in enumerate(list1, start=0): # the default is to begin enumeration at 0
+    print(index, value)
+
+# ZIP: accepts an arbitrary number of iterables and returns an iterator of tuples
+list1 = ['vsd', 'asdq', 'asdf']
+list2 = ['ok', 'bye', 'hello']
+print(list(zip(list1, list2)))
+for z1, z2 in zip(list1, list2):
+    print(z1, z2)
+# Unpacking a zip object (retrieve original lists as tuples)
+z1 = zip(list1, list2)
+list1_ = zip(*z1)
+print(list1_)
+
+# Loading a file with iterators
+# For example, to load heavy data into different chunks
+# Here we calculate the sum of a column in different parts
+import pandas as pd
+total = 0
+for chunk in pd.read_csv('file.csv', chunksize=1000):
+    total =+ sum(chunk['col'])
+print(total)
+
+# LIST COMPREHENSIONS
+# Format: [output expression for iterator in variable in iterable]
+nums = [12, 8, 21, 3, 16]
+new_nums = [num + 1 for num in nums]
+print(new_nums)
+# You can do this with any iterable. The components are: an iterable, an iterator variable (the members of the terable), and the output expression
+# Create a list with a sequence of numbers
+result = [num for num in range(11)] # from 0 to 11
+print(result)
+# Replace nested for-loops
+[(num1, num2) for num1 in range(0,2) for num2 in range(6,8)]
+
+# Nested list comprehensions: for example, create a matrix like:
+matrix1 = [[0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4],
+          [0, 1, 2, 3, 4]]
+matrix2 = [[col for col in range(5)] for row in range(5)]
+matrix1==matrix2
+
+# Conditionals in comprehensions
+[num ** 2 for num in range(10) if num % 2 == 0] # eg: square all even numbers from 0 to 9
+[num ** 2 if num % 2 == 0 else 0 for num in range(10)] # eg: square all even numbers from 0 to 9, and output 0 for odds
+# You can include conditions on the output expression, as above, and also on the iterable
+# Format: [output expression conditional on output for iterator variable in iterable conditional on iterable]
+
+# DICTIONARY COMPREHENSIONS
+# eg. dictionary of positive integers as keys and their negative counterparts as values
+{num: -num for num in range(10)}
+
+# Create a dictionary froma zip object
+list1 = ['vsd', 'asdq', 'asdf']
+list2 = ['ok', 'bye', 'hello']
+dict(zip(list1, list2))
+
+# GENERATOR EXPRESSIONS / GENERATORS
+# Definition: it does not store the list/dictionary in memmory. It returns a generator object over which we can iterate to produce the elements of the list/dictionary
+result = (2 * num for num in range(10))
+for num in result:
+    print(num)
+result = (2 * num for num in range(10))
+print(list(result))
+result = (2 * num for num in range(10))
+print(next(result))
+# This is an example of LAZY EVALUATION: you delay the evaluation of an expression until the value is needed
+
+# GENERATOR FUNCTIONS: functions that produce generator objects
+# Eg: return a generator of values from 0 to n
+def num_sequence(n):
+    """Generate values from 0 to n."""
+    i= 0
+    while i < n:
+        yield i
+        i += 1
+result = num_sequence(10)
+print(type(result))
+print(next(result))
+
+# Create a generator for a file (to stream data)
+def read_large_file(file_object):
+    """A generator function to read a large file lazily."""
+    # Loop indefinitely until the end of the file
+    while True:
+        # Read a line from the file: data
+        data = file_object.readline()
+        # Break if this is the end of the file
+        if not data:
+            break
+        # Yield the line of data
+        yield data
+# Open a connection to the file
+with open('world_dev_ind.csv') as file:
+    # Create a generator object for the file: gen_file
+    gen_file = read_large_file(file)
+    # Print the first three lines of the file
+    print(next(gen_file))
+    print(next(gen_file))
+    print(next(gen_file))
+
+# Stream data in chunks with Pandas
+df_reader = pd.read_csv('ind_pop.csv', chunksize=10)
+print(next(df_reader))
+for chunk in df_reader:
+    print(chunk)
