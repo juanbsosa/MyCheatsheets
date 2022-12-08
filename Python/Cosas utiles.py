@@ -2260,3 +2260,175 @@ df_reader = pd.read_csv('ind_pop.csv', chunksize=10)
 print(next(df_reader))
 for chunk in df_reader:
     print(chunk)
+
+
+# %% INTRODUCTION TO IMPORTING DATA IN PYTHON
+
+# Two tipes of text files: table data (flat files like csvs) and plain text files
+
+# READING A PLAIN TEXT FILE
+filename = 'file.txt'
+file = open(filename, mode='r') # 'r' is read only (write is 'w')
+text = file.read() # assign the text to a variable applying the read method
+file.close() # close connection to the file
+print text()
+# With a "with" statement you don't need to close the connection (best practice)
+with open(filename, 'r') as file: # this is called a CONTEXT MANAGER
+    print(file.read())
+# Read one line at a tine
+print(file.readline())
+
+# READING FLAT FILES: .csv, .txt
+# Definition: basic text files containing records (table data) without structured relationships. A record if a row of fields or attributes.
+# It can have a header in the first row.
+# It has delimiters
+# It can be imported with numpy (if numerical) or pandas (to data frames)
+
+# Importing flat files with Numpy
+import numpy as np
+data = np.loadtxt('file.txt', delimiter='\t', skiprow=1, usecols=[0, 2]) # tab delimiter
+data = np.loadtxt('file.txt', dtype=str) # values will be imported as strings
+# For mixed data types (structured arrays):
+data = np.genfromtxt('titanic.csv', delimiter=',', names=True, dtype=None) # names=True is used when there is a header
+data = np.recfromcsv('titanic.csv', delimiter=',', names=True, dtype=None)
+
+# Importing flat files with Pandas
+import pandas as pd
+pd.read_csv('file.csv')
+pd.read_csv('file.csv', header=None) # default is first row as header
+pd.read_csv('file.csv', nrows=5) # Choose the number of rows to read
+pd.read_csv('file.csv', sep='\t') # choose delimiter
+pd.read_csv('file.csv', comment='#') # Choose character for commented lines
+pd.read_csv('file.csv', na_values=['NA', ' ']) # Choose character for missing values
+
+# READING OTHER FILE TYPES: excel spreadsheets, Matlab, SAS, Stata, HDF5, pickled files
+
+# IMPORTING PICKLED FILES
+# Pickling is a way that Python has to store objects which do not have an obvious way of storing them (like lists or dictionaries).
+# Instead of storing the object in a readable text format, it stores it as bytes.
+import pickle
+with open('file.pkl', 'rb') as file: # 'rb' is read binary
+    data = pickle.load(file)
+print(data)
+
+# IMPORTING EXCEL SPREADSHEETS
+import pandas as pd
+file ='file.xlsx'
+data = pd.ExcelFile(file)
+print(data.sheet_names) # print sheet names
+df1 = data.parse('sheet1', skiprows=[0], names=['col1', 'col2', 'col3']) # load a specific sheet by sheet name
+df1 = data.parse(0) # load a specific sheet by sheet index
+# More direct with pd.read_excel
+df = pd.read_excel(file, sheet_name=None) # if sheet name is null, it loads all sheets into a dictionary
+
+# Get current working directory
+import os
+os.getwd()
+# Print the content of the current working directory
+os.listdir(os.getwd())
+
+# IMPORTING FILES FROM SAS
+import pandas as pd
+from sas7bdat import SAS7BDAT
+with SAS7BDAT('file.sas7bdat') as file:
+    df_sas = file.to_data_frame()
+
+# IMPORTING FILES FROM STATA (.dta files)
+import pandas as pd
+data = pd.read_stata('file.dta')
+
+# IMPORTING HDF5 FILES: hierarchical data format version 5 (for storing large quantities of numerical data of hundreds of GB or TBs or HBs)
+import h5py
+data = h5py.File('file.hdf5', 'r')
+# The structure of HDF5 files:
+for key in data.keys():
+    print(key)
+for key in data['col'].keys():
+    print(key)
+print(np.array(data['col']['subcol1']), np.array(data['col']['subcol2']))
+
+# IMPORTING MATLAB FILES (.mat files)
+import scipy.io
+mat = scipy.io.loadmat('file.mat') 
+
+# INTRODUCTION TO RELATIONAL DATABASES
+# The relational model is defined by Codd's 12 rules
+# PostgreSL, MySQL, SQLite etc.
+
+# CREATING AN SQL DATABASE ENGINE IN PYTHON
+# Here we will use an SQLite database and the package SQLAlchemy
+from sqlalchemy import create_engine
+engine = create_engine('sqlite:///databasename.sqlite')
+# The engine will communicate to the database
+# Get the names of the tables in the database
+engine.table_names()
+# Querying the database
+# Basic SQL query
+SELECT * FROM Table_Name # returns all columns of all rows of the table. The * means all columns
+# But to use this in Python, first you need to import required packages and functions, create the database engine, connect to it, query the database, save the results to a df, and close the connection
+from sqlalchemy import create_engine
+import pandas as pd
+engine = create_engine('sqlite:///databasename.sqlite')
+con = engine.connect()
+rs = con.execute("SELECT * FROM Table_Name") # here you execute the query
+df = pd.DataFrame(rs.fetchall()) # Fetch all rows
+print(df.head()) # Realize that column names are wrong
+df.columns = rs.keys() 
+con.close()
+# Use the CONTEXT MANAGER, you don't need to close the connection at the end
+from sqlalchemy import create_engine
+import pandas as pd
+engine = create_engine('sqlite:///databasename.sqlite')
+with engine.connect() as con:
+    rs = con.execute("SELECT Col1, Col2 FROM Table_Name WHERE ColumnName = 'Value'") # in this case we selected specific columns from the table
+    df = pd.DataFrame(rs.fetchmany(5)) # And we imported just 5 rows
+    df.columns = rs.keys()
+# Another query as example
+rs = con.execute("SELECT * FROM Customer ORDER BY SupportRepId")
+# USING THE PANDAS FUNCTION read_sql_query               
+import pandas as pd
+engine = create_engine('sqlite:///databasename.sqlite')
+df = pd.read_sql_query("SELECT * FROM TableName", engine)
+# ADVANCED QUERYING: QUERYING MULTIPLE TABLES
+# JOIN
+pd.read_sql_query("SELECT * FROM Table1_Name INNER JOIN Table2_Name on Table1_Name.PKeyColName = Table2_Name.PKeyColName", engine)
+
+# %% INTERMEDIATE IMPORTING DATA IN PYTHON
+# The focus is on importing data from the Web (scraping)
+# Load this data directly into pandas data frames
+# Making HTTP GET requests
+# Scrape web data such as HTML
+# Parse HTML with BeautifulSoup library
+# Use the urllib and request packages
+
+# URLLIB PACKAGE
+# urlopen() accepts URLs instead of file names
+from urllib.request import urlretrieve
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
+urlretrieve(url, 'winequality-white.csv')
+# You can also do it with pandas's read_csv
+pd.read_csv(url, sep=',')
+
+# HTTP REQUESTS 
+# ULR stands for "Universal Resource Locator". Most are website locations/web addresses
+# They have two parts: a protocol identifier ("http or https") and a resource name ("google.com")
+# HHTP stands for "HyperText Transfer Protocol", it is an application protocol for distributed, collaborative hypermedia information systems (like Wikipedia). It is the foundation of data communication for the WWW.
+# HHTPS is a more secure form of HHTP.
+# Each time you go to a website you are actually sending an HTTP request to a server (like a GET request). The function urlretrieve() makes a get request and saves the data locally.
+# HTML stands for "HyperText Markup Language" and is the standard markup language for the web.
+# With URLLIB package
+from urllib.request import urlopen, Request # import necessary functions
+url = "https://wikipedia.org/" # specify the url
+request = Request(url) # package the get request using the function Request
+response = urlopen(request) # send the request and catch the response. This returns an HTTP response object
+html = response.read() # Apply the associated "read" method to the HTTP response object, which returns the HTML as a string
+print(html)
+response.close() # close the response
+# With REQUEST package (an API for making requests)
+import requests
+url = "https://wikipedia.org/"
+r = requests.get(url) # with the get function you package, send and catches the response
+text = r.text # return the html as a string
+print(text)
+
+
