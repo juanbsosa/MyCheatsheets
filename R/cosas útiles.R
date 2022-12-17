@@ -123,6 +123,9 @@ library(rvest){
     html_nodes("strong") %>%
     html_text() 
 }
+  
+# Ver la version actual de R
+R.version
     
 # Actualizar R
 library(installr)
@@ -697,6 +700,8 @@ names(unclass(x))
 # Obtener los minutos de una fecha
 t2<-as.POSIXlt(Sys.time())
 t2$min # lo mismo con hora, segundos, dias, años etc.
+# Extraer el año de una fecha
+format(df$fecha, format="%Y")
 
 # Calcular la diferencia entre dos fechas, expresadas en la unidad de tiemp que quieras
 difftime(Sys.time(), Sys.time(), units = 'days')
@@ -959,7 +964,7 @@ data1 <- data1 %>%
 frecuencias <- data.frame(table(base$variable))
 frecuencias[frecuencias$Freq > 1,]
 
-# Duplicados en varias columnas (chquear)
+# Encontrar duplicados en varias columnas (chequear)
 duplicated(cbind(var1, var2, var3))
 
 #Eliminar valores repetidos/duplicados
@@ -967,6 +972,8 @@ duplicados <- c(which(duplicated(db$variable)))
 db <- db[-duplicados,]
 # Otra forma
 db <- db[!duplicated(db$x),]
+# En base a varias columnas
+db <- db[!duplicated(cbind(db$var1, db$var2)),]
 
 # Identificar valores duplicados de acuerdo a una o mas variables.
 # En este caso se crea una variable "num_dups" que indica la cantidad de filas idénticas para cada fila, dup_id que ennumera los duplicados desde 1 hasta la cantidad de duplicados, y is_duplicated que identifica a los duplicados cuyo id es mayor a 1 (lo ideal es antes ordenar la base de acuerdo a una variable de interes, entonces te aseguras que el ID 1 sea la primera observacion de acuerdo a ese criteiro) (en este caso despues elimino los duplicados)
@@ -1488,6 +1495,13 @@ stringr::str_split("hola$chau", "\\$")
 
 # Comandos para GRÁFICOS --------------------------------------------------
 
+
+# Show only some of the tick labels
+ggplot(data, aes(var1, var2, group=1)) + # Group one is to deal with an error for line graphs
+    geom_line() +
+    scale_x_discrete(breaks = levels(data$var1)[floor(seq(1, nlevels(data$var1), length.out = 20))]) +# length.out controls the number of labels you want to show
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size=8)) # rotate tick labels
+
 # Modificar los ticks de un grafico de manera facil
 grafico <- ggplot(df_eph_hog, aes(x = IPCF)) +
   geom_histogram(color = "black", fill="white") +
@@ -1518,6 +1532,34 @@ GGally::ggpairs(flea, columns = 2:4)
 GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(size=15))
 
 # Comandos para manejo de DATOS ESPACIALES --------------------------------
+
+# Crear puntos dentro de un polígono o una línea.
+# Su posición puede ser aleatoria (type='random'), regular, estratificada, no alineada, hexagonal, lattice y Fibonacci
+points <- spsample(pol, type = "hexagonal", cellsize = 0.5)
+
+# Quedarse con el polígono de mayor área de un grupo de polígonos (de la clase "Spatial polygons")
+pol <- sapply(pol@polygons, slot, "area") %>% 
+    {which(. == max(.))} %>% 
+    pol[.]
+
+# Crear un Hexbin Map / dividir una superficie en polígonos idénticos
+# Source: https://medium.com/swlh/spatial-data-analysis-with-hexagonal-grids-961de90a220e
+study_area <- raster::getData("GADM", country = "GB", level = 0, path = tempdir(), )
+    # Aumentar la resolucion del raster ('disaggregate') y quedarse cona la geometría (es decir, que no sea más un data frame)
+study_area <- study_area %>% raster::disaggregate() %>% sp::geometry()
+    # Graficar
+plot(study_area, col = "grey50", bg = "light blue", axes = TRUE, cex = 20)
+    # Crear los puntos que van a ser los centros de los exágonos
+hex_points <- sp::spsample(study_area, type = "hexagonal", cellsize = 0.5)
+    # Transformar los centros de los hexágonos en polígonos
+hex_grid <- sp::HexPoints2SpatialPolygons(hex_points, dx = 0.5) # OJO: El espaciado entre dos puntos ('dx') tiene que ser igual al 'cellsize' de los puntos en la funcion anterior
+    # Graficar
+plot(study_area, col = "grey50", bg = "light blue", axes = TRUE)
+plot(hex_points, col = "black", pch = 20, cex = 0.5, add = T)
+plot(hex_grid, border = "orange", add = T)
+
+# Herramienta para crear una bounding box / definir un límite rectangular en un mapa y devuelve coordenadas
+# http://bboxfinder.com/
 
 # Ver todos los métodos posibles en la libreria "sf" (simple features for R)
 methods(class = "sf")
@@ -1616,7 +1658,7 @@ comuna15 <- c("AGRONOMIA", "CHACARITA", "PARQUE CHAS", "PATERNAL", "VILLA CRESPO
 
 # Crear un mapa interactivo. Definir distintos colores para los puntos segun una variable
 paleta_de_colores <- RColorBrewer::brewer.pal(length(unique(sp_db$var)), "Set1") # creo la paleta de colres
-mapview::mapview(sp_db, zcol = "var", legend=TRUE, col.regions=paleta_de_colores)
+mapview::mapview(sp_db, zcol = "var", legend=TRUE, col.regions=paleta_de_colores, layer.name = 'Nombre')
 # zcol: la variable para usar como grupos de colores
 # col.regions: definir la paleta de colores
 # legend: mostrar la leyenda de los colores
@@ -1678,7 +1720,15 @@ cities@data
 # Convertir un numero a una unidad / convert numeric to meter units
 units::as_units(num, "meter")
 
-
+# Descargar un mapa base / mapa de fondo
+ggmap::register_google(key = "aca_poner_la_api_key", write = TRUE)
+bm <- ggmap::get_map(
+    location='Buenos Aires',
+    # c(lon=-34.60795231689911, lat=-58.37034520538574),
+    zoom=11, crop=T,
+    scale="auto",color="bw",source="google", maptye="roadmap")
+gg <- ggmap::ggmap(bm, extent='panel',padding=0)
+gg
 
 # Algebra lineal ----------------------------------------------------------
 
@@ -1752,6 +1802,28 @@ spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.side
 # R MARKDOWN --------------------------------------------------------------
 
 # !!! hacer esto en un md
+
+# Agregar espacios en blanco en el cuerpo del texto (util para agregar espacio entre chunks con graficos)
+<br><br><br>
+
+# Pagina util: https://rstudio4edu.github.io/rstudio4edu-book/rmd-fancy.html,
+# https://bookdown.org/yihui/rmarkdown/html-document.html
+
+# Incluir un GIF o video
+knitr::include_graphics(path="./file.gif") # !!! OJO, el archivo tiene que estar en la misma carpeta que el código del markdown, sino no funciona
+
+# Opciones. Indice al principio
+# https://bookdown.org/yihui/rmarkdown/html-document.html
+title: "Invoice Contagion Summary"
+output:
+    html_document:
+        toc: yes # add a table of contents
+        toc_float: true # 'true' to make it float as you scroll, 'no' to fix it at the beginning
+        toc_depth: 6 # define the depth of the subtitles that will be shown in the TOC
+        number_sections: no # add section numbering or not
+        collapsed: yes #controls whether the TOC appears with only the top-level (e.g., H2) headers. If collapsed initially, the TOC is automatically expanded inline when necessary.
+        smooth_scroll: yes # controls whether page scrolls are animated when TOC items are navigated to via mouse clicks.
+        theme: simplex # Bootstrap theme
 
 # Que el codigo se ajuste al ancho del documento / wrap code (creo que es solo para PDFs)
 # Agregar esto en las opciones iniciales

@@ -28,6 +28,21 @@ pd.set_option('max_row', None) #esta otra no sé qué hace
 
 ###------- USEFUL COMMANDS -------###
 
+# Verification/ verify a condition: assert statement, returns nothing if a condition is met, and an error otherwise
+assert True==False
+assert True==True
+
+# A function that returns True if a string if found in another string
+import re
+def word_in_text(word, text):
+    word = word.lower()
+    text = text.lower()
+    match = re.search(word, text)
+
+    if match:
+        return True
+    return False
+
 # Transform years into decades
 import numpy as np
 (np.floor(df['year']/10)*10).astype(np.int64)
@@ -473,6 +488,9 @@ u = s.upper()     # 'HELLO'
 #Ejemplo: Reemplazo de texto.
 s = 'Hello world'
 t = s.replace('Hello' , 'Hallo')   # 'Hallo world'
+s.center(3, '*') # agrega 3 asteriscos atras y adelante del texto. Si no pones ningun string agrega espacios
+s.rjust(4) # justificacion a la derecha
+s.ljust(4)
 
 #Más métodos de cadenas:
 #Los strings (cadenas) ofrecen una amplia variedad de métodos para testear y manipular textos. Estos son algunos de los métodos:
@@ -703,6 +721,12 @@ a= {"saludo":"hola"}
 # Get keys
 a.keys()
 
+# Get values
+a.values()
+
+# Get specific value using key
+a.get('saludo')
+
 # Add/change a key-value pair
 a["saludar"] = "holar"
 
@@ -757,7 +781,7 @@ from numpy import random
 random.seed(123)
 np.random.seed(123)
 
-# %% PANDAS - DATA FRAMES
+# %% PANDAS LIBRARY - DATA FRAMES
 import pandas as pd
 
 # Build a DataFrame from a dictionary of lists (column by column)
@@ -775,6 +799,9 @@ cars=pd.DataFrame(list_of_dicts)
 # Access/change row index
 row_labels = ['US', 'AUS', 'JPN', 'IN', 'RU', 'MOR', 'EG']
 cars.index = row_labels
+
+# Number of rows of a data frame
+len(df)
 
 # Read a csv file
 pd.read_csv("file.path") # index_col to say which column corresponds to row index
@@ -848,6 +875,9 @@ df.columns
 # Row names / row indexes (attribute)
 df.index
 
+# Get data types of all  columns of a data frame
+df.dtypes
+
 # Sort rows of data frame
 df.sort_values("column_name")
 df.sort_values("column_name", ascending=False)
@@ -894,6 +924,8 @@ df["col"].agg([pct30, median])
 df["col"].value_counts()
 # count unique values and sort by frequency in descending order
 df["col"].value_counts(sort=True)
+# count unique values and sort by value of the tabulated variable
+df["col"].value_counts.sort_index()
 # turn the counts into proportions of the total
 df["col"].value_counts(normalize=True)
 # Count by groups
@@ -907,6 +939,8 @@ df.groupby(["col1", "col3"])["col2", "col4"].agg([np.min, np.max, np.mean, np.me
 df.groupby("col").agg({'col2':'count'})
     # Group by index (when you have a multiindex)
 df.groupby(level=0).agg({'col2':'count'}) # first index
+# Group by and get the first element by group
+df.groupby('var').first()
 
 # Pivot tables
 df.pivot_table(values="col1", index="col_group") # mean by default
@@ -970,6 +1004,16 @@ df.dropna(subset = ['col1', 'col2']) # remove rows with missing values on specif
 
 # Replace missing values with another value
 df.fillna("MISSING")
+
+# Replacing the values of a column
+df['col'] = df['col'].replace({'wrong_value':'right_value'})
+
+# Replace the values of a column with missing values/NaNs
+df['col'] = df['col'].replace([value1, value2], np.nan) # or
+df['col'].replace([value1, value2], np.nan, inplace=True)
+
+# Split a column with strings and create a new column for each part
+df['col'].str.split("-", expand=True)
 
 
 # %% JOINING DATA - MUTATING JOINS - PANDAS
@@ -1109,6 +1153,7 @@ plt.scatter(x, y, s=z)
 
 # Histogram
 plt.hist(x)
+plt.hist(df.dropna(), bins=30)
 # control bin number
 plt.hist(bins=29)
 
@@ -1121,6 +1166,8 @@ plt.ylabel()
 
 # Change to logarithmic scale
 plt.scale("log")
+plt.yscale('log')
+plt.xscale('log')
 
 # Bar plot
 plt.plot(kind="bar")
@@ -1162,6 +1209,8 @@ plt.show()
 fig, ax = plt.subplots()
 ax.plot(df['col1'], df['col2'], marker='o') # other options: https://matplotlib.org/stable/api/markers_api.html
 plt.show()
+# Set marker size
+ax.plot(df['col1'], df['col2'], marker='o', markersize=2)
 
 # Change the linestyle of a line plot
 fig, ax = plt.subplots()
@@ -1344,7 +1393,10 @@ fig.savefig("file.png", dpi=300)
 # JOINTPLOTS: scatter plots together with histograms of both variables
 sns.jointplot(x = paid_apps['Price'], y = paid_apps['Rating'])
 
-
+# Zoom into an area of a plot / set axis limits
+plt.plot(x, y, 'o', markersize=1, alpha=0.02)
+plt.axis([140, 200, 0, 160])
+plt.show()
 
 # %% INTRODUCTION TO DATA VISUALIZATION WITH SEABORN
 # https://seaborn.pydata.org/
@@ -1614,13 +1666,22 @@ tips = sns.load_dataset("tips")
 
 # STRIPPLOT
 sns.stripplot(data=tips, y='total_bill', x='sex')
-sns.stripplot(data=tips, y='total_bill', x='sex', jitter=True) # jitter adds a random jitter (like wiggle) sideways so that points are more easily visualized
+sns.stripplot(data=tips, y='total_bill', x='sex', jitter=True) # jitter adds a random /noise (like wiggle) sideways so that points are more easily visualized
+# This is particularly appropiate when the variable is rounded of to the nearest integer number, so that without doing this the discrete values are less intuitive to visualize
+
+# Jitter two variables manually
+import numpy as np
+x_jitter = x + np.random.random(0, 2, size=len(df))
+y_jitter = y + np.random.random(0, 2, size=len(df))
+plt.plot(x, y, 'o', markersize=1, alpha=0.01)
+plt.show()
 
 # SWARMPLOT: points will not overlap, but it is not so convenient for very large data sets
 sns.swarmplot(data=tips, y='total_bill', x='sex') 
 
 # VIOLIN PLOT: combination of a kernel density plot and a boxplot (takes time to render)
-sns.violinplot
+sns.violinplot(data=tips, y='total_bill', x='sex')
+sns.violinplot(data=tips, y='total_bill', x='sex', inner=None) # innter: Representation of the datapoints in the violin interior.
 
 # BOXENPLOT: enhanced box plot (quicker than a violin plot)
 sns.boxenplot(data=tips, y='total_bill', x='sex')
@@ -2431,4 +2492,1177 @@ r = requests.get(url) # with the get function you package, send and catches the 
 text = r.text # return the html as a string
 print(text)
 
+# BEAUTIFUL SOUP: web scraping, parsing structured data from HTML
+# After you have made a get request, the data is still in an unreadeable format. BeautifulSoup can help with that.
+from bs4 import BeautifulSoup
+import requests
+url = "https://wikipedia.org/"
+r = requests.get(url)
+html_doc = r.text
+soup = BeautifulSoup(html_doc) # Once you have retrieved the html, run this fnction to parse it
+print(soup.prettify()) # The prettify method indents the text as it would be in html code
+print(soup.title) # Extract html title
+print(soup.get_text()) # Extract html text
+# Extract urls of all hyperlinks in the html:
+for link in soup.find_all('a'): # hyperlinks are defined by the HTML tag <a>
+    print(link.get('href'))
 
+# INTRODUCTION TO APIs and JSONs
+# API: application programming interface. It is a set of protocols and rutines for building and interacting with software applications.
+# A bunch of code that allows two software programmes to communicate with each other.
+
+# JSON: JAvaScript object notation. A file format which is a standard form for transferring data through an API.
+# They are human readable. It conssits of name-value pairs separated by commas.
+
+# Loading JSON files
+import json
+with open('file.json', 'r') as json_file: # open a connection to the file
+    json_data = json.load(json_file) # use json.load() to load it
+print(type(json_data)) # it imports it as a dictionary
+for key, value in json_data.items(): # iterate across key-value pairs and print content
+    print(key + ':' + value)
+
+# Connecting to an API using requests package
+import requests
+url = 'http://www.omdbapi.com/?apikey=72bc447a&t=the+social+network'
+# First put a '?' sign, then put the API key, and "t=the+social+network" is a query string, where 't' means title
+r = requests.get(url)
+json_data = r.json() # convert the response object to a dictionary with the json() decoder
+for key, value in json_data.items():
+    print(key + ':', value)
+
+# Twitter API
+# Twitter has more than one API
+# REST API: allows the user to read and write twitter data
+# Public streams: one of the streaming APIs which gives you access to streams of the public data.
+# It cointains different options. We will beusing the GET statuses/sample API, which returns a small random sample of public tweets.
+# To access more data, one could use the firehouse API, which is paid.
+# ACcess stream data from the Twitter API with Tweepy package
+import tweepy, JSON
+acces_token = '...'
+access_toke_secret = '...'
+consumer_key = '...'
+consumer_secret = '...'
+# Create a streaming object
+stream = tweepy.Stream(consumer_key, consumer_secret, access_token, access_token_secret)
+# Filter tweets with certain keywords
+stream.filter(track=['apples', 'oranges'])
+
+
+# %% CLEANING DATA IN PYTHON
+
+# Pandas stores strings as the data type "object"
+
+# Get data frame info
+df.info()
+
+# Get summary statistics of a column
+df['col'].describe()
+
+# Clean a string variable to make it integer
+# Remove a character from a string variable in pandas
+df['col'] = df['col'].str.strip('$')
+# Convert a string column to integer
+df['col'] = df['col'].astype('int') # change the data type of a variable
+
+# Clean an integer variable to make it categorical
+df['col'] = df['col'].astype('category')
+
+# Get the data type of a column
+df['col'].dtype
+
+# DATA RANGE CONSTRAINTS
+
+# Check if there are dates posterior to today's date
+import datetime as dt
+# Convert string column to date
+df['date'] = pd.to_datetime(df['date']).dt.date
+today_date = dt.date.today()
+df[df['datecol'] > today_date]
+# Drop them
+df.drop(df[df['date']>today_date, 'date'].index, inplace=True)
+
+# Drop values that are incorrect
+# Using filtering
+df = df[df['rating'] <= 5]
+# Using .drop() method
+df.drop(df[df['rating'] > 5].index, inplace=True)
+
+# Replace row values according to a condition
+df.loc[df['rating'] > 5, 'rating'] = 5
+
+
+# UNIQUENESS CONSTRAITNS / DUPLICATE VALUES
+# Get duplicates across all columns
+df[df.duplicated()]
+# Get duplicated across specific columns
+duplicates = df.duplicated(subset=['col1', 'col2'], keep='first') # subset arg let's you choose columns. keep arg lets you keep first (default), last or all (False) duplicate values.
+df[duplicates].sort_values(by = ['col1', 'col2'])
+# Drop duplicates
+df.drop_duplicates(inplace = True) # across all columns
+# Replace duplicates with the mean of the duplicated values
+col_names = ['col1', 'col2']
+summaries = {'col1': 'mean', 'col2':'max'}
+df = df.groupby(by = col_names).agg(summaires).reset_index()
+df[duplicates].sort_values(by = ['col1', 'col2'])
+
+# CATEGORIES AND MEMBERSHIP CONSTRAINTS
+# Possible solutions, dropping data, remapping categories, inferring categories
+# Find inconsistent categories (comparing the values of a column with a list with all possible valid values (or a df column))
+inconsistent_categories = set(df['cat1']).difference(categories_df['cat1'])
+# Find the rows with these inconsistent categories
+inconsistent_rows = df['cat1'].isin(inconsistent_categories) # boolean mask
+df[inconsistent_rows]
+# Drop rows with inconsistent categories
+df = df[~inconsistent_rows]
+
+
+# VALUE INCONSISTENCY
+# Eg string values that differ due to capital letters
+df['cat1'].value_counts()
+df.groupby('cat1').count()
+df['cat1'] = df['cat1'].str.lower()
+df['cat1'].value_counts()
+
+# Remove leading and trailing blank spaces
+df = df['col'].str.strip()
+
+# Create categories out of data. Two ways
+# a) Using the qcut() method from Pandas
+import pandas as pd
+group_names = ['0-100', '100-200', '200-300']
+df['group_col'] = pd.qcut(df['var'], q=3, labels=group_names) # equally spaced groups
+df[['group_col', 'var']]
+# b) Using cut() function from Pandas to create category ranges and names
+ranges = [0, 100, 200, np.inf]
+group_names = ['0-100', '100-200', '200-Inf']
+df['group_col'] = pd.cut(df['var'], bins=ranges, labels=group_names) # group ranges can be set
+df[['group_col', 'var']]
+
+# Mapping categories to fewer ones
+df['col'].unique()
+mapping = {'AB': 'A', 'AC':'A', 'BB':'B'}
+df['col'] = df['col'].replace(mapping) # .replace(): pandas method to replace values of a column
+df['col'].unique()
+
+# CLEANING TEXT DATA
+# Replace strings
+df['col'] = df['col'].str.replace('-', ',')
+df['col'] = df['col'].str.replace('_', ',')
+# Check
+assert df['col'].str.contains("-|_").any() == False # check whether a string is present in a column
+# Correct length violation
+digits = df['phone_num'].str.len()
+df.loc[digits z 10, 'phone_num'] = np.nan
+# Check
+assert df['phone_num'].min() >= 10
+
+# Using REGULAR EXPRESSIONS to replace anything that is not a digit/number with a blank space
+df['col'] = df['col'].str.replace(r'\D+', '')
+
+# DEALING WITH DATES IN MULTIPLE FORMATS AND WITH ERRORS
+df['date'] = pd.to_datetime(df['date'], infer_datetime_format=True, errors='coerce') # returns NaT for rows where the conversion failed
+
+# Convert the format of a date time column
+df['date'] = df['date'].dt.strftime("%d-%m-%Y") # change the format of a date
+df['date'].dt.strftime("%Y") # extract the year / month / day out of a date
+
+# Calculate the years from a date until today
+dt.date.today().year - df['date'].dt.year
+
+# COMPLETENESS AND MISSING DATA
+# Return boolean masks for missing values in all columns
+df.isna()
+# Summary of missing values by column / quantity of missing values by volumn
+df.isna().sum()
+# Check out "missingno" package. Missing value summary plot
+import missingno as msno
+import matplotlib.pyplot as plt
+msno.matrix(df)
+plt.show()
+# You can sort the rows according to a column if you think that missingness is not random but varies with that column
+msno.matrix(df.sort_values(by='col'))
+plt.show()
+# Select all rows with missing values in a data frame
+missing = df[df['col'].isna()]
+missing.describe
+complete = df[~df['col'].isna()]
+complete.describe
+# Delete rows with missing values in one column
+df = df.dropna(subset = ['col']) 
+# Replace missing values with a statistical measure
+df = df.fillna({'col_with_missing': df['col_with_missing'].mean()})
+# Replace missing values with previous or posterior non missing row
+df = df['col_with_missing'].fillna('backfill') # use next valid observation to fill gap
+df = df['col_with_missing'].fillna('ffill') # propagate last valid observation forward to next valid
+
+# COMPARING STRINGS
+# MINIMUM EDIT DISTANCE: the least possible amount of steps needed to transition from one string to another.
+# The "valid" operations are: inserting, deleting, substitution and transpositioning consecutive characters
+# It is a measure of how close two strings are.
+# Simple string comparison (using Levenshtein distance) with "thefuzz"/FuzzyWuzzy package 
+from thefuzz import fuzz
+fuzz.WRatio('Reeding', 'Reading') # Outputs a score from 0 to 100, where 100 is an exact match
+fuzz.WRatio('Houston Rockets', 'Rockets')
+# Compare a string with an array of possible matches
+from thefuzz import process
+import pandas as pd
+string = 'Houseton Rockets vs Los Angeles Lakers'
+choices = pd.Series(['Rockets vs Lakers', 'Lakers vs Rockets', 'Houston vs Los Angeles', 'Heat vs Bulls'])
+process.extract(string, choices, limit=2) # It returns a list of tuples with the matching string being returned, the similarity score, and its index in the array
+# String similarity if very useful when there are so many errors in a category that manual replacement is unfeasible
+# Eg wrong state names
+categories = ['correct_state_name1', 'correct_state_name2']
+# For each correct category
+for state in categories:
+    # Find potential matches in states with typoes
+    matches = process.extract(state, df['state'], limit = df.shape[0]) # set the limit argument of the extract function to the length of the data frame to get all possible matches for each category (there can be no more matches than rows in the df)
+    # For each potential match
+    for potential_match in matches:
+        # If it has a high similarity score (more than 80)
+        if potential_match[1] >= 80
+            # Replace typo with correct category
+            df.loc[df['state'] == potential_match[0], 'state'] = state
+
+# GENERATING PAIRS
+# Joining corresponding rows between data frames when IDs are not identical, so a regular merge will not work.
+# Record linkage is the act of linking data from different sources regarding the same entity.
+# The process involves generating pairs, comparing them, scoring pairs, and choosing the pairs with the highest scores to link the data.
+# We can do this with the 'recordLinkage' package
+# Generating pairs by 'blocking', which creates pairs based on a matching colun, reducing the number of possible paris
+import recordLinkage
+indexer = recordlinkage.Index() # create an indexing object used to generate pairs from the df
+indexer.block('col1') # Generate blocked pairs based on 'col1'
+pairs = indexer.index(dfA, dfB)
+type(pairs) # Pandas multi-index objects. 
+print(pairs) # An array with possible pair of indices.
+# Pairs are already generated, time to find potential matches
+compare_cl = recordlinkage.Compare() # create a comparison object. assigns different comparison procedures for pairs
+# Find exact matches of pairs of certain columns (here date_of_birth and state)
+compare_cl.exact('date_of_birth', 'date_of_birth', label='date_of_birth') # the label arguments let's you set the name of the column in the resulting df
+compare_cl.exact('state', 'state', label='state')
+# For columns with fuzzy values, find similar matches for pairs of certain columns (here 'surname' and 'address_1') using string similarity
+compare_cl.string('surname', 'surname', threshold=0.85, label='surname') 
+compare_cl.string('address_1', 'address_1', threshold=0.85, label='address_1')
+# Find matches
+potential_matches = compare_cl.compute(pairs, dfA, dfB)
+# !!! The order of the data frames has to be always the same
+print(potential_matches) # The result gives, for each row index in dfA, a list with all row indices from dfB that could be a pair.
+# The columns are the columns of the dfs being compared. 1 represents a match, 0 not a match.
+# To find potential matches, you filter for rows where the sum of row values is higher than a certain threshold
+matches = potential_matches[potential_matches.sum(axis=1) >= 2]
+# LINKING DATA FRAMES ACCORDING TO GENERATED PAIRS
+# Once you have potential matches, the next is to extract one of the index columns and subsetting its associate df to filter for duplicates
+# For example, chose the second index column. Extract them and subset dfB on them to remove duplicates with dfA before appending them together
+matches.index
+# Get indices from dfB only
+duplicate_rows = matches.index.get_level_values(1) # 1 is the order of the column with the indices
+# Finding duplicates in dfB
+dfB_duplicates = dfB[dfB.index.isin(duplicate_rows)]
+# Finding new rows in dfB
+dfB_new = dfB[~dfB.index.isin(duplicate_rows)]
+# Link the data frames
+full_df = dfA.append(dfB_new)
+
+
+# %% WORKING WITH DATES AND TIMES IN PYTHON
+
+# Special Python class: "date"
+
+# CH1: WORKING WITH DATES AND CALENDARS
+
+# Create a date object by hand
+from datetime import date
+dates = [date(2016, 10, 7), date(2017, 6, 21)] # Y, M, D
+# Access components of a date using dates attributes
+dates[0].year
+dates[0].month
+dates[0].days
+dates[0].weekday() # Monday is 0, Sunday is 6
+
+# MATH WITH DATES
+# Substract two dates
+dates = [date(2016, 10, 7), date(2017, 6, 21)]
+date(2017, 6, 21) - date(2016, 10, 7) # returns an object of type timedelta (the ellapsed time between events)
+timediff = date(2017, 6, 21) - date(2016, 10, 7)
+timediff.day # days ellapsed
+# Minimum date
+min(dates)
+# Create a timedelta, add it to a date
+from datetime import timedelta
+td =timedelta(days=29)
+print(date(2017, 6, 21) + td)
+
+# Turning dates into strings (eg to write them to a csv fileimport date from datetime
+d = date(2017, 11, 5)
+print(d) # ISO format: ////-MM-DD
+# Get the ISO representation fo a date as a string
+d.isoformat()
+# For every other format, you can format your data with
+d.strftime("%Y")
+d.strftime("Year is %Y") # very flexible
+d.strftime("%Y/%m/%d")
+d.strftime('%B (%Y)')
+d.strftime("%Y-%j") # %j gives day as number of day in the year
+
+
+# CH2: COMBINING DATES AND TIMES
+
+# Create a datetime object
+from datetime import datetime
+dt = datetime(2017, 10, 1, 15, 23, 25, 500000) # year, month, day, hour, minutes, seconds, microseconds. All have to be whole numbers
+print(datetime(2017, 10, 1, 15, 23, 25, 500000).hour)
+print(datetime(2017, 10, 1, 15, 23, 25, 500000).minute)
+print(datetime(2017, 10, 1, 15, 23, 25, 500000).second)
+print(datetime(2017, 10, 1, 15, 23, 25, 500000).microsecond)
+# Create a datetime object from an existing one / replace values of a datetime object
+dt_hr = dt.replace(minute=0, second=0, microsecond=0)
+
+# Printing datetimes
+dt = datetime(2017, 12, 30, 15, 19, 12)
+print(dt.strftime("%Y-%m-%d %H:%M:%S")) # year, monht, day hour, minutes, seconds
+print(dt.isoformat())
+
+# Parse dates from strings
+from datetime import datetime
+dt = datetime.strptime("12/30/2017 15:19:13", "%m/%d/%Y %H:%M:%S") # 'strptime' is short for "string parse time". The first arg is the string we want to parse, the second is the format
+dt = datetime.strptime("12/30/2017 15:19:13", "%Y-%m-%dT%H:%M:%S") # re create the ISO format
+
+# Parsing dates from Unix timestamps: (the number of second since January 1st 1970)
+ts = 1514665153.0
+print(datetime.fromtimestamp(ts))
+
+# WORKING WITH DURATIONS (timedelta)
+start = datetime(2017, 10, 8, 23, 46, 47)
+end = datetime(2017, 10, 9, 0, 10, 57)
+duration = end - start
+duration.total_seconds() # get total seconds ellapsed
+
+# Create a timedelta object by hand
+delta1 = timedelta(seconds=1) # add a timedelta
+print(start + delta1)
+delta2 = timedelta(days=1, seconds=1) # substract a timedeltan
+print(start - delta2)
+delta3 = timedelta(weeks=-1) # negative durations are allowed
+print(start + delta3)
+
+# CH3: TIME ZONES AND DAYLIGHT SAVING
+
+# UTC OFFSETS: compare times around the world
+# UTC: coordinated universal time
+# Create a timezone object
+from datetime import datetime, timedelta, timezone
+# US Eastern Standard time zone
+ET = timezone(timedelta(hours=-5)) # This is UTC - 5
+UTC = timezone.utc # UTC
+# Create a datetime object specifying the time zone
+dt = datetime(2017, 12, 30, 15, 9, 3, tzinfo = ET)
+print(dt) # the UTC offset is the "-05:00" at the end of the datetime
+# Convert datetimes to another time zone
+IST = timezone(timedelta(hours=5, minutes=30)) # India Standard time zone, UTC + 5.30
+dt.astimezone(IST)
+# You can also do it doing the replace method
+dt.replace(tzinfo=IST)
+# The difference is that the replace method has to be used just for "one-off" changes, eg to a particular value, while changing the timezone with astimezone supplies it as "context information" and is able to pick the correct offset applicable to the datetime
+
+# TIME ZONE DATABASE: tz database, updated 4 times a year
+# Get a time zone from the time zone database using "dateutil" package
+from datetime import datetime
+from dateutil import tz
+et = tz.gettz("America/New_York") # Format: "Continent/City"
+tz.gettz('UTC')
+# It takes into account the daylight saving time
+print(datetime(2017, 12, 30, 15, 9, 3, tzinfo=et))
+print(datetime(2017, 10, 1, 15, 23, 25, tzinfo=et)) # see how the UTC offset changed because of DST
+
+# Starting daylight saving time
+# Eg: clocks move forward in the spring, like on March 12 2017 in Washington DC
+# The UTC object will now have to change to reflect this
+# Lets start by creating the offset by hand, then we will use dateutil
+from datetime import datetime, timedelta, timezone
+spring_ahead_159am = datetime(2017, 3, 12, 1, 59, 59) # 1:59
+spring_ahead_3am = datetime(2017, 3, 12, 3, 0, 0)
+(spring_ahead_3am - spring_ahead_159am).total_seconds() # an hour and one second apart
+EST = timezone(timedelta(hours=-5))
+EDT = timezone(timedelta(hours=-4))
+spring_ahead_159am = spring_ahead_159am.replace(tzinfo = EST)
+spring_ahead_159am.isoformat()
+spring_ahead_3am = spring_ahead_3am.replace(tzinfo = EDT)
+spring_ahead_3am.isoformat()
+(spring_ahead_3am - spring_ahead_159am).seconds # only one second apart
+# The problem with this approach is that you have to know when the cut off happened. dateutil solves this for us
+from dateutil import iz
+easter = tz.gettz("America/New_York")
+spring_ahead_159am = datetime(2017, 3, 12, 1, 59, 59, tzinfo=eastern)
+spring_ahead_3am = datetime(2017, 3, 12, 3, 0, 0, tzinfo=eastern) # dateutils figures out that the tz should be EDT and not EST
+
+# Ending daylight saving time (when clocks fall back to standard time in the fall)
+from datetime import datetime, timedelta, timezone
+eastern = tz.gettz("US/Eastern")
+first_1am = datetime(2017, 11, 5, 1, 0, 0, tzinfo=eastern)
+# Check if the datetime is ambiguous (that could occur at 2 utc moments in the time zone)
+tz.datetime_ambiguous(first_1am)
+second_1am = datetime(2017, 11, 5, 1, 0, 0, tzinfo=eastern)
+second_1am = tz.enfold(second_1am) # this says that the datetime belongs to the "second" timezone, the one after DST
+(first_1am - second_1am).total_seconds() # it doesn't change basic operations
+# The BEST PRACTICE is to convert them to UTC which is an unambiguos timezone
+first_1am = first_1am.astimezone(tz.UTC)
+second_1am = second_1am.astimezone(tz.UTC)
+(first_1am - second_1am).total_seconds()
+
+
+# CH4: DATES AND TIMES IN PANDAS
+
+import pandas as pd
+# Load a csv and parse dates as datetimes (actually a Pandas Timestamp)
+df = pd.read_csv('file.csv', parse_dates = ['start_date', 'end_date'])
+# Or change a columnd to a datetime format manually
+df['start_date'] = pd.to_datetime(df['start_date'], format = "%Y-%m-%d %H-%M-%S")
+# You can substract columns and get timedeltas
+df['duration'] = df['end_date'] - df['start_date']
+# Convert a column to seconds 
+df['duration'] = df['duration'].dt.total_seconds()
+
+# SUMMARIZING DATETIME DATA IN PANDAS
+df['duration'].mean()
+df['duration'].sum()
+df['duration'].sum() / timedelta(days=91)
+df['duration'].total_seconds()
+df['duration'].total_seconds().min()
+df['duration'].dt.year
+df['duration'].dt.month
+df['duration'].dt.day
+df['duration'].dt.day_name() # returns the name of the day of the week (available in other langauges)
+df['duration'].shift(1) # this makes the value in the n row move to the n+1 row, and row zero is left with Na
+# Average of a column by period using resample / group by the period attribute of a datetime column
+df.resample('M', on = 'start_date')['col'].mean() # by month, group on a datetime column
+df.resample('M', on = 'start_date')['col'].mean() # by days
+df.resample('M', on = 'start_date')['col'].mean().plot()
+
+# WARNING: take into account TIME ZONES and DAYLIGHT SAVING TIME
+# Set the time zone of a datetime column
+df['duration'].dt.tz_localize("America/New_York")
+# However, there may be datetimes that occur just during a shift, so it is not unambiguous
+df['duration'].dt.tz_localize("America/New_York", ambiguous='NaT') # sets ambiguous rows as datetime missing values ('not a time')
+df['duration'].dt.tz_convert('Europe/London')
+df['duration'] = df['end_date'] - df['start_date']
+
+
+# %% WRITING FUNCTIONS IN PYTHON
+
+### CH1: BEST PRACTICES
+
+
+# DOCSTRINGS
+# A string written as the first line/s of a function, enclosed in triple quotes, which usually explains:
+# 1) What the function does
+# 2) What the arguments are
+# 3) What the return value/s should be
+# 4) Info about any errors raised
+# 5) Something else about the function
+# THere are serveral standards for how to write docstrings: Google Style, Numpydoc, reStructuredText, EpyText
+
+# Google Style format: the docstirng starts with an imperative description of what the function does, in imperative terms.
+# Then comes the "Args" section where each argument name is listed followed by its expected type in parenthesis, and what its role is in the fucntion, as well as default arguments
+# Return section: lists the expected type or types of what gets returned, as well as some comment about it
+# Raises section: specify if the function intentionally raises any error
+# Notes section: additional notes or examples of usage in free-form text
+def function(arg1, arg2=43):
+    """Description of what the function does.
+    
+    Args:
+        arg1 (str): Description of arg1 that can break onto the next line if needed.
+        arg2 (int, optional): Write optional when an argument has a default value.end=
+    
+    Returns:
+        bool: Optional description of the return values
+        Extra lines are not indented.
+
+    Raises:
+        ValueError: Include any error types that the funtion intentionally raises.
+
+    Notes:
+        See ... for more info
+    """
+
+# Numpydoc format
+# The most common format in the scientific community, but takes more vertical space.
+def function(arg1, arg2=43):
+    """
+    Description of what the function does.
+
+    Parameters
+    ----------
+    arg1 : expected type of arg1
+        Description of arg1
+    arg2: int, optional
+        Write optional when an argument has a default value.
+        Default=43
+
+    Returns
+    -------
+    The type of the return value
+        Can include a description of the return value.
+        Replace "Returns" with "Yields" if this function is a generator.
+    """
+
+# How to retrieve the docstring of a function: with the __doc__ attribute
+print(function1.__doc__) # raw docstring, including tabs of spaces
+# For a cleaner version of the docs
+import inspect
+print(inspect.getdoc(function1)) # a clean
+
+# TWO PRINCIPLES TO FOLLOW:
+# 1) DRY ('don't repeat yourself'): when you are using the same chunk of code over and over for different data sets, it is probably better to write a function that does that
+# 2) Do one thing: each function should have a single responsibility
+
+# REFACTORING: the process of improving code by changing it a little bit at a time
+
+# PASS BY ASSIGNMENT
+# The way Python passes argument to a function is particular
+# Mutatable data types can be modified by passing them as arguments in a function (without returning anything) (sort of), while inmutable data types cannot.
+# Immutable data types: int, float, bool, string, bytes, tuple, frozenset, None
+# Mutable data types: list, dict, set, bytearray, objects, function, almost everything else
+# The only way to check whether something is mutable is to see if there is a function or method that will change the object without assigning it to a new variable
+# When writing a function with a default value, try not to put a mutable object as the defualt value, because it may happen that it gets changed when running the function, and it is not reasonable to have a default value that changes
+
+
+### Ch2: CONTEXT MANAGERS
+
+# A context manager is a type of function that sets up a context for your code to run in, runs your code, and then removes the context.
+# One example is the open function, like when you use
+with open('file.txt') as my_file:
+    text = my_file.read()
+    length = len(text)
+print('The file is {} characters long'.format(length))
+# Here open() does 3 things: it sets up a context by opening a file that you can read or write on, then it gives control back to your code so that you can perform operators on the file object. Finally, when the code inside the indented section is done, the file is closed. By the time thte print statement is run, the file is closed.
+# Using a context manager. Always starts with 'with', followed by a function that is a context manager
+with <context-manager>(<args>):
+    # Run code here
+    # This code is running "inside the context"
+# This code runs after the context is removed
+# Statements that have an indented block after them are called 'compound statements'
+# Some context managers want to return a variable that you can use inside the context
+# By adding 'as' and a variable name at the end of the with statement you can assign the return value as a variable name
+
+# Writing context managers / creating functions that are context managers
+# There are two ways to do this:
+# 1) Class-based: using a class that has __enter__ and __exit__ methods
+# 2) Function-based: decorating a certain kind of function (here we see only this one)
+# 5 steps:
+# -1 define a function
+# -2 (optional) add any set up code your context needs
+# -3 use the "yield" keyword to signal Python that this is a special kind of function
+# -4 (option) Add any teardown code that you need to clean up the context
+# -5 Add the '@contextlib.contextmanager' decorator
+import contextlib
+@contextlib.contextmanager
+def my_context():
+    print('hello')
+    yield 42 # used when you are going to return a value but you expect to finish the rest of the function at some point in the future
+    # The yielded value can be assigned to a variable in the 'with' statement by adding 'as var_name'
+    # In fact, a context manager function is technically a generator that yields a single value
+    print('goodbye') 
+with my_context() as foo:
+    print('foo is {}'.format(foo))
+# Another example
+@contextlib.contextmanager
+def database(url):
+    # set up database connection
+    db = postgres.connect(url)
+
+    yield db
+    # tear down database connection
+    db.disconnect()
+url = 'http://datacamp.com/data'
+with database(url) as my_db:
+    course_list = my_db.execute('SELECT * FROM courses')
+# The "set up - tear down" behaviour allows a context manager to hide things like connecting and disconnecting to a db so that a programmer working using the context manager can just perform operations on the db without worrying about underlying details
+
+# Some context managers do not yield a specific value
+@contextlib.contextmanager
+def in_dir(path):
+    # save current working directoy
+    old_dir = os.getwd()
+
+    # switch to new working directory
+    os.chdir(path)
+
+    yield
+
+    # change back to previous working directory
+    os.chdir(old_dir)
+
+with in_dir('/data/project_1/'):
+    project_files = os.listdir()
+
+# Timer / function that times code
+import time
+@contextlib.contextmanager
+def timer():
+  """Time the execution of a context block.
+
+  Yields:
+    None
+  """
+  start = time.time()
+  # Send control back to the context block
+  yield
+  end = time.time()
+  print('Elapsed: {:.2f}s'.format(end - start))
+
+with timer():
+  print('This should take approximately 0.25 seconds')
+  time.sleep(0.25)
+
+# Read-only version of the open() context manager
+@contextlib.contextmanager
+def open_read_only(filename):
+  """Open a file in read-only mode.
+
+  Args:
+    filename (str): The location of the file to read
+
+  Yields:
+    file object
+  """
+  read_only_file = open(filename, mode='r')
+  # Yield read_only_file so it can be assigned to my_file
+  yield read_only_file
+  # Close read_only_file
+  read_only_file.close()
+
+with open_read_only('my_file.txt') as my_file:
+  print(my_file.read())
+
+# NESTED CONTEXTS
+# For example, if you write a function that copies the content of one file to another file, one option would be to
+# open the source file, store the content in memory, and then write the contents to the other file
+# However, if the file is too large, this is not very efficient because it requires storing the file in memmory.
+# Ideally we could open both files at once and copy one line at a time, like this
+def copy(src, dst):
+    '''
+    Copy the contents of one file to another.
+
+    Args:
+        src (str): File name of the file to be copied.end=
+        dst (str): Where to write the new file.
+    '''
+
+    # Open both files
+    with open(src) as f_src:
+        with open(dst, 'w') as f_dst:
+            # Read and write each line, one at a time
+            for line in f_src:
+                f_dst.write(line)
+
+# HANDLING ERRORS
+# If the user, when using a context manager, runs a code that returns an error, if it is not taken into acount, the teardown code will not be run (for example, the file will not be closed).
+# To take this into account, one can take advantage of the try-finally combination
+# For example, a made-up function that opens the connection to a printer, prints a text, and then closes the connection, since only one user can be connected at a time.
+def get_printer(ip):
+    p = connect_to_printer(ip)
+
+    try:
+        yield
+    finally: # 'finally' precedes a code that will be run regardless of whether the code in 'try' run or returned an error
+        p.disconnect()
+        print('disconnected from printer')
+
+doc = {'text': 'This is my text.'}
+with get_printer('10.0.34.111') as printer:
+    printer.print_page(doc['txtt']) # here we mistook 'text' for 'txtt', so the function should return an error, but still close the connection
+
+# COMMON PATTERS THAT REQUIRE A CONTEXT MANAGER
+# IF you notice that your code is following any of the following patterns, you might consider using a context manager:
+# - Open-Close
+# - Lock-release
+# - Change-reset
+# - Enter-exit
+# - Start-stop
+# - Setup-teardown
+# - Connect-disconnect
+
+
+### Ch3: DECORATORS
+
+# FUNCTIONS AS OBJECTS: functions are not fundamentally different from any other Python object
+# Therefore, you could do things to it like you would do to any other object,
+# like assigning it to another variable
+def my_func():
+    print('Hello')
+x = my_func # do not include the parenthesis to refference the function itself, otherwise you are calling it and it evaluates to the value that the function returns
+print(type(x))
+x()
+# or add them to a list
+list_of_funcs = [my_func, open, print]
+list_of_funcs[2]('Alo')
+# or to a dictionary
+dict_of_funcs = {'f1': my_func, 'f2': open, 'f3':print}
+dict_of_funcs[2]('Alo')
+# Pass a function as an argument of another function
+def has_docstring(func):
+    """Check to see if the function 'fun' has a docstring.
+    
+    Args:
+        func (callable): A function.
+        
+    Returns:
+        bool
+    """
+    return func.__doc__ is not None
+has_docstring(print)
+
+# NESTED FUNCTIONS / INNER FUNCTIONS / HELPER FUNCTIONS / CHILD FUNCTIONS: functions defined inside another function
+# Sometimes they make your code easier to read
+def foo(x, y):
+    if x >4 and z < 10 and y > 4 and y < 10
+    print(x * y)
+# Can be improved into
+def foo(x, y):
+    def in_range(v):
+        return v > 4 and v < 10
+    if in_range(x) and in_range(y):
+        print(x * y)
+
+# A function that returns a function
+def get_function():
+    def print_me(s):
+        print(s)
+    return print_me
+new_f = get_function()
+new_f('Print this')
+
+# SCOPE: determines which variables can be accessed at different points in your code
+# Let's use an example
+x = 7
+y = 200
+print(x)
+# What happens if you redefine X inside a function
+def foo():
+    x = 42
+    print(x)
+    print(y)
+# Here, the function prints the x that was defined inside it. Also, as there is no Y defined inside it looks outisde the function for a definition.
+# Note that setting the value of x = 42 inside the function does not changed the value of X defined outside the function.
+print(x)
+# The formal rules that set this behaviour are:
+# 1st: look in the LOCAL scope
+# 2nd: if it cannot find it, search in the NONLOCAL scope (the PARENT function)
+# 3rd: if it cannot find it, search in the GLOBAL scope
+# 4th: if it cannot find it, search in the BUILT IN scope (things like the 'print' function)
+
+# GLOBAL KEYWORD: change the value of an object from the global scope, inside a function
+x = 7
+def foo():
+    global x 
+    x = 42
+    print(x)
+foo()
+# use 'nonlocal x' for nonlocal objects
+def foo():
+    x=10
+    def bar():
+        nonlocal x
+        x=200
+        print(x)
+    bar()
+    print(x)
+foo()
+
+# CLOSURES: a tuple of variables that are no longer in scope but that a function needs in order to run
+# It is a way to attach nonlocal variables to a returned function so that the function can operate even when it is called outisde of its parent scope
+# Attaching nonlocal
+def foo():
+    a=5
+    def bar():
+        print(a)
+    return bar
+func = foo()
+func()
+# When foo returned the new 'bar' function, Python attached any nonlocal variable that 'bar' was going to need to the function object.
+# Those variables get stored in  atuple i the __closure__ attribute of the function
+print(type(func.__closure__))
+len(func.__closure__)
+# You can access the cell contents of the closure
+func.__closure__[0].cell_contents
+
+# Closures and deletion
+x = 25
+def foo(value):
+    def bar():
+        print(value)
+    return bar
+my_func = foo(x)
+del(x)
+my_func()
+# Even though we deleted X from the global scope, my_func() still knows its value because foo's value argument was added to the closure attached to my_func function.
+#So even X doesn't exist anymore, the value persists in the closure.
+# Closures and overwriting
+x = 25
+def foo(value):
+    def bar():
+        print(value)
+    return bar
+x = foo(x)
+x()
+# Still returns 25 even though x value was overwritten in the global scope
+
+#All this matters because DECORATORS need to use all of the following in order to work:
+# Functions as objects, nested funcitons, nonlocal scope, closures
+
+# DECORATORS
+# A decorator is a wrapper that you can place around a function that changes its behaviour
+# You can modify the inputs, the outputs, and/or the behaviour of the function
+# It is a function that takes a function as an argument and returns a modified version of it
+# For example, let¡s build a 'double args' decorator that multiplies every argument by 2 before passing it to the decorated function
+def multiply(a, b):
+    return a * b
+def double_agrs(func):
+    # Define  anew function that we can modify
+    def wrapper(a, b):
+        # Call the passed in function, but double each argument
+        return func(2*a, 2*b)
+    # Return the new function
+    return wrapper
+new_multiply = double_args(multiply)
+new_multiply(1, 5)
+# Try this
+multiply = double_args(multiply)
+multiply(1, 5) # returns 20, because the original multiply function is stored in the new function's closure
+multiply.__closure__[0].cell_contents
+# Now using the syntax for decorators
+@double_args # this is equivalent to 'multiply = double_args(multiply)'
+def multiply(a, b):
+    return a*b
+multiply(1, 5)
+
+
+# Ch5: REAL-WORLD EXAMPLES OF DECORATORS
+
+# TIMER DECORATOR
+import time
+def timer(func):
+    """ A decorator that prints how long a function took to run.end=
+    Args:
+        func (callable): The function being decorated.end=
+    
+    Returns:
+        callable: The decorated function.end="""
+    # Define the wrapper function to return.
+    def wrapper(*args, **kwargs):
+        # When wrapper() is called, get the current time.
+        t_start = time.time()
+        # Call the decorated function and store the result
+        result = func(*args, **kwargs)
+        # Get the total time it toot to run, and print it.
+        t_total = time.time() - t_start
+        print('{} took {}s'.format(func.__name__, t_total))
+        return result
+    return wrapper
+# Test it
+@timer
+def sleep_n_seconds(n):
+    time.sleep(n)
+sleep_n_seconds(5)
+
+# MEMOIZING: the process of storing the result of a function so that the next time the function is called with the same arguments, you can just look up the answer instead of running it again
+# Let's make a wrapper for that
+def memoize(func):
+    """ Store the results of the decorated function for fast lookup.
+    """
+    # Store the results in a dict that maps arguments to results
+    cache = {}
+    # Define the wrapper function to return.
+    def wrapper(*args, **kwargs):
+        # If these arguments haven't been seen before,
+        if (args, kwargs) not in cache: # the second time the function is run with the same arguments, this condition will evaluate to false and we will look up the return value in the dictionary
+            # Call func() and store the result.
+            cache[(args, kwargs)] = func(*args, **kwargs)
+        return cache[(args, kwargs)]
+    return wrapper
+# Test it
+import time
+@memoize
+def slow_function(a, b):
+    print('Sleeping...')
+    time.sleep(5)
+    return a + b
+slow_function(3, 7)
+slow_function(3, 7)
+
+# When is it appropiate to use a decorator?
+# When you want to add some common bit of code to multiple functions
+
+# Create a decorator that returns the type of the returned value of a function
+def print_return_type(func):
+  # Define wrapper(), the decorated function
+  def wrapper(*args, **kwargs):
+    # Call the function being decorated
+    result = func(*args, **kwargs)
+    print('{}() returned type {}'.format(
+      func.__name__, type(result)
+    ))
+    return result
+  # Return the decorated function
+  return wrapper
+# Test it
+@print_return_type
+def foo(value):
+  return value
+print(foo(42))
+print(foo([1, 2, 3]))
+print(foo({'a': 42}))
+
+# Create a decorator to count the number of times a function is used
+def counter(func):
+  def wrapper(*args, **kwargs):
+    wrapper.count += 1
+    # Call the function being decorated and return the result
+    return func(*args, **kwargs)
+  wrapper.count = 0
+  # Return the new decorated function
+  return wrapper
+# Decorate foo() with the counter() decorator
+@counter
+def foo():
+  print('calling foo()')
+foo()
+foo()
+print('foo() was called {} times.'.format(foo.count))
+
+# DECORATOR AND METADATA
+# One of the problems of decorators is that they obscure the decorated function's metadata
+# Lets explain this using the timer decorator and a slee_n_seconds function
+import time
+def timer(func):
+    # Define the wrapper function to return.
+    def wrapper(*args, **kwargs):
+        # When wrapper() is called, get the current time.
+        t_start = time.time()
+        # Call the decorated function and store the result
+        result = func(*args, **kwargs)
+        # Get the total time it toot to run, and print it.
+        t_total = time.time() - t_start
+        print('{} took {}s'.format(func.__name__, t_total))
+        return result
+    return wrapper
+# Sleep n seconds without the decorator
+def sleep_n_seconds(n=10):
+    """ Pause processing for n seconds.
+    """
+    time.sleep(n)
+print(sleep_n_seconds.__name__)
+print(sleep_n_seconds.__defaults__)
+print(sleep_n_seconds.__doc__)
+# Now using the decorator
+@timer
+def sleep_n_seconds(n=10):
+    """ Pause processing for n seconds.
+    """
+    time.sleep(n)
+print(sleep_n_seconds.__name__)
+print(sleep_n_seconds.__defaults__)
+print(sleep_n_seconds.__doc__)
+# After decorating the function, we lost its default arguments and docstring attributes, and its function name is "wrapper"
+# This is because the decorator overwrote the original function, and so when claling these attributes we are actually referencing the nested funcion inside the decorator
+# HOW TO FIX THIS:
+from functools import wraps
+import time
+def timer(func):
+    # Decorate the nested function with wraps()
+    @wraps(func) # this decorator takes the function that it is decorating as an argument
+    def wrapper(*args, **kwargs):
+        # When wrapper() is called, get the current time.
+        t_start = time.time()
+        # Call the decorated function and store the result
+        result = func(*args, **kwargs)
+        # Get the total time it toot to run, and print it.
+        t_total = time.time() - t_start
+        print('{} took {}s'.format(func.__name__, t_total))
+        return result
+    return wrapper
+@timer
+def sleep_n_seconds(n=10):
+    """ Pause processing for n seconds.
+    """
+    time.sleep(n)
+print(sleep_n_seconds.__name__)
+print(sleep_n_seconds.__defaults__)
+print(sleep_n_seconds.__doc__)
+# warps() also gives you access to the origina, undecorated function
+print(sleep_n_seconds.__wrapped__) # (keep in mind that you've always had access to this via the closure, but this is easier)
+
+# DECORATORS THAT TAKE ARGUMENTS
+# We need to add another level of function nesting
+# Create a decorator that let's you specify the number of times that you want a function to run
+# First we will create a function that returns a decorator (rather than a function that is a decorator)
+def run_n_times(n):
+    """Defines and returns a decorator"""
+    def decorator(func): # this ('decorator') is the function that will be acting as a decorator
+        def wrapper(*args, **kwargs):
+            for i in range(n):
+                func(*args, **kwargs)
+        return wrapper
+    return decorator
+# Test it
+@run_n_times(3) # here we are calling the function run_n_times and then decorating my_func with the result of that function, which is a decorator
+def my_func():
+    print('Hello')
+my_func()
+# It would be the same as doing this
+run_three_times = run_n_times(3)
+@run_three_times
+def my_func():
+    print('Hello')
+my_func()
+
+# TIMEOUT: raise an error if a function runs for more than certain amount of time
+import signal
+def raise_timeout(*args, **kwargs): # This function simply raises a timeout error when it is called
+    raise TimeoutError()
+# When an 'alarm' signal goes off, call raise_timeout()
+signal.signal(signalnum = signal.SIGALRM, handler = raise_timeout) # tells Python, when you see the signal whose number is 'signalnum', call the handler function, which in this case is raise_timeout
+# Set off an alarm in 5 seconds in the future
+signal.alarm(5)
+# Cancel the alarm)
+signal.alarm(5)
+# Create a decorator that times out in exactly 5 seconds, and then we will improve this by creating a decorator that takes the time as an argument
+def timeout_in_5s(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Set an alarm for 5 seconds in the future
+        signal.alarm(5)
+        try:
+            # Call the decorated function
+            return func(*arg, *kwargs)
+        finally: # we make sure that the alarm either rings (because func took more than 5s) or it gets cancelled
+            # Cancel alarm
+            signal.alarm(0) 
+    return wrapper
+# Test it with a function that definitely times out
+@timeout_in_5s
+def foo():
+    time.sleep(6)
+    print('foo!')
+foo()
+# Now lets make the function that creates decorators
+def timeout(n_seconds):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kargs):
+            signal.alarm(n_seconds)
+            try:
+                return func(*arg, *kwargs)
+            finally:
+                signal.alarm(0)
+        return wrapper
+    return decorator
+@timeout(10)
+def foo():
+    time.sleep(6)
+    print('foo!')
+foo()
+
+# Create a function 'returns' that takes a data type as argument and returns a decorator that checks whether the decorated function returns that data type
+def returns(return_type):
+  def decorator(func):
+    def wrapper(*args, **kwargs):
+      result = func(*args, **kwargs)
+      assert type(result) == return_type
+      return result
+    return wrapper
+  return decorator
+  
+@returns(dict)
+def foo(value):
+  return value
+
+try:
+  print(foo([1,2,3]))
+except AssertionError:
+  print('foo() did not return a dict!')
+
+  #%% EXPLORATORY DATA ANALYSIS IN PYTHON
+
+# PROBABILITY MASS FUNCTION: like a histogram but without using bins, it puts a bar for every unique value
+import empiricaldist
+Pmf(educ, normalize=False)
+Pmf(educ, normalize=True)
+Pmf(educ, normalize=False).bar(label='educ')
+plt.show()
+
+# CUMULATIVE DISTRIBUTION FUNCTIONS
+import empiricaldist
+cdf = Cdf(df['col'])
+cdf.plot()
+plt.show()
+cdf(q)
+cdf.inverse(0.75) # 75th percentile
+
+# PROBABILITY DENSITY FUNCTIONS
+# Create a random variable with normal distribution
+import numpy as np
+sample = np.random.normal(size=1000)
+# Create a normal cumulative distribution function
+from scipy.stats import norm
+xs = np.linspace(-3, 3) # equally spaced points from -3 to 3
+ys = norm(0, 1).cdf(xs) #create a standard normal distribution and calculate the cdf
+# Plot both to compare
+Cdf(sample).plot()
+plt.plot(xs, ys, color='gray')
+plt.show()
+# PDF / bell curve
+xs = np.linspace(-3, 3)
+ys = norm(0, 1).pdf(xs)
+plt.plot(xs, ys, color='gray')
+plt.show()
+# However, if you plot the pdf of sample, it is a flat line because the probability of unique unique value is always approximating 0
+# To go from a PMS to a PDF we can use a kernel density estimation
+import seaborn as sns
+sns.kdeplot(sample)
+plt.plot(xs, ys, color='gray')
+plt.show()
+
+# SIMPLE LINEAR REGRESSION
+from scipy.stats import linregress
+res = linregress(x, y) # it does not handle NaNs
+# Plot the line of best fit
+fx = np.array([x.min(), x.max()])
+fy = res.intercept + res.slope*fx
+plt.plot(fx, fy, '-')
+plt.show()
+
+# MULTIPLE LINEAR REGRESSION
+import statsmodels.formula.api as smf
+resutls = smf.ols('VAR1 ~ VAR2 + VAR3', data=df).fit()
+results.params
+
+# Use a categorical variable in a regression formula
+resutls = smf.ols('VAR1 ~ VAR2 + C(VAR3)', data=df).fit()
+
+# VISUALIZING REGRESSION RESULTS
+import statsmodels.formula.api as smf
+model = smf.ols('VAR1 ~ VAR2 + VAR3', data=df)
+results = model.fit()
+results.params
+# Generating predictions
+df = pd.DataFrame()
+df['VAR2'] = np.linspace(df['VAR2'].min(), df['VAR2'].max())
+df['VAR3'] = 12 # hold this variable constant
+pred12 = results.predict(df)
+plt.plot(df['VAR3'], pred12, label='VAR3 = 12')
+# here you could also plot the original scatter plot
+plt.show()
+
+# LOGISTIC REGRESSION
+formula = 'binary_var ~ VAR1 + VAR2 + C(sex)'
+results = smf.logit(formula, data=gss).fit()
+results.params
+# Generate prediction
+df = pd.DataFrame()
+df['VAR2'] = np.linspace(df['VAR2'].min(), df['VAR2'].max())
+df['VAR3'] = 12
+df['sex'] = 1
+pred = results.predict(df)
+plt.plot(df['VAR3'], pred12, label='VAR3 = 12')
