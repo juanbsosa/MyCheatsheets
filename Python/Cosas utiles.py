@@ -904,6 +904,7 @@ df["col"].max() # maximum of column
 df["col"].var() # variance of column
 df["col"].std() # standard deviation of column
 df["col"].sum() # sum of column
+df["col"].sum(axis='columns') # sum by row
 df["col"].quantile() # quantile of column
 df["col"].cumsum() # cumulative sum of column
 # NOTE: this are all calculated based on the "index" axis of the data frame, which means "by rows", because of the default value
@@ -928,6 +929,8 @@ df["col"].value_counts(sort=True)
 df["col"].value_counts.sort_index()
 # turn the counts into proportions of the total
 df["col"].value_counts(normalize=True)
+# count unique values and missing values as well
+df["col"].value_counts(dropna=False) # otherwise, the function excludes missing values by default
 # Count by groups
 df.groupby(['col1']).agg({'col2': 'count'}).reset_index()
 
@@ -942,6 +945,14 @@ df.groupby(level=0).agg({'col2':'count'}) # first index
 # Group by and get the first element by group
 df.groupby('var').first()
 
+# When you group by two columns, the result is a MultiIndex Pandas Series
+# Convert a multi index pandas series to a data frame
+data_with_mindex.unstack()
+# Although you can process it like a data frame...
+df.loc['value_index1', 'value_index2']
+# Instead of using a groupby and an unstack, one could directly use the 'pivot_table' method
+df.pivot_table(index='col1', columns='col2', values='col3')
+
 # Pivot tables
 df.pivot_table(values="col1", index="col_group") # mean by default
 df.pivot_table(values="col1", index="col_group", aggfunc=[np.mean, np.median])
@@ -954,8 +965,8 @@ df.pivot_table(values="col1", index="col_group1", columns="col_group2", fill_val
 # Set column as row INDEX
 df = df.set_index("col")
 # Reset data frame index
-df.reset_index() # turns index as column
-df.reset_index(drop=True) # discard index column
+df.reset_index(inplace=True) # turns index as column
+df.reset_index(drop=True, inplace=True) # discard index column
 # Row indexes are useful because they allow you to subset much more easily. Instead of writing
 df[df["col"].isin(["val1", "val2"])]
 # you can write
@@ -996,6 +1007,7 @@ df.isna().any()
 
 # Count missing values of columns
 df.isna().sum()
+df.isnull().sum()
 df.isna().sum().plot(kind="bar") # plot nº of NaNs in a bar chart
 
 # Remove rows with missing values
@@ -1004,6 +1016,7 @@ df.dropna(subset = ['col1', 'col2']) # remove rows with missing values on specif
 
 # Replace missing values with another value
 df.fillna("MISSING")
+df.col.fillna(0).astype('int') # replace hte missing values of a column with a 0 and convert to numerical
 
 # Replacing the values of a column
 df['col'] = df['col'].replace({'wrong_value':'right_value'})
@@ -1015,7 +1028,68 @@ df['col'].replace([value1, value2], np.nan, inplace=True)
 # Split a column with strings and create a new column for each part
 df['col'].str.split("-", expand=True)
 
+# Drop a column / delete a variable from a data frame
+df.drop('col', axis='columns', inplace=True)
 
+# For referring to columns both brackets and dot notation can be used
+df['col']
+df.col
+# However, to create or overwrite a column, the left hand side always has to be in brackets notation
+
+# Plot a column of a data frame in the Y axis, and the data frame's index in the X axis / Line plot with Pandas
+import matplotlib as plt
+df.col.plot()
+plt.xlabel('IndexCol')
+plt.ylabel('Col')
+plt.title('Title')
+plt.show()
+# When you have a df with one index and two columns, the method plots the two lines in the same graph
+# To plot multiple graphs
+to_plot = pd.concat(df.col1, df.col2, axis=1)
+to_plot.plot(subplots=True)
+plt.show()
+# For a BAR PLOT
+to_plot.plot(kind='bar')
+plt.show()
+# Stacked bar plot
+to_plot.plot(kind='bar', stacked=True)
+plt.show()
+# Order the bars
+to_plot.sort_values().plot(kind='bar')
+plt.show()
+# Horizontal bars
+to_plot.sort_values().plot(kind='barh')
+plt.show()
+# Box plot
+df[['col1', 'col2']].plot(kind='box')
+plt.show()
+# Histogram
+df.col1.plot(kind='hist')
+plt.show()
+
+# Create a datetime index for your data frame
+# Combine / paste two columns with strings
+df['datetimecol'] = pd.to_datetime(df.datecol.str.cat(df.timecol, sep=' '))
+# Set it as index
+df.set_index('datetimecol', inplace=True)
+
+# Check whether a string is present in each row of a column
+df.col.str.contains('pattern', na=False) # 'na=False' returns False when it finds a missing value
+
+# Create a FREQUENCY TABLE between two variables (a tally of how many times each combination of values occurs)
+pd.crosstab(df.col1, df.col2)
+
+# Mapping one set of values to another
+df['new_col'] = df.col.map({'old_value1':'new_value1', 'old_value2':'new_value2'})
+
+# Change column type to categorical
+cats = pd.CategoricalDtype(['short', 'medium', 'long'], ordered=True) # ordered categories
+df['col'] = df.col.astype(cats)
+
+# Add a new column to a data frame
+df = pd.DataFrame({'temp_c': [17.0, 25.0]}, index=['Portland', 'Berkeley'])
+df.assign(temp_f=lambda x: x.temp_c * 9 / 5 + 32) # or
+df.assign(temp_f=df['temp_c'] * 9 / 5 + 32)
 # %% JOINING DATA - MUTATING JOINS - PANDAS
 
 ## INNER JOIN: return rows with matching values in both tables
@@ -1087,7 +1161,10 @@ df_3.loc[df_3["_merge"] == 'left_only', 'gid']
 # %% JOINING DATA - CONCATENATION - PANDAS
 
 # Vertical bind / row bind (default)
-pd.concat([df1, df2, df3])
+pd.concat([df1, df2, df3], axis=0) # or 
+pd.concat([df1, df2, df3], axis='index') 
+pd.concat([df1, df2, df3], axis=1) # or
+pd.concat([df1, df2, df3], axis='columns')
     # You can ignore the index
 pd.concat([df1, df2, df3], ignore_index=True)
     # Add keys labels to identify which row came from which data frame
@@ -1171,7 +1248,7 @@ plt.xscale('log')
 
 # Bar plot
 plt.plot(kind="bar")
-df.plot(kind="bar")
+df.plot(kind="bar") # pandas
 
 # Place two or more graphs in the same plot
 df.plt.hist(alpha=0.7)
@@ -1398,6 +1475,9 @@ plt.plot(x, y, 'o', markersize=1, alpha=0.02)
 plt.axis([140, 200, 0, 160])
 plt.show()
 
+# Set equal scale for both axes
+plt.axis('equal')
+
 # %% INTRODUCTION TO DATA VISUALIZATION WITH SEABORN
 # https://seaborn.pydata.org/
 
@@ -1550,7 +1630,7 @@ type(g) # returns "matplotlib.axes._subplots.AxesSubplot"
 # While
 g = sns.catplot(x='col1', y='col2', data=df, kind='box')
 type(g) # returns 'seaborn.axisgrid.FacetGrid'
-# a FacetGrid consists of one or more axes suplots. relplot() and catplot() can create subplots
+# a FacetGrid consists of one or more axes subplots. relplot() and catplot() can create subplots
 # AxesSubplots, on the other hand, can only contain one plot. Like scatterplot() or countplot(), etc, which return a single AxesSubplot object
 
 # Add a TITLE to a FacetGrid object
@@ -2689,7 +2769,8 @@ missing.describe
 complete = df[~df['col'].isna()]
 complete.describe
 # Delete rows with missing values in one column
-df = df.dropna(subset = ['col']) 
+df = df.dropna(subset = ['col']) # or
+df.dropna(subset=['col'], inplace=True)
 # Replace missing values with a statistical measure
 df = df.fillna({'col_with_missing': df['col_with_missing'].mean()})
 # Replace missing values with previous or posterior non missing row
@@ -2935,9 +3016,12 @@ df['duration'].dt.day
 df['duration'].dt.day_name() # returns the name of the day of the week (available in other langauges)
 df['duration'].shift(1) # this makes the value in the n row move to the n+1 row, and row zero is left with Na
 # Average of a column by period using resample / group by the period attribute of a datetime column
+# Resampling: when you change the frequency of time-series observations
 df.resample('M', on = 'start_date')['col'].mean() # by month, group on a datetime column
+# If the df index was the date column, the 'on' argument would be unnecessary
 df.resample('M', on = 'start_date')['col'].mean() # by days
 df.resample('M', on = 'start_date')['col'].mean().plot()
+# It is equivalent to a groupby operation on df.index.month, excep that the resulting index for each row is the last day of each month
 
 # WARNING: take into account TIME ZONES and DAYLIGHT SAVING TIME
 # Set the time zone of a datetime column
@@ -3583,7 +3667,7 @@ try:
 except AssertionError:
   print('foo() did not return a dict!')
 
-  #%% EXPLORATORY DATA ANALYSIS IN PYTHON
+#%% EXPLORATORY DATA ANALYSIS IN PYTHON
 
 # PROBABILITY MASS FUNCTION: like a histogram but without using bins, it puts a bar for every unique value
 import empiricaldist
@@ -3666,3 +3750,66 @@ df['VAR3'] = 12
 df['sex'] = 1
 pred = results.predict(df)
 plt.plot(df['VAR3'], pred12, label='VAR3 = 12')
+
+
+#%% INTRODUCTION TO REGRESSION WITH STATSMODELS
+
+# statsmodel is optimized for INSIGHT into data, while sickit-learn for PREDICTION
+from statsmodels.formula.api import ols
+
+## Ch1: Simple Linear Regression Modeling
+
+# Estimate an OLS model
+from statsmodels.formula.api import ols
+model = ols("dep_var ~ indep_var", data=df)
+model = model.fit()
+print(model.params)
+
+# Model without an intercept
+model = ols("dep_var ~ indep_var1 + 0", data=df).fit()
+
+# Categorical explanatory variables
+model = ols("dep_var ~ indep_var1 + cat_var", data=df).fit()
+print(model.params) 
+
+## Ch2: Predictions and model objects
+
+# To make a prediction outside the sample you need to set values for the explanatory variables
+explanatory_data = pd.DataFrame({"indep_var": np.arange(20,31)}) # here we pass a vector of values for the X variable
+print(model.predict(explanatory_data))
+# Or using only one value
+explanatory_data = pd.DataFrame({"indep_var": [20]})
+# It is better to end up with a data frame where one column has the values for the explanatory variable, and another column the predicted values
+prediction_data = explanatory_data.assign(predicted_col=model.predict(explanatory_data))
+
+# Show predicted data on a scatterplot
+import matplotlib.pyplot as plt
+import seaborn as sns
+fig = plt.figure()
+sns.regplot(x='indep_var', y='dep_var', ci=None, data=df)
+sns.scatterplot(x='indep_var', y='dep_var', data=df, color='red', marker='s')
+plt.show()
+
+# Attributes of model objects
+print(model.params) # extract parameters from a model object
+print(model.params[0]) # extract intercept, if it has one
+print(model.fittedvalues) # Extract fitted values of a model / Make a prediction with the original dataset
+print(model.resid) # extract model residuals
+print(model.summary()) # model summary
+print(model.rsquared()) # R squared
+print(model.mse_resid()) # Mean square error = residual standard error **2
+
+#anually calculate the MEAN SQUARE ERROR, the RESIDUAL STANDARD ERROR and the ROOT MEAN SQUARE ERROR
+residuals_sq = model.resid**2
+resid_sum_of_sq = sum(residuals_sq)
+deg_freedom = len(df.index) - len(model.params)-1 # number of observations minus number of coefficients, beware if not intercept
+rse = np.sqrt(resid_sum_of_sq/deg_freedom)
+rmse = np.sqrt(resid_sum_of_sq/len(df.index))
+
+# Transform the data: square roots can be a useful transformation when the data has a right.skewed distribution
+
+## Ch3: Assessing model fit
+
+
+
+## Ch4: Simple Logistic Regression Modeling

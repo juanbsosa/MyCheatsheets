@@ -312,6 +312,9 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Extraer numeros de una cadena de texto
+db$var <- readr::parse_number(db$var)
+
 # Calcular la tasa de cambio de todas las columnas de un data frame (o la primera diferencia si sacamos la division)
 pct_chage <- function(vector){
     
