@@ -933,6 +933,8 @@ df["col"].value_counts(normalize=True)
 df["col"].value_counts(dropna=False) # otherwise, the function excludes missing values by default
 # Count by groups
 df.groupby(['col1']).agg({'col2': 'count'}).reset_index()
+# Create a bar plot of the frequencies for unique values
+df["col"].value_counts(sort=False).plot(kind='bar') # sort False is to preserve the original order and not sort by frequency
 
 # Drop duplicates
 df.drop_duplicates(subset=["column1", "column2"])
@@ -1090,6 +1092,11 @@ df['col'] = df.col.astype(cats)
 df = pd.DataFrame({'temp_c': [17.0, 25.0]}, index=['Portland', 'Berkeley'])
 df.assign(temp_f=lambda x: x.temp_c * 9 / 5 + 32) # or
 df.assign(temp_f=df['temp_c'] * 9 / 5 + 32)
+
+# Calculate the proportion of a boolean variable
+late_prop_samp = (late_shipments['col']=="value").mean()
+
+
 # %% JOINING DATA - MUTATING JOINS - PANDAS
 
 ## INNER JOIN: return rows with matching values in both tables
@@ -1230,9 +1237,11 @@ plt.scatter(x, y, s=z)
 
 # Histogram
 plt.hist(x)
+df['col'].hist() # with pandas
 plt.hist(df.dropna(), bins=30)
 # control bin number
 plt.hist(bins=29)
+plt.hist(bins=np.arange(10, 130, 20)) # from 10 to 110 with binwidth of 20 (the top value is exclusive)
 
 # Title
 plt.title("Title")
@@ -1849,13 +1858,17 @@ sns.jointplot(data=tips, x='total_bill', y='tip', kind='scatter').plot_joint(sns
 
 # %% INTRODUCTION TO STATISTICS
 
+# Absolute value of a number
+import numpy as np
+np.abs(-22)
+
 # Calculate the mode
 import statistics
 statistics.mode(df['col'])
 
 # Variance
 np.var(df['col']) # population variance
-np.var(df['col'], ddof=1) #  sample variance
+np.var(df['col'], ddof=1) #  sample variance, default is 0
 
 # Standar deviation
 np.std(df['col']) # population
@@ -3743,12 +3756,12 @@ plt.show()
 formula = 'binary_var ~ VAR1 + VAR2 + C(sex)'
 results = smf.logit(formula, data=gss).fit()
 results.params
-# Generate prediction
+# Generate a prediction
 df = pd.DataFrame()
 df['VAR2'] = np.linspace(df['VAR2'].min(), df['VAR2'].max())
 df['VAR3'] = 12
 df['sex'] = 1
-pred = results.predict(df)
+pred = results.predict(df) 
 plt.plot(df['VAR3'], pred12, label='VAR3 = 12')
 
 
@@ -3776,7 +3789,7 @@ print(model.params)
 
 # To make a prediction outside the sample you need to set values for the explanatory variables
 explanatory_data = pd.DataFrame({"indep_var": np.arange(20,31)}) # here we pass a vector of values for the X variable
-print(model.predict(explanatory_data))
+print(model.predict(explanatory_data)) # if you use no argument, then the default is the observations used to estimate the model (here 'df')
 # Or using only one value
 explanatory_data = pd.DataFrame({"indep_var": [20]})
 # It is better to end up with a data frame where one column has the values for the explanatory variable, and another column the predicted values
@@ -3796,8 +3809,8 @@ print(model.params[0]) # extract intercept, if it has one
 print(model.fittedvalues) # Extract fitted values of a model / Make a prediction with the original dataset
 print(model.resid) # extract model residuals
 print(model.summary()) # model summary
-print(model.rsquared()) # R squared
-print(model.mse_resid()) # Mean square error = residual standard error **2
+print(model.rsquared) # R squared
+print(model.mse_resid) # Mean square error = residual standard error **2
 
 #anually calculate the MEAN SQUARE ERROR, the RESIDUAL STANDARD ERROR and the ROOT MEAN SQUARE ERROR
 residuals_sq = model.resid**2
@@ -3810,6 +3823,410 @@ rmse = np.sqrt(resid_sum_of_sq/len(df.index))
 
 ## Ch3: Assessing model fit
 
+# Visualizing model fit: various graphs
+# A good indication is that the residuals are normally distributed with mean zero
+# RESIDUALS vs FITTED VALUES
+sns.residplot(x='indep_var', y='dep_var', data=df, lowess=True)
+plt.xlabel('Fitted values')
+plt.ylabel('Residuals')
+plt.show()
+# If the dots or the lowess trend line is close to the y=0 line, then the mean of the residuals is close to zero
 
+# Q-Q PLOT: check if the residuals follow a normal distribution (if they are close to the 45º line)
+from statsmodels.api import qqplot
+qqplot(data=model.resid, fit=True, line='45')
+plt.xlabel('Theoretical quantiles')
+plt.ylabel('Sample quantiles')
+
+# SCALE-LOCATION PLOT: plots the fitted values against the square root of the standardize residuals
+# It shows whether the size of the residuals changes with the fitted values
+normalized_residuals = model.get_influence().resid_studentized_internal
+abs_sqrt_normalized_residuals = np.sqrt(np.abs(normalized_residuals))
+sns.regplot(x=model.fittedvalues, y=abs_sqrt_normalized_residuals, ci=None, lowess=True)
+plt.xlabel('Fitted values')
+plt.ylabel('Sqrt of abs val of standardized residuals')
+
+# Finding OUTLIERS
+# Extreme X or Y values, or values that are far away form the regression line
+# LEVERAGE: a measure of how extreme the explanatory variable values are
+# INFLUENCE: a measure of how much the model would change if you do not include the observation (it depends on the leverage and the size of the residual)
+# Retrieve leverage and influence
+summary = model.get_influence().summary_frame() 
+df['leverage'] = summary['hat_diag'] # leverage is "hat_diag"
+# For influence we use cook's distance
+df['cook_dist'] = summary['cooks_d']
+# For example, plot how the slope of the regression line changes when dropping the observation with the highest influence
+df.sort_values('cook_dist', ascending=False, inplace=True)
+df2 = df.drop(df.head(1).index)
+model2 = ols('dep_var ~ indep_var', data=df2)
+sns.regplot(x='indep_var', x='dep_var', data=df, ci=None, line_kws={'color': 'green'})
+sns.regplot(x='indep_var', x='dep_var', data=df2, ci=None, line_kws={'color': 'red'})
+plt.show()
 
 ## Ch4: Simple Logistic Regression Modeling
+from statsmodels.formula.api import logit
+logit_model = logit('dep_var ~ indep_var', data=df).fit()
+# Plot results
+sns.regplot(x='indep_var', y='dep_var', data=df, ci=None, logistic=True) # 'logistic' means plot the logistic regression line
+# Make predictions
+explanatory_data = pd.DataFrame('indep_var': np.arange(-2, 5, 8))
+prediction_data = explanatory_data.assign(prediction_value = model.predict(explanatory_data))
+# Getting the most likely outcome (setting the prediction equal to 1 if probability is greater than 0,5, and 0 otherwise)
+prediction_data['prediction_result'] = np.round(prediction_data['prediction_value'])
+# ODDS RATIO: the probability of something happening divided by the probability of it not happening
+# Calculating the odds ratio
+prediction_data['odds_ratio'] = prediction_data['prediction_value'] / (1 - prediction_data['prediction_value'])
+# Visualizing the odds ratio
+sns.lineplot(x='indep_var', y='odds_ratio', data=prediction_data)
+plt.axline(y=1, linestyle='dotted')
+plt.show()
+# alternatively use a log scale
+plt.yscale('log')
+# LOG ODDS RATIO (or 'logit')
+prediction_data['log_odds_ratio'] = np.log(prediction_data['odds_ratio'])
+
+# Assess the performance of the logistic model with a CONFUSION MATRIX: a table with two rows (actual false and actual true) and two columns (predicted false and predicted true)
+# Create a confusion matrix manually
+actual_response = df['dep_var']
+predicted_response = np.round(mode.predict())
+outcomes = pd.DataFrame(
+    {'actual_response': actual_response,
+    'predicted_response': predicted_response}
+)
+print(outcomes.value_counts(sort=False)) # the matrix
+# Create a confusion matrix
+conf_matrix = model.pred_table() # true negative top left, false positive top right, false negative bottom left, true positive bottom right
+# Plot the confusion matrix
+from statsmodels.graphics.mosaicplot import mosaic
+mosaic(conf_matrix)
+# Model ACCURACY: the proportion of correct predictions (true positives + true negatives / total number of observations)
+TN = conf_matrix[0,0]
+TP = conf_matrix[1,1]
+FN = conf_matrix[1,0]
+FP = conf_matrix[0,1]
+acc = (TN + TP) / (TN + TP + FN + FP)
+# SENSITIVITY: the proportion of true positives, in other words, the proportion of true values that were correctly predicted as true (true positives / (false negatives + true positives) )
+sens = TP / (TP + FN)
+# SPECIFICITY: the proportion of true negatives, in other words, the proportion of false values that were correctly predicted as false (true negatives / (true negatives + false positives) )
+spec = TN / (TN + FP)
+# Trade-off: increasing sensitivity will decrease specificity, and viceversa
+
+#%% SAMPLING
+
+# Ch1: INTRODUCTION TO SAMPLING
+
+# Take a random sample from a data frame or series
+np.random.seed(123)
+df.sample(n=10) # by default there is no replacement
+df['col'].sample(n=10)
+df.sample(frac=0.1) # 10% of the df
+# without having to declare the seed beforehand
+df.sample(n=10, random_state=123)
+
+# CONVENIENCE SAMPLING: collecting data by the easiest method (may create sample bias)
+
+# PSEUDO-RANDOM NUMBER GENERATION
+# To generate true random numbers you usually have to rely on a phisical process, but this may be slow and/or expensive
+# Pseudo-random number generation is cheap and fast. It is calculated from a previous 'random' number called the seed
+
+# Genrate random numbers with Numpy
+import numpy as np
+np.random.seed(123)
+numpy.random.beta(a=2, b=2, size=1000) # or binomial, chisquare, t, Poisson, normal, etc
+numpy.random.normal(loc=2, b=6, size=1000)
+
+
+# Ch2: SAMPLING METHODS
+
+# SIMPLE RANDOM SAMPLING: randomply pick one at a time, where eahc observations has equal chances of getting selected
+
+# SYSTEMATIC SAMPLING: samples the population at regular intervals (eg, every fifth row)
+# Get every Nth row from a data frame
+sample_size = 100
+interval = len(df) // sample_size
+df.iloc[::interval]
+# To make sure that systematic sample is not biased, one may plot the relationship between the value of a variable and the order of the rows
+df = df.reset_index() # turn index into a column
+df.plot(x='index', y='var', kind='scatter')
+plt.show() # the graph should look like noise
+# Randomize the order of the rows of a data frame
+shuffled = df.sample(frac=1, random_state=123) # frac lets you specify the proportion of the df you want to return
+shuffled = shuffled.reset_index(drop=True).reset_index() # reset the order of the index (first drop the index, then create a new one)
+df.plot(x='index', y='var', kind='scatter')
+plt.show()
+# But once you've shuffled the rows, systematic sampling is the same as random sampling
+
+# STRATIFIED RANDOM SAMPLING
+# - PROPORTIONAL: getting an equal proportion of observations from different groups
+# (eg if in the population 10% of the observations are "blue", then we would like the sample to have 10% of 'blue' observations)
+stratified_sample_prop = df.groupby('var_to_stratify_by').sample(frac=0.1, random_state=123) # here you get 10% of each group
+# - EQUAL COUNTS: getting the same number of observations for each group
+stratified_sample_eqcount = df.groupby('var_to_stratify_by').sample(n=15, random_state=123) # here you get 15 obs from each group
+# - WEIGHTED RANDOM SAMPLIG: specify weights to adjust the relative probabilty of a row being sample according to the group it belongs to
+import numpy as np
+df_weight = df
+condition = df['col'] == True
+df_weight = np.where(condition, 2, 1) # here you specify that the observations where col equals True will have two times the probability of getting picked than when col equals False. You create a column with the weight for each row
+df_weight = df_weight.sample(frac=0.1, weights='weights')
+
+# CLUSTER SAMPLING: it involves using random sampling to pick some subgroups, and then use random sampling only on those subgroups
+# Cheaper that stratified samplw where you use data on all subgroups
+# Randomly select K groups
+import random
+subgroups = random.sample(list(df['group_col'].unique()), k=3) # get 3 random values for col to use as subgroups
+condition = df['col'].isin(subgroups)
+clusters = df[condition]
+clusters['col'] = clusters['col'].cat.remove_unused_categories() # make sure that rows with 0s are removed
+clusters.groupby('col').sample(n=5, random_state=123)
+# In this case we only used two levels, but we could go on (like making clusters by province, municipality, and gender, for example)
+
+
+# Ch3: SAMPLING DISTRIBUTIONS
+
+# RELATIVE ERROR of point estimates: the absolute difference between the population parameter and the point estimate
+pop_mean = df['col'].mean()
+sample_mean = df.sample(n=100)['col'].mean()
+rel_error_pct = 100 * abs(pop_mean - sample_mean) / pop_mean
+
+# Creating a SAMPLING DISTRIBUTION (a distribution of point estimates)
+means = []
+for _ in range(1000):
+    means.append(df.sample(n=30)['col'].mean())
+import matplotlib.pyplot as plt
+plt.hist(means, bins=30)
+plt.show()
+
+# Exact sampling distributions
+# Create a data frame with all possible combinations between values (here the possible values of 4 dices)
+import pandas as pd
+dices = expand_grid(
+    {'dice1': [1,2,3,4,5,6],
+     'dice2': [1,2,3,4,5,6],
+     'dice3': [1,2,3,4,5,6],
+     'dice4': [1,2,3,4,5,6]
+     }
+)
+# Calculate mean of rows
+dices['mean_roll'] = (dices['dice1'] + dices['dice2'] + dices['dice3'] + dices['dice4'])/4
+# Barplot
+dices['mean_roll'] = dices['mean_roll'].astype('category')
+dices['mean_roll'].value_counts(sort=False).plot(kind='bar') # sort False is so that the x axis ranges from 1 to 6 and is not ordered by frequency
+# If you increase the number of dices, the nmber of possible combinations grows exponentially, so it becomes computationally impossible to calculate exact sampling distribuions. Therefore we can make use of approximate sampling distributions
+
+# APPROXIMATE SAMPLING DISTRIBUTIONS
+import numpy as np
+sample_means_1000 = []
+for i in range(1000):
+    sample_means.append(
+        np.random.choice(list(range(1,7)), size=4, replace=True).mean() # Generate a sample mean of 4 dice rolls (with replacement)
+    )
+hist(sample_means_1000, bins=20)
+     
+# Pick numbers randomly from a list
+import numpy as np
+number_list = [1,5,71,66,143]
+n = 3
+np.random.choice(number_list, size=n, replace=False)
+
+# STANDARD ERORR: the standard deviation of the sampling distribution
+
+
+# Ch4: BOOTSTRAP DISTRIBUTIONS
+
+# SAMPLING WITH REPLACEMENT
+df.reset_index(inplace=True)
+resample = df.sample(frac=1, replace=True)
+# count the values of the index column to see how many were repeated
+df['index'].value_counts()
+
+# BOOTSTRAPPING: building a theoretical population from a sample
+# 1) Make a resample of the same size as the original sample
+# 2) Calculate the statistic of interest for this bootstrap sample
+# 3) Repeat steps  and 2 many times
+# The resulting statistics are bootstrap statistics and they form a bootstrap distribution
+import numpy as np
+bootstrap_statistics = []
+for i in range(1000):
+    bootstrap_statistics.append(
+        np.mean(df.sample(frac=1, replace=True)['col'])
+    )
+import matplotlib.pyplot as plt
+plt.hist(bootstrap_statistics)
+plt.show()
+# Beware: bootstrapping cannot correct potential biases between the chosen sample and the population. So if the sample is biased, the bootstrapped mean, for example, will not approximate the population mean very well
+
+# The standard deviation of the bootstrapped means approximantes the standard error (the sd of the sample mean). Therefore we can use this ESTIMATED STANDARD ERROR to approximate the standard deviation of the population
+Se = np.std(bootstrap_statistics, ddof=1)
+Sd = Se * np.sqrt(n) # n is the original sample size
+
+# Calculate CONFIDENCE INTERVALS of a sample statistic: 
+# Two ways of calculating it:
+# One is by using the mean of the bootstrapped distribution and adding and substractic X standard dviations of this distribution
+mean_of_bootstrap = np.mean(bootstrap_statistics) # point estimate
+lower_bound = mean_of_bootstrap - np.std(bootstrap_statistics, ddof=1)
+upper_bound = mean_of_bootstrap + np.std(bootstrap_statistics, ddof=1)
+print("Confidence interval of 1 SD: {} [{} - {}]".format(mean_of_bootstrap, lower_bound, upper_bound))
+    # or using quantiles
+lower_bound = np.quantile(bootstrap_statistics, 0.025)
+upper_bound = np.quantile(bootstrap_statistics, 0.975)
+print("Confidence interval of 95%: {} [{} - {}]".format(mean_of_bootstrap, lower_bound, upper_bound))
+# The other way is the STANDARD ERROR METHOD which uses the INVERSE CUMULATIVE DISTRIBUTION FUNCTION
+# The Bell curve is the probabilty density function
+# The CDF or cumulative distribution function is the integral of the PDF
+# Its inverse is the same but flipping the axis, yo you have the values of the statistic in Y axis and the accumulated probability (0 to 1) in the X axis
+from scipy.stats import norm
+point_estimate = np.mean(bootstrap_statistics)
+std_error = np.std(bootstrap_statistics, ddof=1)
+lower_bound = norm.ppf(0.025, loc=point_estimate, scale=std_error) # This assumes that the bootstrapped distribution is normal, although it is perfectly so
+upper_bound = norm.ppf(0.975, loc=point_estimate, scale=std_error)
+
+
+#%% HYPOTHESIS TESTING IN PYTHON
+
+# Ch1: INTRODUCTION TO HYPOTHESIS TESTING
+
+# Hypothesis: a statement about an unknown population parameter
+#Hypothesis test: comparing two competing hypothesis
+# Null hypothesis: the existing idea, assumed to be true
+# Alternative hypothesis: a new "challenger" idea
+
+# Determining whether a sample statistic if close to or far aways from an expected value
+# Hypothesis: the sample mean is 100
+sample_mean = df['col'].mean() # suppose it equals 90, how is this evidence for or against the hypothesis?
+# As we do not have the population standard deviation, to calculate the std of the mean, we can infer it with the bootstrap distribution
+import numpy as np
+bootstrapped_sample_means = []
+for i in range(5000):
+    bootstrapped_sample_means.append(
+        np.mean(df.samepl(frac=1, replace=True)['col'])
+    )
+std_error = np.std(bootstrapped_sample_means, ddof=1) # the std of the bootstrapped means approximates the mean std
+# STANDARDIZED VALUE = (VALUE - MEAN( / STANDARD DEVIATION)
+# The units are Z-SCORES
+z_score = (sample_mean - 100) / std_error
+
+# Three types of tests:
+# Alt. hyp. is different from null: two-tailed
+# Alt. hyp. is greater than null: right-tailed
+# Alt. hyp. is less than null: left-tailed
+
+# P-VALUE: measures the strength of support for the null hypothesis.
+# It is the probability of obtaining a result, assuming that the null hypothesis is true
+# Large p-values represent learge support for the null hypothesis. They mean that the obtained statistic is likely NOT in the tail of the null distribution, so the null must be true
+# Small p-values are strong evidence against the null, which means that the obtained statistic is likely in the tail of the null distribution
+# Calculate the p-value - Right-tailed test
+from scipy.stats import norm
+p_value = 1 - norm.cdf(z_score, loc=0, scale=1)
+# Calculate the p-value - Left-tailed test
+from scipy.stats import norm
+p_value = norm.cdf(z_score, loc=0, scale=1)
+# Calculate the p-value - Two-tailed test
+from scipy.stats import norm
+p_value = norm.cdf(-z_score, loc=0, scale=1) + 1 - norm.cdf(z_score, loc=0, scale=1)
+# or more easily
+p_value = 2 * (1 - norm.cdf(z_score, loc=0, scale=1))
+
+# STATISTICAL SIGNIFICANCE: it is a cutoff point for the p-value. It is the threshold point for rejecting the null with "beyond reasonable doubt".
+# If the p-value is less than the significance level, we reject the null, otherwise fail to reject it
+# To get a sense of the potential values of the population parameter, it is common to chose a confidence interval level of 1 minus the significance level: so if alpha =.05, then we use the 95% confidence interval
+
+# TYPES OF ERRORS:
+# Type 1 error: false positive, or rejecting the null when the null is correct
+# Type 2 error: false positive, or not rejecting the null when the null is false
+
+
+# Ch2: TWO-SAMPLE AND ANOVA TESTS
+
+# Performing T-TESTS
+# Problem: comparing sample statistics of a single variable across different groups
+xbar = df.groupby('group_col')['value_vol'].mean() # Calculate means by group
+# The test statistic will be the difference between the group means (in this case we assume a right_sided test where we hypothesize that the mean of one group is greater than the other)
+# t = [ (sample_mean_group1 - sample_mean_group2) - (pop_mean_group1 - pop_mean_group2) ] / Standard error of "sample_mean_group1 - sample_mean_group2"
+# Here the null is that the means are equal, so the second term in the denominator is 0
+# Standard error of the difference of means = square root of [ sample_variance_group1/n_group1 + sample_variance_group2/n_group2 ]
+# When we approximate the SE with the sample standard deviations, we add more uncertainty to the test, so we use a t-student distribution
+s = df.groupby('group_col')['value_vol'].std()
+n = df.groupby('group_col')['value_vol'].count()
+numerator = xbar_g1 - xbar_g2
+denominator = np.sqrt(s_g1**2 / n_g1 + s_g2**2 / n_g2)
+t_stat = numerator / denominator
+# Calculating p-values from t-statistcs
+# t-statistics follow a t-student distribution
+# The t distribution is similar to the normal distribution but narrower, and it gets closer to the normal distribution as the degrees of freedom increase. In fact a normal distribution is a t-distribution with infinite degrees of freedom
+# Degrees of freedom: the maximum number of logically independent values in the data sample
+degrees_of_freedom = n_g1 + n_g2 - 2 # (2 is the number of the sample statistics that we know or assume)
+# Set the significance level
+alpha = 0.1
+from scipy.stats import norm
+p_val = t.cdf(t_stat, df=degrees_of_freedom)
+print(p_val < alpha)
+
+# PAIRED T-TESTS
+# Used when each subject or entity is measured twice, resulting in pairs of observations. This means that the values in each pair are not independent
+# Eg: starting from a dset with the % of votes for a republican candidate in 2 elections. Was the % of votes for this candidate lower in the last election than the first one? It would be a left-tailed test (% in first < % in last)
+# One feature of this ds is that the the votes in the first election are paired with the votes in the second election. These magnitudes are not independent since they both refer to the same electoral zone
+# This means voting patterns may emerge
+# For paired analyses, rather than considering the two variables separately, we can consider a single variable of the difference
+df['diff'] = df['values_g1'] - df['values_g2']
+# Now the null would be that diff is = to 0, and the alternative less than 0
+# t-statistic = (x_diff - mu_diff) / sqr_root (S_diff^2 / n_diff)
+#degrees of freedom = n_diff - 1
+xbar_diff = df['diff'].mean()
+s_diff = df['diff'].std()
+n_diff = len(df)
+t_stat = (xbar_diff - 0) / np.sqrt(s_diff**2/n_diff)
+d_of_f = n_diff - 1
+from scipy.stats import t
+p_value = t.cdf(t_stat, df=d_of_f)
+
+# More direct calculations of T-TESTS with 'pingouin' package
+import pingouin
+pingouin.ttest(x=df['diff'],
+                y=0, # value of the Null
+                alternative='less') # here, left-tailed test, default is “two-sided”
+                
+# A variation that does not require creating the diff column
+pingouin.ttest(x=df['values_g1'],
+                y=df['values_g2'],
+                paired=True,
+                alternative='less')
+
+# ANOVA TESTS
+# A test for differences between groups
+# Eg. 'Is mean annual compensattion different for different levels of job satisfaction?'
+alpha = 0.2
+import pingouin
+pingouin.anova(data=df,
+                dv='col_compensation', # dependent variable
+                between='col_job_satisfaction') # the group variable
+# the p-val is stored in the 'p-unc' column
+# if p-val is less than alpha, it means that at least two of the group categories have significantly different values
+# But it doesn't tell us which two categories are
+#To do this we need to test on each pair of categories, considering all possible combinations between categories
+pingouin.pairwise_tests(data=df, dv='col_compensation', between='col_job_satisfaction', padjust='none') # padjust stands for p-value correction
+# The greater the nmber of groups, the more pais we'll have, the more tests we'll do, and the greater chance of each giving a false positive significant result
+# Bonferroni correction: Apply an adjustment increasing the p-values, reducing the chance of getting a false positive
+pingouin.pairwise_tests(data=df, dv='col_compensation', between='col_job_satisfaction', padjust='bonf') # padjust
+
+
+# Ch3: PROPORTION TESTS
+
+# ONE-SAMPLE PROPORTION TESTS
+# Standard error of a proportion = squared_root[ hypothesized_value * (1 - hypothesized_value) / n ]
+# We use a Z distribution because to calculate the test statistic we only use the sample statistic and the hypothesized value, we do not make any assumptions about the population standard deviation
+p_hat = (df['boolean_col'] == 1).mean()
+n = len(df)
+p_0 = 0.5 # hypothesized value
+import numpy as np
+numerator = p_hat - p_0
+denominator = np.sqrt(p_0 * (1-p_0) / n)
+z_score = numerator / denominator
+from scipy.stats import norm
+p_value = 2 * (1 - norm.cdf(z_score, loc=0, scale=1))
+
+# TWO-SAMPLE PROPORTION TESTS
+# Now we will tests a difference in proportions of the same variable taken from two different populations
+# z_core = [ (p_hat_g1 - p_hat_g2) - 0 ] / SE_of(p_hat_g1 - p_hat_g2)
+# SE_of(p_hat_g1 - p_hat_g2) = 
+
+# %%

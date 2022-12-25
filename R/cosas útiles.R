@@ -1607,7 +1607,8 @@ db <- db %>%
 sf::st_crs(sp_db)
 
 # Cambiar el CRS de un data frame
-df = sf::st_transform(df, crs=5349)
+df = sf::st_transform(df, crs=5349) # con Simple Forms
+df = sp::spTransform(df, CRS('+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0')) # con SP
 
 # Merge espacial / join espacial / unir dos geometrias segun su posicion
 df = sf::st_intersection(df, area_polygon)
