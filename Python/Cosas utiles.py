@@ -1069,6 +1069,11 @@ plt.show()
 df.col1.plot(kind='hist')
 plt.show()
 
+# Stacked bar plot of proportions
+props = df.groupby('group_col')['binary_col'].value_counts(normalize=True)
+wide_props = props.unstack()
+wide_props.plot(kind='bar', stacked=True)
+
 # Create a datetime index for your data frame
 # Combine / paste two columns with strings
 df['datetimecol'] = pd.to_datetime(df.datecol.str.cat(df.timecol, sep=' '))
@@ -1095,6 +1100,9 @@ df.assign(temp_f=df['temp_c'] * 9 / 5 + 32)
 
 # Calculate the proportion of a boolean variable
 late_prop_samp = (late_shipments['col']=="value").mean()
+
+# Check whether all conditions are true
+(df['col']<1).all()
 
 
 # %% JOINING DATA - MUTATING JOINS - PANDAS
@@ -4227,6 +4235,99 @@ p_value = 2 * (1 - norm.cdf(z_score, loc=0, scale=1))
 # TWO-SAMPLE PROPORTION TESTS
 # Now we will tests a difference in proportions of the same variable taken from two different populations
 # z_core = [ (p_hat_g1 - p_hat_g2) - 0 ] / SE_of(p_hat_g1 - p_hat_g2)
-# SE_of(p_hat_g1 - p_hat_g2) = 
+# SE_of(p_hat_g1 - p_hat_g2) = sqrt_of [ p_hat*(1/p_hat)/n_g1 + p_hat*(1/p_hat)/n_g2 ], where p_hat is a weighted mean of the sample proportion for each category
+# p_hat = (n_g1 * p_g1 + n_g2 * p_g2) / (n_g1 + n_g2)
+# so we need to calculate p_hat and n for both groups.
+p_hats = df.groupby('group_col')['value_col'].value_counts(normalize=True) # value_col is boolean
+ns = df.groupby('group_col')['value_col'].count()
+# But you can calculate the Z-score more directly with
+from statsmodel.stats.proportion import proportions_ztest
+n_s = df.groupby('group_col')['value_col'].value_counts(normalize=True)
+n_1s = np.array([n_s[('g1', '1')], n_s[('g2', '1')]])
+n_rows = np.array([n_s[('g1', '1')] + n_s[('g1', '0')], n_s[('g2', '1')] + n_s[('g2', '0')]])
+z_score, p_value = proportions_ztest(count=n_1s, nobs=n_rows, alternative='two-sided')
+
+# CHI-TEST OF INDEPENDENCE
+# The chi-square independence test compares proportions of successes of one categorical variable across the categories of another categorical variable.
+# Extends propotions test to more than two groups.
+# Two categorical variables are considered statistically independent when the proportion of success in the response variable is the same across categories of the explanatory variable
+# You can test whether the value of the proportions of 1s in a boolean variable is not significantly different across differnt groups of a categorical variable
+# For example, the null could be that the age group of a person is independent with whether or not it clicked on an ad
+import pengouin 
+expected, observed, stats = pingouin.chi2_independence(data=df, x='value_col', y='group_col', correction=False) # corection specifies whether to apply Yate's continuity correction, used when the sample size is very small and the degrees of freedom is 1}
+print(stats)
+# The order of x and y doesnt matter
+# The statistic is chi squared, which quantifies how far away the observed results are form the expected values if independence was true
+# Degrees of freedom = (n_g1 - 1)*(n_g2 - 1)
+# You need not worry about tails or directions because it is always right-tailed as the distribution is always positive (since it is squared)
+# Visualization using a PROPORTIONAL STACKED BAR PLOT
+props = df.groupby('group_col')['binary_col'].value_counts(normalize=True)
+wide_props = props.unstack()
+wide_props.plot(kind='bar', stacked=True)
+# IF the null is true, then the height of the bars should be very similar for all categories. The test determines whether the diffence in height is statistically significant
+
+# Chi-squared GOODNESS OF FIT TEST
+# Compares proportions of a single categorical variable to a hypothesized distribution
+# The statistic quantifies how far the distribution of the proportions of the observed variable is from a theoretical/pre-defined distribution
+# Create the table for the sampled variable
+counts = df['cat_var'].value_counts()
+counts = counts.rename_axis('cat_var').reset_index(name='n').sort_values('cat_var') # rename the leftmost column to cat_var, assign the counts to 'n' and sort by the var
+# Create a hypothesized distribution of proportions
+hypothesized = pd.DataFrame({
+    'cat_var': ['cat1', 'cat2', 'cat3'], # here perhaps you could use df.cat_var.unique()
+    'prop': [1/6, 1/6, 1/2, 1/6]
+})
+n_total = len(df)
+hypothesized['n'] = hypothesized['prop']*n_total
+# Visualize both distributions in a plot
+import matplotlib.pyplot as plt
+plt.bar(x=counts['cat_var'], y=counts['n'], color='red', lable='Observed')
+plt.bar(x=hypothesized['cat_var'], y=hypothesized['n'], color='blue', lable='Hypothesized', alpha=0.5)
+plt.legend()
+plt.show()
+# Run the test
+from scipy.stats import chisquare
+chisquare(f_obs=counts['n'], f_exp=hypothesized['n'])
+
+# Ch4: NON-PARAMETRIC TESTS
+
+# ASSUMPTIONS IN HYPOTHESIS TESTS
+# 1) The samples are random subsets of larger populations
+# 2) Each observations is independent (except in paired t-tests, where we correct for dependence)
+# 3) The samples are large enough so that the central limit theorem applies, so that the sample distribution is normal
+    # The size depends on the test.
+        # One sample: 30 (for proportion tests, at least 10 successes and 10 failures)
+        # Two samples/ANOVA: 30 from each group (for proportion tests, at least 10 successes and 10 failures for each group)
+        # Paired: at least 30 pairs
+        # Chi-squared test of proportions: 5 successes and 5 failures
+# Sanity check: plot the bootstrap distribution and check if it looks normal. If it does not, then at least one assumption is not met
+
+# What do we do if the assumptions do not hold?
+
+# NON-PARAMETRIC HYPOTHESIS TESTS
+# The tests above were all parametric tests, based on the assumption that the sampling distributions were normal and the sample size requirement is met. Non/parametric tests do not assume this, so they work better when either assumption is not met
+
+# RANK TESTS
+# Rank is the position of the value of each observation in the domain of a variable
+
+# WILCOXON SIGNED RANK TEST for paired data
+# Access the ranks of a variable
+from scipy.stats import rankdata
+rankdata(df.col)
+# Calculate the absolute difference in paired values
+df['diff'] = df['col_second'] - df['col_first']
+df['abs_diff'] = df['diff'].abs()
+df['rank_abs_diff'] = rankdata(df['abs_diff'])
+# To calculate the test statistic, you split the ranks into two groups, one for rows with negative differences and one for positive differences.
+# T_minus = sum of the ranks with negative differences 
+# T_plus = sum of the ranks with positive differences 
+W = np.min([T_minus, T_plus])
+import pingouin
+pingouin.wilcoxon(x=df['col_first'], y=df['col_second'], alternative='less')
+
+# NON/PARAMETRIC ANOVA AND UNPAIRED T-TESTS
+
+
+
 
 # %%
