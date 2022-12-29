@@ -4443,10 +4443,13 @@ kf = KFold(n_splits = 6,
             shuffle=True, # shuffle data set before splitting it into folds
             random_state=123)
 reg = LinearRegression()
-cv_results = cross_val_score(reg, X, y, cv=kf) # model, features, target var, KFold object
+cv_results =    (reg, X, y, cv=kf) # model, features, target var, KFold object
 # The default score reported is R-squared
 # Return an array of k cross-validation scores
 print(cv_results)
+# To return the root MSE, one has to ask for "negative" MSE because sickit-learn interprets that a higher score is better
+cv_results = cross_val_score(reg, X, y, cv=kf, score='neg_mean_squared_error')
+print(np.sqrt(-cv_results))
 
 # REGULARIZATION to avoid overfitting
 # Penalize large coefficientes
@@ -4533,14 +4536,212 @@ roc_auc_score(y_test, y_pred_probs)
 # HYPERPARAMETER: a parameter you specify before fitting a model
 # Eg: choosing alpha for Ridge and Lasso, k for KNN
 # Try different values, fit each model with each value, see how each model performs and choose the one which performs the best
-# GRID SEARCH CROSS-VALIDATION
+# We can still split the data into train and test, and perform cross-validation on the training set, withholding the test data for final evaluation
+
+# GRID SEARCH CROSS-VALIDATION: on approach for hyperparameter tunning
 from sklearn.model_selection import GridSearchCV
 kf = KFold(n_splits=5, shuffle=True, random_state=123)
-parameter_grid = {'alpha': np.arange(0.001, 1, 10),
+parameter_grid = {'alpha': np.linspace(0.001, 1, 10),
                     'solver': ['sag', 'lsqr']} # names of hyperparameters
 ridge = Ridge()
 ridge_cv = GridSearchCV(ridge, parameter_grid, cv=kf)
 ridge_cv.fit(X_train, y_train) # here the CV grid search is performed
+print(ridge_cv.best_params_, ridge_cv.best_score_) # retrieve the hyperparameters that perform the best along with their mean CV score
+# Limitation: it doesn't scale well because the number of fits is equal to the number of hyperparameters multiplied by the number of values and by the number of folds
+# Eg: 10-fold cv with 3 hyperparams and 30 values = 900 fits
+# Evaluate model performance on the test set
+test_score = ridge_cv.score(X_test, y_test)
+print(test_score)
+
+
+# RANDOMIZED GRID SEARCH CROSS-VALIDATION: rather than exhaustively searching through all options, it picks random parameter values
+from sklearn.model_selection import RandomizedSearchCV
+kf = KFold(n_splits=5, shuffle=True, random_state=123)
+parameter_grid = {'alpha': np.linspace(0.001, 1, 10),
+                    'solver': ['sag', 'lsqr']} # names of hyperparameters
+ridge = Ridge()
+ridge_cv = RandomizedSearchCV(ridge, parameter_grid, cv=kf, n_iter=2) # 'n_iter': number of hyperparameter values tested. Here it performs 10 fits (5 fold cv, with )
+ridge_cv.fit(X_train, y_train) # here the CV grid search is performed
 print(ridge_cv.best_params_, ridge_cv.best_score_)
+# Evaluate model performance on the test set
+test_score = ridge_cv.score(X_test, y_test)
+print(test_score)
+
+
 
 # Ch4: PREPROCESSING AND PIPELINES
+
+# Preprocessing data
+# Sickit-learn does not admit categorical features, so we need to conert them to numeric using dummy variables
+import pandas as pd
+dummies = pd.get_dummies(df['categorical_col'], drop_first=True
+df = pd.concat([df, dummies], axis=1))
+df.drop('categorical_col', axis=1, inplace=True)
+# If the data frame only has one categorical feature you can do this more directly
+df = pd.get_dummies(df, drop_first=True)
+
+# HANDLING MISSING DATA
+# Get the count of missing values for each column
+print(df.isna().sum().sort_values())
+# Drop them
+df = df.dropna(subset=['col_with_na_1', 'col_with_na_2']) # one criterion is to remove misisng values in columns with less than 5% of missing values
+# Imputating missinga values (with the mean, median, mode (for categorical vars))
+# !!! Data leakage: split data BEFORE imputing to avoid leaking test information to the model
+from sklearn.impute import SimpleImputer
+X_cat = df['categorical_col'].values.reshape(-1,1) # categorical features
+X_num = df.drop(['categorical_col', 'target_var'], axis=1).values # numerical features
+y = df['target_var'].values
+X_train_cat, X_test_cat, y_train_cat, y_test_cat = train_test_split(X_cat, y, test_size = 0.3, random_state= 123)
+X_train_num, X_test_num, y_train_num, y_test_num = train_test_split(X_num, y, test_size = 0.3, random_state= 123)
+# Impute missings in categorical var
+impute_categorical = SimpleImputer(strategy='most_frequent') # we use the mode of the categorical variable to replace missing values
+# By default, SimpleImputer identifies missing values as np.Nan
+# SimpleImputer is a transformer
+X_train_cat = impute_categorical.fit_transform(X_train_cat) # imputation is done here
+X_test_cat = impute_categorical.transform(X_test_cat)
+# Impute missings in numeric vars
+impute_numeric = SimpleImputer(strategy='mean') # mean is the default
+X_train_num = impute_numeric.fit_transform(X_train_num) # imputation is done here
+X_test_num = impute_numeric.transform(X_test_num)
+# Re-join feautres
+X_train = np.append(X_train_num, X_train_cat, axis=1)
+X_test = np.append(X_test_num, X_test_cat, axis=1)
+
+# PIPELINE for imputation and model-fitting
+# In this example we perform a binary classification
+from sklearn.pipeline import Pipeline
+# Drop some rows misisng values
+df = df.dropna(subset=['col_with_na_1', 'col_with_na_2']) 
+X = df.drop('cat_var', axis=1).values
+y = df['cat_var'].values
+# Build a pipeline by specifying the steps in tuples, with their names and functions
+# Each step, except for the last, must be a transformer
+steps = [("imputation", SimpleImputer()),
+            ('logistic_regression', LogisticRegression())]
+pipeline = Pipeline(Steps)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state= 123, stratify=y)
+pipeline.fit(X_train, y_train)
+pipeline.score(X_test, y_test)
+
+# CENTERING AND SCALING DATA
+# Many ML models use some form of distance measure (eg. KNN), so if we have features on far larger scales, they can disproportionately influence the model
+# Therefore we want to have features on a similar scale. To do that we have to normalize or standardize our data scaling and centering)
+# There are several ways to do this:
+# - STANDARDIZATION: substract the mean and divide by the variance. All features will be centered around zero and have variance equal to one
+normalized_value = (value - min_value) / (variance_value) # we will use sickit-learn
+# - 2: substract the minimum and divide by the maximum. All features will have a range from 0 to 1
+normalized_value = (value - min_value) / (max_value)
+# - NORMALIZATION: so that the data ranges from -1 to 1
+normalized_value = (value - min_value) / (max_value - min_value) * 2 - 1
+# Example: standardization
+from sklearn.preprocessing import StandardScaler
+X = df.drop('cat_var', axis=1).values
+y = df['cat_var'].values
+# !!! split data BEFORE scaling to avoid data leakage
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state= 123, stratify=y)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+# Verify changes
+print(np.mean(X), np.std(X))
+print(np.mean(X_train_scaled), np.std(X_train_scaled))
+# Or you can put the scaler in the pipeline
+from sklearn.pipeline import Pipeline
+steps = [('scaler', StandardScaler())
+            ('knn', KNeighborsClassifier(n_neighbors=6))]
+pipeline = Pipeline(steps)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state= 123)
+knn_scaled = pipeline.fit(X_train, y_train)
+y_pred = knn_scaled.predict(X_test)
+print(knn_scaled.score(X_test, y_test))
+
+# Now add CROSS-VALIDATION to a pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+steps = [('scaler', StandardScaler())
+            ('knn', KNeighborsClassifier(n_neighbors=6))]
+pipeline = Pipeline(steps)
+parameters = {'knn__n_neighbors': np.arange(1, 50)} # when passing only one parameter without names separately, the name of the key always has to be "modelname__paramname"
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state= 123)
+cv = GridSearchCV(pipeline, param_grid=parameters)
+cv.fit(X_train, y_train)
+y_pred = cv.predict(X_test)
+print(cv.best_score_, cv.best_params_)
+### Another example
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+# Create steps
+steps = [("imp_mean", SimpleImputer()), 
+         ("scaler", StandardScaler()), 
+         ("logreg", LogisticRegression())]
+# Set up pipeline
+pipeline = Pipeline(steps)
+params = {"logreg__solver": ["newton-cg", "saga", "lbfgs"],
+         "logreg__C": np.linspace(0.001, 1.0, 10)}
+# Create the GridSearchCV object
+tuning = GridSearchCV(pipeline, param_grid=params)
+tuning.fit(X_train, y_train)
+y_pred = tuning.predict(X_test)
+# Compute and print performance
+print("Tuned Logistic Regression Parameters: {}, Accuracy: {}".format(tuning.best_params_, tuning.score(X_test, y_test)))
+
+# EVALUATING MULTIPLE MODELS
+# Guiding principles:
+# - Size of dataset: fewer feautres -> simpler model. Some models like neural netwroks require a lot of data to perform well.
+# - Interpretability: some models can be explained more easily which can be important for stakeholders (eg linear regression)
+# - Flexibility: may improve accuracy by making fewer assumptions about the data (eg. KNN which does not assume a linear relationship between y and X)
+# Regression models can be valuated with RMSE and R2
+# Classification models can be evaluated with accuracy, confusion matrix, precision, recall, f1-score,  ROC AUC
+
+# EVALUATING MULTIPLE MODELS - CLASSIFICATION
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score, KFold, train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+X = df.drop('cat_var', axis=1).values
+y = df['cat_var'].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state= 123)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+models = {'LogisticRegression': LogisticRegression(), 'KNN':KNeighborsClassifier(), 'Decision Tree':DecisionTreeClassifier}
+results = []
+for model in models.values():
+    kf = KFold(n_splits=6, shuffle=True, random_state=123)
+    cv_results = cross_val_score(model, X_train_scaled, y_train, cv=kf)
+    results.append(cv_results)
+plt.boxplot(results, labels=models.keys())
+plt.show()
+# Evaluate on the test set
+for name,  model in models.items():
+    model.fit(X_train_scaled, y_test)
+    test_score = model.score(X_test_scaled. y_test)
+    print('{} test set accuracy: {}'.format(name, test_score))
+
+# EVALUATING MULTIPLE MODELS - REGRESSION
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.metrics import mean_squared_error
+
+models = {"Linear Regression": LinearRegression(), "Ridge": Ridge(alpha=0.1), "Lasso": Lasso(alpha=0.1)}
+results = []
+# Loop through the models' values
+for model in models.values():
+  kf = KFold(n_splits=6, random_state=42, shuffle=True)
+  # Perform cross-validation
+  cv_scores = cross_val_score(model, X_train, y_train, cv=kf)
+  # Append the results
+  results.append(cv_scores)
+# Create a box plot of the results
+plt.boxplot(results, labels=models.keys())
+plt.show()
+# Evaluate with RMSE
+for name, model in models.items():
+  # Fit the model to the training data
+  model.fit(X_train_scaled, y_train)
+  # Make predictions on the test set
+  y_pred = model.predict(X_test_scaled)
+  # Calculate the test_rmse
+  test_rmse = mean_squared_error(y_test, y_pred, squared=False)
+  print("{} Test Set RMSE: {}".format(name, test_rmse))
