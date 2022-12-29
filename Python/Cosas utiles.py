@@ -866,7 +866,7 @@ df.shape
 # Overview of descriptive statistics of data frame
 df.describe()
 
-# Values of data frame (attribute) / get data frame values as array
+# Values of data frame (attribute) / get data frame values as array / convert the column of a data frame to a numpy array
 df.values
 
 # Columns of data frame (attribute)
@@ -1336,6 +1336,11 @@ ax[0].plot(df['col1'], df['col2']) # top subplot
 
 # Set equal range of axis in subplots
 fig, ax = plt.subplots(2, 1, sharey=True)
+
+# Plot graphs from two different data frames in the same chart
+ax = df1.plot(x='time', y='value', label='DF 1')
+df2.plot(x='time', y='value', label='DF 2', ax=ax, ylabel="Y title")
+plt.show()
 
 # Plotting TIME SERIES data
 # First set date column as index of pandas data frame
@@ -4200,7 +4205,7 @@ pingouin.ttest(x=df['values_g1'],
                 alternative='less')
 
 # ANOVA TESTS
-# A test for differences between groups
+# A test for differences between groups, where the null is 
 # Eg. 'Is mean annual compensattion different for different levels of job satisfaction?'
 alpha = 0.2
 import pingouin
@@ -4309,6 +4314,7 @@ chisquare(f_obs=counts['n'], f_exp=hypothesized['n'])
 
 # RANK TESTS
 # Rank is the position of the value of each observation in the domain of a variable
+# We can dispense with the normality assumption by performing hypothesis tests on the ranks of the numeric input
 
 # WILCOXON SIGNED RANK TEST for paired data
 # Access the ranks of a variable
@@ -4327,7 +4333,214 @@ pingouin.wilcoxon(x=df['col_first'], y=df['col_second'], alternative='less')
 
 # NON/PARAMETRIC ANOVA AND UNPAIRED T-TESTS
 
+# WILCOXON-MANN-WHITNEY TEST:  a t-test on rank data, similar to the Wilcoxon test, but works on PAIRED DATA
+# First select the two columns and convert data from long to wide format
+df_wide = df[['group_var', 'value_var']].pivot(columns='group_var', values='value_var')
+import pingouin
+pingouin.mwu(x=df_wide['group_category_1'], y=df_wide['group_category_1'], alternative='greater')
+
+# KRUSKAL-WALLIS TEST: non-parametric ANOVA test
+# in the same way that ANOVA extends t-tests to more than 2 groups, this test extends the MWU to more than 2 groups
+import pingouin
+pingouin.kruskal(data=df, dv='value_var', between='group_var')
 
 
 
-# %%
+# %% SUPERVISED LEARNING WITH SICKIT-LEARN
+
+# Two types of supervised learning: classification (binary or categorical outcome) and regression (continuous target variable)
+
+# Requirements: no missing values, data in numeric format, and stored in pandas data frames or numpy arrays
+
+# Sintax for sickit-learn
+from sklearn.module import Model
+model = Model()
+model.fit(X, y) # X is an array of features, y the target variable
+predictions = model.predict(X_new)
+print(predictions)
+
+# It requires that the FEATURES are in an array where each column if a feature and each row is a different observation, and that the TARGET VARIABLE needs to be a single column with the same number of rows as the features
+# Also, X has to have TWO dimensions at least, it cannot be a one-dimensional vector. So, for example, for a model with only one predictor, you should reshape it like this: X.reshape(-1, 1)
+
+
+# Ch1: CLASSIFICATION
+
+# K NEAREST NEIGHBOURS (KNN, mayority voting)
+from sklearn.neighbors import KNeighborsClassifier
+X = df[list_of_features].values
+y = df['target_var'].values
+print(X.shape, y.shape)
+k=15 # hyperparameter
+knn =  KNeighborsClassifier(n_neighbors=k)
+knn.fit(X, y)
+# Suppose X_new is an array with new observations for which we have data on their features
+print(X_new.shape) # it has to match the dimensions of X
+predictions = knn.predict(X_new) # here binary results are returned. By default the proportion of neighbors threshold is 0.5
+
+# MEASURING MODEL PERFORMANCE
+# ACCURACY: number of correct predictions divided by the total number of observations
+# Split data into a training and testing set
+from sklearn.model_selection import train_test_split
+X = df[list_of_features].values
+y = df['target_var'].values
+# (An alternative way of defining X when you use all other columns as features)
+X = df.drop("target_var", axis=1).values
+X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                    test_size = 0.3, # we commonly use 20 to 30% of the data to test the model
+                                                    random_state= 123,
+                                                    stratify=y) # this is used to replicate the proportion of successes of the original variable into the train and test sets
+knn =  KNeighborsClassifier(n_neighbors=6)
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
+print(knn.score(X_test, y_test)) # return the accuracy of the model trained with train data
+
+# Testing different values for k
+train_accuracies = {}
+test_accuracies = {}
+neighbors = np.arange(1, 26) # try with k from 1 to 25
+for neighbor in neighbors:
+    knn = KNeighborsClassifier(n_neighbors=neighbor)
+    knn.fit(X_train, y_train)
+    train_accuracies[neighbor] = knn.score(X_train, y_train)
+    test_accuracies[neighbor] = knn.score(X_train, y_train)
+#Plot results
+import matplotlib.pyplot as plt
+plt.figure(figsize = (8, 6))
+plt.title("KNN: Varying number of nieghbors")
+plt.plot(neighbors, train_accuracies.values(), label = 'Training accuracy')
+plt.plot(neighbors, test_accuracies.values(), label = 'Testing accuracy')
+plt.legend()
+plt.xlabel('Nº of neighbors')
+plt.ylabel('Accuracy')
+plt.show()
+
+
+# Ch2: REGRESSION
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+y = df['target_var'].values
+X = df.drop("target_var", axis=1).values
+reg = LinearRegression()
+reg.fit(X, y)
+predictions = reg.predict(X)
+# Splitting into train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state= 123, stratify=y) 
+reg = LinearRegression()
+reg.fit(X_train, y_train)
+y_pred = reg.predict(X_test)
+# Compute R-SQUARED
+reg.score(X_test, y_test)
+
+# Another assessment: MEAN SQUARED ERROR or ROOT MSE
+from sklearn.metrics import mean_squared_error
+mse = mean_squared_error(y_test, y_pred, squared=True)
+rmse = mean_squared_error(y_test, y_pred, squared=False)
+
+# K-FOLD CROSS-VALIDATION
+from sklearn.model_selection import cross_val_score, KFold
+# Create the folds on which to split data into test-train
+kf = KFold(n_splits = 6,
+            shuffle=True, # shuffle data set before splitting it into folds
+            random_state=123)
+reg = LinearRegression()
+cv_results = cross_val_score(reg, X, y, cv=kf) # model, features, target var, KFold object
+# The default score reported is R-squared
+# Return an array of k cross-validation scores
+print(cv_results)
+
+# REGULARIZATION to avoid overfitting
+# Penalize large coefficientes
+
+# RIDGE REGULARIZATION
+# Loss function = OLS's loss function + alpha*sum(beta_i_squared)
+# You need to choose hyperparameter alpha (where alpha=0 is equal to using OLS)
+from sklearn.linear_model import Ridge
+scores = []
+for alpha in [0.1, 1, 10.0, 100.0, 1000.0]:
+    ridge = Ridge(alpha=alpha)
+    ridge.fit(X_train, y_train)
+    y_pred = ridge.predict(X_test)
+    scores.append(ridge.score(X_test, y_test)) # r-squared
+print(scores)
+
+# LASSO REGULARIZATION
+# Loss function = OLS's loss function + alpha*sum(abs(beta_i))
+# Shrinks some coefficients to zero
+from sklearn.linear_model import Lasso
+for alpha in [0.1, 1, 10.0, 100.0, 1000.0]:
+    lasso = Lasso(alpha=alpha)
+    lasso.fit(X_train, y_train)
+    y_pred = lasso.predict(X_test)
+    scores.append(lasso.score(X_test, y_test)) # r-squared
+print(scores)
+# Checking which features got selected
+X = df.drop('target', axis=1).values
+y = df['target']
+names = df.drop('target', axis=1).columns
+lasso = Lasso(alpha=0.1)
+lasso_coef = lasso.fit(X, y).coef_
+# Plot coef values
+plt.bar(names, lasso_coef)
+plt.xticks(rotation=45)
+plt.show()
+
+
+# Ch3: FINE-TUNING YOUR MODEL
+
+# CLASS IMBALANCE: a situation where one class of the target variable is much more frequent than the other class/es
+# Accuracy is not always a useful metric to assess model performance. For example, in a fraud-detection model, if only 0.1% of transactions are fraudulent, then a model that predicts all transactions as legitimate would have 99.9% accuracy, so we need a different way to assess performance.
+
+# CONFUSION MATRIX
+# PRECISION/Positive predicted values: true positive over all positive predictions (eg. number of transactions correctly predicted as fraudulent over the number of transactions predicted as fraudulent (the false positives plus the true positives) ) // TP / (TP + FP)
+# Pay attention to PRECISION when the priority is to minimize FALSE POSITIVES 
+# RECALL / SENSITIVITY: TP / (TP + FN), high recall reflects a low false negative rate (eg. percentage of frauds correctly predicted over total number of frauds)
+# Pay attention to RECALL when the priority is to minimize the number of FALSE NEGATIVES
+# F1 SCORE: the harmonic mean of precision and recall, with equal weights. Equal to: precision*recall / (precision + recall). It takes into account both the number and type of errors.
+from sklearn.metrics import classification_report, confusion_matrix
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred)) # precision, recall, f1
+
+# LOGISTIC REGRESSION
+# Used for classification problems. Calculates the probability that an observation belongs to a binary class
+# The most common strategy is to predict 1 where p>0.5 and 0 otherwise (it produces a linear decision boundary)
+from sklearn.linear_model import LogisticRegression
+logreg = LogisticRegression()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state= 123, stratify=y)
+logreg.fit(X_train, y_train)
+logreg.predict(X_test) # here binary results are returned. By default the probability threshold is 0.5
+# Return predicted probabilities
+y_pred_probs = logreg.predict_proba(X_test)[:, 1] # it returns probabilities for y=0 and y=1, that's why we sliced it
+# Change the probability threshold
+logreg.predict(X_test)
+
+# ROC CURVE ('reciever operating characteristics)
+# Visualize how different thresholds affect TP and FP rates
+# Eg. when the threshold is 0, all observations will be predicted as positive, so the TP rate will be 100% and the 100%
+from sklearn.metrics import roc_curve
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_probs)
+plt.plot([0,1], [0,1], 'k--') # plot a dotted line from 0 to 1. It represents an AUROC of 0.5, which is what you expect if you randomly guess the class
+plt.plot(fpr, tpr)
+plt.xlabel('False positive rate')
+plt.xlabel('True positive rate')
+plt.tilte('ROC Curve')
+plt.show()
+# AUC ROC: area under the ROC curve
+# The perfect model would have TPR=1 and FPR=0. Therefore the best AUROC would be 1
+from sklearn.metrics import roc_auc_score
+roc_auc_score(y_test, y_pred_probs)
+
+# HYPERPARAMETER-TUNNING (optimize the model)
+# HYPERPARAMETER: a parameter you specify before fitting a model
+# Eg: choosing alpha for Ridge and Lasso, k for KNN
+# Try different values, fit each model with each value, see how each model performs and choose the one which performs the best
+# GRID SEARCH CROSS-VALIDATION
+from sklearn.model_selection import GridSearchCV
+kf = KFold(n_splits=5, shuffle=True, random_state=123)
+parameter_grid = {'alpha': np.arange(0.001, 1, 10),
+                    'solver': ['sag', 'lsqr']} # names of hyperparameters
+ridge = Ridge()
+ridge_cv = GridSearchCV(ridge, parameter_grid, cv=kf)
+ridge_cv.fit(X_train, y_train) # here the CV grid search is performed
+print(ridge_cv.best_params_, ridge_cv.best_score_)
+
+# Ch4: PREPROCESSING AND PIPELINES
