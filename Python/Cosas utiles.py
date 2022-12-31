@@ -711,9 +711,13 @@ x.index("b")
 list(range(1,5))
 
 # Create a dictionary from two lists
-list_a=["a", "b", "c"]
-list_b=[1,2,3]
-dict1 = dict(zip(list_a, list_b))
+list_a=["a", "b", "c"] # keys
+list_b=[[1,2,3], ['asd', 'ds'], [123]] # values per key
+dict(zip(list_a, list_b))
+# Another way
+v1 = [0.01, 0.001, 0.0001] # values 1
+v2 = [100, 150, 200] # values 2
+dict(key1=v1, key2=v2)
 
 # %% DICTIONARIES
 a= {"saludo":"hola"}
@@ -927,6 +931,8 @@ df["col"].value_counts()
 df["col"].value_counts(sort=True)
 # count unique values and sort by value of the tabulated variable
 df["col"].value_counts.sort_index()
+# Get the most frequent value of a column (similar to .mode())
+df['col'].value_counts().index[0]
 # turn the counts into proportions of the total
 df["col"].value_counts(normalize=True)
 # count unique values and missing values as well
@@ -1376,6 +1382,11 @@ ax.annotate("Annotation", xy = (pd.Timestamp('2015-10-06'), 1), \ # xy is the po
     xytext = (pd.Timestamp('2015-10-06'), -0.2), \# xytext is the position of the text
     arrowprops={"arrowstyle":"->", "color":"gray"}) # "Arrow properties": Add an arrow that points from the text to the data point
 # More options at: https://matplotlib.org/stable/tutorials/text/annotations.html
+
+# Annotate a scatter plot with point labels
+for x, y, label in zip(xs, ys, labels):
+    plt.annotate(label, (x, y), fontsize=5, alpha=0.75)
+plt.show()
 
 
 # BAR CHARTS
@@ -1956,6 +1967,9 @@ expon.cdf(5, 8) # value, 1/lambda (1/mean Poisson rate)
 
 # Calculate the (Pearson) correlation between two variables
 df['col1'].corr(df['col2'])
+# Numpy version
+from scipy.stats import pearsonr
+correlation, pvalue = pearsonr(df['col1'], df['col2'])
 
 # %% INTRODUCTION TO NUMPY
 # It is a foundational library on which others like scikit-learn, scipy, matplotlib, pandas and tensorflow are built
@@ -4552,6 +4566,9 @@ print(ridge_cv.best_params_, ridge_cv.best_score_) # retrieve the hyperparameter
 # Evaluate model performance on the test set
 test_score = ridge_cv.score(X_test, y_test)
 print(test_score)
+# Extract the best model and evaluate it on the test set
+best_model = grid_model_result.best_estimator_
+print("Accuracy of logistic regression classifier: ", best_model)
 
 
 # RANDOMIZED GRID SEARCH CROSS-VALIDATION: rather than exhaustively searching through all options, it picks random parameter values
@@ -4574,11 +4591,16 @@ print(test_score)
 # Preprocessing data
 # Sickit-learn does not admit categorical features, so we need to conert them to numeric using dummy variables
 import pandas as pd
-dummies = pd.get_dummies(df['categorical_col'], drop_first=True
+dummies = pd.get_dummies(df['categorical_col'], drop_first=True)
 df = pd.concat([df, dummies], axis=1))
 df.drop('categorical_col', axis=1, inplace=True)
 # If the data frame only has one categorical feature you can do this more directly
 df = pd.get_dummies(df, drop_first=True)
+
+# Reindex the columns of the test set aligning with the train set
+df_train = pd.get_dummies(df_train, drop_first=True)
+df_test = pd.get_dummies(df_test, drop_first=True)
+df_test = df_test.reindex(columns=df_train.columns, fill_value=0)
 
 # HANDLING MISSING DATA
 # Get the count of missing values for each column
@@ -4654,6 +4676,14 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, rando
 knn_scaled = pipeline.fit(X_train, y_train)
 y_pred = knn_scaled.predict(X_test)
 print(knn_scaled.score(X_test, y_test))
+
+# Another way to scale: MIN-MAX SCALER
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler(feature_range=(0, 1)) # set the range of the variable from 0 to 1
+rescaledX_train = scaler.fit_transform(X_train)
+rescaledX_test = scaler.transform(X_test)
+
+# Other examples are MaxAbsScaler and Normalizer
 
 # Now add CROSS-VALIDATION to a pipeline
 from sklearn.pipeline import Pipeline
@@ -4738,10 +4768,413 @@ plt.boxplot(results, labels=models.keys())
 plt.show()
 # Evaluate with RMSE
 for name, model in models.items():
-  # Fit the model to the training data
-  model.fit(X_train_scaled, y_train)
-  # Make predictions on the test set
-  y_pred = model.predict(X_test_scaled)
-  # Calculate the test_rmse
-  test_rmse = mean_squared_error(y_test, y_pred, squared=False)
-  print("{} Test Set RMSE: {}".format(name, test_rmse))
+    # Fit the model to the training data
+    model.fit(X_train_scaled, y_train)
+    # Make predictions on the test set
+    y_pred = model.predict(X_test_scaled)
+    # Calculate the test_rmse
+    test_rmse = mean_squared_error(y_test, y_pred, squared=False)
+    print("{} Test Set RMSE: {}".format(name, test_rmse))
+
+
+#%% UNSUPERVISED LEARNING IN PYTHON
+
+# Pure patern discovery, unguided by a prediction task
+
+
+# Ch1: CLUSTERING FOR DATA SET EXPLORATION
+
+# K-MEANS CLUSTERING
+from sklearn.cluster import KMeans
+model = KMeans(n_clusters=3)
+model.fit(samples) # samples has to be an n-dimensional numpy array where columns are features and rows are feature values
+labels = model.predict(samples)
+# More direct method
+labels = model.fit_predict(samples)
+# If you get new observations, the model can assign them to a cluster without being re-fitted (the model remembers the centroid of each cluster)
+new_labels = model.predict(new_samples)
+
+# Get the centroids of the clusters
+centroids = model.cluster_centers_
+
+# Scatter plot colored by class
+import matplotlib.pyplot as plt
+xs = samples[:,0] # get coordinates
+ys = samples[:,1]
+plt.scatter(xs, ys, c=labels)
+plt.show()
+
+# Add the centroids to the scatter plot
+import matplotlib.pyplot as plt
+xs = samples[:,0]
+ys = samples[:,1]
+centroids = model.cluster_centers_
+centroids_x = centroids[:,0]
+centroids_y = centroids[:,1]
+plt.scatter(xs, ys, c=labels, alpha=0.5)
+plt.scatter(centroids_x, centroids_y, marker='D', s=50)
+plt.show()
+
+# EVALUATING A CLUSTERING
+# The simplest example is when you have a variable that identifies each observation with a category
+import pandas as pd
+df = pd.DataFrame({'cluster_label': labels, 'real_category':species})
+pd.crosstab(df['cluster_label'], df['real_category'])
+# But in most cases you do not have this variable
+# A good clustering has "tight" clusters, meaning they are not very spread out
+# INERTIA measures how spread out the clusters are (lower is better)
+from sklearn.cluster import KMeans
+model = KMeans(n_clusters=3)
+model.fit(samples) # when the fit measure is called inertia is measured automatically
+print(model.inertia_)
+# K-means always minimizes inertia, having more clusters lowers the inertia
+# Which is the best number of cluster to choose? It is a trade-off between having tight groups and few groups
+# Usually the "elbow" if the INERITA PLOT is chosen, where inertia begins to decrease more slowly
+# Plot an INERTIA PLOT
+ks = range(1, 6)
+inertias = []
+for k in ks:
+    # Create a KMeans instance with k clusters: model
+    model = KMeans(n_clusters=k)
+    # Fit model to samples
+    model.fit(samples)
+    # Append the inertia to the list of inertias
+    inertias.append(model.inertia_)
+# Plot ks vs inertias
+plt.plot(ks, inertias, '-o')
+plt.xlabel('number of clusters, k')
+plt.ylabel('inertia')
+plt.xticks(ks)
+plt.show()
+
+# TRANFORMING FEATURES TO IMPROVE CLUSTERING
+# When the features have very different variances, clustering usually does not work very well
+# The greater the variance of a feature, the greater its influence will be in the model
+# So we can transform the data so that the features have equal variance: SCALER
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(samples)
+StandardScaler(copy=True, with_mean=True, with_std=True)
+samples_scaler = scaler.transform(samples)
+# Now do it in a PIPELINE
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+scaler = StandardScaler()
+model = KMeans(n_clusters=3)
+pipeline = make_pipeline(scaler, model)
+pipeline.fit(samples)
+labels = pipeline.predict(samples)
+
+
+# Ch2: VISUALIZATION WITH HIERARCHICAL CLUSTERING AND T-SNE
+
+# HIERARCHICAL CLUSTERING
+# One type is called "AGGLOMERATIVE":
+# - Every country begins in a separate cluster
+# - At each step, the two closest clusters are merged
+# - It continues until all clusters are merged in a single cluster
+# "DIVISIVE" hierarchical clustering works the other way around
+
+# AGGLOMERATIVE HIERARCHICAL CLUSTERING
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage, dendrogram
+mergings = linkage(samples, method='complete') # 'complete' linkage: the dist between clusters is equal the max distance between their samples
+dendrogram(mergings, labels=country_names, leaf_rotation=90, leaf_font_size=6)
+plt.show()
+
+# Get cluster labels in hierarchical clustering
+# Clusters at any intermediate level can be obtained
+# The y-axis of the dendrogram shows the distance between merging clusters (the clusters that werwe merged at that height)
+# The distance between clusters is measured by a LINKAGE METHOD
+# Extracting cluster labels:
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+mergings = linkage(samples, method='complete')
+dendrogram(mergings, labels=country_names, leaf_rotation=90, leaf_font_size=6)
+plt.show()
+labels = fcluster   
+import pandas as pd
+df = pd.DataFrame({'cluster_label': labels, 'real_category': cats})
+pairs = pd.crosstab(df['cluster_label'], df['real_category'])
+print(pairs.sort_values('cluster_label'))
+
+# t-SNE: 't-distributed stochastic neighbor embedding'
+# It maps samples from a higher-dimensional space to a 2D or 3D space
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+model = TSNE(learning_rate=100) # usually you need to try several values before getting the learning rate right, try between 50 and 200
+transformed = model.fit_transform(samples) # it does not have separte fit() and transform() methods, so you cant extend the map to include new data
+xs = transformed[:, 0]
+xs = transformed[:, 1]
+plt.scatter(xs, ys, c=species)
+plt.show()
+# The axes do not have any interpretable meaning, and in fact they are different every time it is applied
+
+
+# Ch3: DECORRELATING YOUR DATA AND DIMENSION REDUCTION
+
+# DIMENSION REDUCTION: find patterns in data and uses these patterns to re-express it in a compressed form
+# This makes subsequent computation much more efficient
+# The most important function is to reduce a data set to its 'bare bones', discarding noisy features that cause problems for supervised learning tasks
+
+# PRINCIPAL COMPONENT ANALYSIS
+# Performs dimension reduction in two steps:
+# - 1º DECORRELATION: rotates the observations so that they are alligned with the axes, and it shifts them so they have mean zero
+# it does not change the dimension of the data
+# - 2º DIMENSION REDUCTION: 
+from sklearn.decomposition import PCA
+model = PCA()
+model.fit(samples) # an n-dimensional numpy array
+transformed = model.transform(samples) # returns a new array with the same number of rows and columns as the original. Rows are samples and columns are PCA features
+# The PCA features are NOT linearly (Pearson) correlated
+# The PIRNCIPAL COMPONENTS of the data are the directions on which the samples vary the most (or 'directions of variance'). They are the ones allgined with the coordinate axes
+# After the model is fitted, the PCs are available
+print(model.components_)
+# Check this graphically
+xs = transformed[:,0]
+ys = transformed[:,1]
+plt.scatter(xs, ys)
+plt.axis('equal')
+plt.show()
+# Calculate the Pearson correlation of xs and ys
+correlation, pvalue = pearsonr(xs, ys)
+print(correlation)
+
+# INTRINSIC DIMENSION
+# The number of features required to approximate a data set without losing much information
+# Eg: in a data set with coordinates of a flight trayectory, in fact you only need the feature 'displacement along the flight path' to describe the data, so it is intrinsically one-dimensional
+# It tells us how much a data set can be compressed
+# It can be identified with PCA: the number of PCA features that have a high variance equals the intrinsic dimension
+# Plot the variances of PCA features
+model = PCA()
+model.fit(samples)
+features = range(model.n_components_)
+plt.bar(features, model.explained_variance_)
+plt.xticks(features)
+plt.xlabel('PCA Feature')
+plt.ylable('variance')
+plt.show()
+# !!! It is not always unambiguous
+
+# Plot the direction of the first principal component
+# Make a scatter plot of the untransformed points
+plt.scatter(samples[:,0], samples[:,1])
+# Create a PCA instance: model
+model = PCA()
+# Fit model to points
+model.fit(grains)
+# Get the mean of the grain samples: mean
+mean = model.mean_
+# Get the first principal component: first_pc
+first_pc = model.components_[0,:]
+# Plot first_pc as an arrow, starting at mean
+plt.arrow(mean[0], mean[1], first_pc[0], first_pc[1], color='red', width=0.01)
+# Keep axes on same scale
+plt.axis('equal')
+plt.show()
+
+# DIMENSION REDUCTION WITH PCA: discard low variance features
+from sklearn.decomposition import PCA
+# First specify how many features to keep (a good choice would be the intrinsic dimension of the data set)
+model = PCA(2)
+model.fit(samples)
+transformed = model.transform(samples)
+print(transformed.shape) # only two features
+
+# PCA assumes that the high variance features are informative (there are cases in which it does not hold)
+# In cases where it doesn't, you need to change some things
+# Eg: a data set where rows are documents and columns are all words in all documents, and cells are the number of times each word appears in each document
+    # Many features will have most rows as zeroes because they are words that appear only in certain documents
+    # These are called "sparse" features and they can be represented in a special type of array called csr scipy.sparse.csr_matrix instead of a numpy array
+    # The csr_matrix only remembers non-zero entries
+    # sickit learn's PCA does not support this matrices so you have to use TruncatedSVD instead
+from sklearn.decomposition import TruncatedSVD
+model = TruncatedSVD(n_components = 3)
+model.fit(documents_df) # input csr_matrix
+transformed = model.transform(documents_df)
+ 
+# TF-ID WORD FREQUENCY ARRAY
+# Create a sparse matrix where each row is a document/pieace of text and
+# each column is a word that appears in at least one document,
+# and the cells are the nº of times each word appears in each doc.
+from sklearn.feature_extraction.text import TfidfVectorizer
+tfidf = TfidfVectorizer() 
+csr_mat = tfidf.fit_transform(documents) # 'documents' is a list with strings, where each string is a text
+print(csr_mat.toarray()) # count values
+# Get the words: words
+words = tfidf.get_feature_names()
+print(words)
+# "idf": a weighting scheme that reduces the influence of frequent words (like "the")
+
+# PIPELINE: count word frequency, perform PCA to reduce dimensionality, and separate into clusters
+# Source: https://www.lateral.io/resources-blog/the-unknown-perils-of-mining-wikipedia
+from sklearn.decomposition import TruncatedSVD
+from sklearn.cluster import KMeans
+from sklearn.pipeline import make_pipeline
+import pandas as pd
+# Create a TruncatedSVD instance: svd
+svd = TruncatedSVD(n_components=50)
+# Create a KMeans instance: kmeans
+kmeans = KMeans(n_clusters=6)
+# Create a pipeline: pipeline
+pipeline = make_pipeline(svd, kmeans)
+pipeline.fit(articles)
+# Calculate the cluster labels: labels
+labels = pipeline.predict(articles)
+# Create a DataFrame aligning labels and titles: df
+df = pd.DataFrame({'label': labels, 'article': titles})
+# Display df sorted by cluster label
+print(df.sort_values('label'))
+
+
+# Ch4: DISCOVERING INTERPRETABLE FEATURES
+
+# NMF: NON-NEGATIVE MATRIX FACTORIZATION
+# Dimension reduction technique, but models are interpretable (unlike PCA)
+# It requires all sample features to be non-negative (>=0)
+# It decomposes samples as sums of their parts
+    # eg. it expresses documents as combinations of topics or themes / images as combinations of common patterns
+from sklearn.decomposition import NMF
+model = NMF(n_components=2)
+model.fit(samples) # entries are always non-negative
+nmf_features = model.transform(samples) # features are always non-negative
+# As in PCE, the dimension of NMF's components is the same as the dimension of the samples
+print(model.components_.shape)
+# Reconstruct (partially) the sample from its features: multiply nmf_features by nmf_components, and adding up
+# This calculation can also be expressed as a product of matrices
+
+# Articles application: when NMF if applied to documents its components can be interpreted as topics
+    # Therefore, NMF features combine topics to form documents. Topics are groupi
+    # Eg. a Wikipedia article on Di Caprio may have 0.7 of 'acting' topic, 0.02 of 'climate change' topic, etc.
+# When NMF is applied to im ages, the NMF components represent frequent patterns
+
+# Represent a collection of IMAGES as a non-negative array
+# Eg. greyscale where images can be encoded by the brightness of each pixel and nothing else (0 black, 1 white)
+# If you order the pixels from left to right or up to bottom, you can flatten an n-dimensional array of brightness values
+# Therefore if you have K images os the size/number of pixels, then you can convert them to a K-dimensional array
+    # where each row contains all the pixels for each image, and each column corresponds to a pixel
+# To recover the image as a grid, use
+ bitmap = sample.reshape((2,3))
+ print(bitmap)
+ from matplotlib import pyplot as plt
+ plf.imshow(bitmap, cmap='gray', interpolation='nearest')
+ plt.show()
+ # Or make it a function
+ def show_as_image(sample):
+    bitmap = sample.reshape((13, 8))
+    plt.figure()
+    plt.imshow(bitmap, cmap='gray', interpolation='nearest')
+    plt.colorbar()
+    plt.show()
+# Visualize the components of the NMF model
+from sklearn.decomposition import NMF
+model = NMF(n_components=7)
+features = model.fit_transform(samples)
+for component in model.components_:
+    show_as_image(component)
+digit_features = features[0,:]
+print(digit_features)
+
+# Build a RECOMMENDATION SYSTEM using an NMF model
+# Suppose you work at a newspaper and you are ask to make an algorithm that 
+# recommends articles similar to the article being read 
+# Strategy:
+# - Apply NMF to the word frequency array of the articles ('articles')
+# - Then the NMF features will be the topics
+# - So similar documents will have similar NMF values.
+# - But how do you compare NMF values????
+# Two articles that speak about the same topics may be written in different styles
+# So one would expect the word count not to be the same
+# However, in a graph where each axis is a topic, these two articles will probably lie
+# on the same line passing through the origin. Therefore we should compare the direction
+# of the vectors formed by the topic combination. To do this we can use
+# COSINE SIMILARITY which compares the angles between these lines
+from sklearn.decomposition import NMF
+nmf = NMF(n_components=6)
+nmf_features = nmf.fit_transform(articles)
+# Compute the cosine similarity of the articles
+    # normalize the model's features
+from sklearn.preprocessing import normalize
+norm_features = normalize(nmf_features)
+# Select one article you want to get a recommendation for
+current_article = norm_features[23,:]
+similarities = norm_features.dot(current_article) # this returns the cosine similarities
+# Or you can label the similarities with the titles of the articles
+import pandas as pd
+df = pd.DataFrame(norm_features, index=titles)
+current_article = norm_features.loc['Title 1']
+similarities = df.dot(current_article)
+# Now display the articles with the highest cosine similarity
+print(similarities.nlargest())
+
+
+#%% MACHINE LEARNING WITH TREE-BASED MODELS IN PYTHON
+
+# Ch1: CLASSIFICATION AND REGRESSION TREES (CARTs)
+
+# Given a labelled data set, a CART learns a sequence of if-else questions about individual features in order to infer the labels
+# In contrast to linear models, they can capture non-linearities
+# They DONT require feature scaling
+
+# MAXIMUM DEPTH: the max number of branches from top to bottom
+# DECISION REGION: region in a feature in space whare all instances are assigned to one class label
+# DECISION BOUNDARY: surface that separates a decision region
+# A classification train produces RECTANGULAR decision regions
+# DECISION TREE: a data structure consisting of a hierarchy of nodes
+# NODE: a point that involves a question or a prediction
+# ROOT: the node at which the tree starts growing, it has no parent node, gives rise to two children node
+# INTERNAL NODE: one parent node, gives rise to two children nodes 
+# LEAF: a node that has no children nodes, has only one parent node, and makes a prediction
+# INFORMATION GAIN: the nodes of a classification tree are grown recursively, its obtaintion depends on the state of its predecessors
+# To produce the purest leaf possible at each node, a tree asks a question involving one feature F and a split point SP
+# It chooses f and sp by maximazing information gain
+# IG(f, sp) = I(parent) - [N_left/N*I(left) + N_right/N*I(right)]
+# I() is the impurity of a node
+# To measure I() you can use different criteria: Gini or entropy
+# When an UNCONSTRAINED tree is trained, nodes are grown recursively
+# At each non-leaf node, the data is split based on f and sp in such a way to maximize IG.
+# IF the IG obtained by splitting a node is null (IG(node)=0), the node will be a leaf
+# If the tree is constraied to max. depth K, all nodes having a depth of 2 will be leafs even if the IG is not nill
+
+# CLASSIFICATION TREE
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state= 123, stratify=y) 
+dt = DecisionTreeClassifier(max_depth=2, random_state=123)
+dt.fit(X_train, y_train)
+y_pred = dt.predict(X_test)
+accuracy_score(y_test, y_pred)
+
+#  Change the infromation criterion
+dt = DecisionTreeClassifier(max_depth=2, random_state=123, criterion='entropy')
+dt = DecisionTreeClassifier(max_depth=2, random_state=123, criterion='gini')
+
+# REGRESSION TREE
+# IMPURITY: I(node) = MSE(node) =  1/N_node * SUM_i_in_node[(y_i - y_hat_node)**2],     y_hat_node = 1/N_node * SUM_i_in_node(y_i)
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared error as MSE
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state= 123) 
+dt = DecisionTreeClassifier(max_depth=2, min_samples_leaf=0.1, random_state=123)
+# 'min_samples_leaf': imposes a stopping condition so that each leaf has to contain at least 10% of the data
+dt.fit(X_train, y_train)
+y_pred = dt.predict(X_test)
+mse_dt = MSE(y_pred, y_test)
+rmse_dt = mse_dt**(1/2)
+print(rmse_dt)
+
+# Ch2: THE BIAS-VARIANCE TRADE-OFF 
+
+# Ch3. BAGGING AND RANDOM FOREST
+
+# Ch4: BOOSTING
+
+# Ch5: MODEL TUNING
+# 
+#  
+
+
+
+
+
