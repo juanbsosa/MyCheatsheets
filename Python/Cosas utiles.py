@@ -4385,6 +4385,8 @@ X = df[list_of_features].values
 y = df['target_var'].values
 print(X.shape, y.shape)
 k=15 # hyperparameter
+# Parameters are learned from data through training
+# Hyperparameters are not learned from data and are set before training 
 knn =  KNeighborsClassifier(n_neighbors=k)
 knn.fit(X, y)
 # Suppose X_new is an array with new observations for which we have data on their features
@@ -5110,7 +5112,7 @@ print(similarities.nlargest())
 
 #%% MACHINE LEARNING WITH TREE-BASED MODELS IN PYTHON
 
-# Ch1: CLASSIFICATION AND REGRESSION TREES (CARTs)
+# --- Ch1: CLASSIFICATION AND REGRESSION TREES (CARTs) --- 
 
 # Given a labelled data set, a CART learns a sequence of if-else questions about individual features in order to infer the labels
 # In contrast to linear models, they can capture non-linearities
@@ -5152,6 +5154,7 @@ dt = DecisionTreeClassifier(max_depth=2, random_state=123, criterion='gini')
 
 # REGRESSION TREE
 # IMPURITY: I(node) = MSE(node) =  1/N_node * SUM_i_in_node[(y_i - y_hat_node)**2],     y_hat_node = 1/N_node * SUM_i_in_node(y_i)
+# PREDICTION: y_pred = 1/N_leaf * SUM_i_belongs_to_leaf(y_i)
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared error as MSE
@@ -5164,17 +5167,283 @@ mse_dt = MSE(y_pred, y_test)
 rmse_dt = mse_dt**(1/2)
 print(rmse_dt)
 
-# Ch2: THE BIAS-VARIANCE TRADE-OFF 
 
-# Ch3. BAGGING AND RANDOM FOREST
+# --- Ch2: THE BIAS-VARIANCE TRADE-OFF ---
 
-# Ch4: BOOSTING
+# In supervised learning you assume that there is a mapping between features and labels: y = f(X)
+# In reality, data generation is always accompanied with randomness
+# The goal is to find the best model f_hat that approximates f
+# The end goal is for f_hat to achieve a low predictive error on unseen data
+# You may encounter two difficulties:
+# - Overfitting: whne f_hat fits the noise of the training set,
+    # which results in low predictive capacity on unseen data
+# - Underfitting_ when f_hat is not flexible enough to approximate f
 
-# Ch5: MODEL TUNING
-# 
-#  
+# GENERALIZATION ERROR: a measure of how much the model generalizes on usneen data
+# GE(f_hat) = bias**2 + variance + irreducible error
+# Bias: how much f_hat differs from f on average (high bias -> underfitting)
+# Variance: how much f_hat is inconsistent over different trainin sets (high variance -> overfitting)
+# Model complexity: sets the flexibility of f_hat (eg. max depth, min samples per leaf)
+# The goal is to find the model complexity that achieves the lowest generalization error,
+    # in a context where, as themodel becomes more complex, bias decreases and variance increases
+
+# DIAGNOSING BIAS AND VARIANCE PROBLEMS
+# The generalization error cannot be estimated directly because the truw f is unkknown,
+    # you usually have only one data set, and noise is unpredictable
+# A solution is to split data in train and test, fit f_hat to the training set
+    # evaluate the error on the unseen test set and approximate the GE(f) with GE(f_hat)
+# !!! The test set should NOT be touched until we are confident about f_hat's performance
+# To obtain a reliable estimate of f_hat's performance one should use cross-validation
+# Once you have computed f_hat's CV error, you have to compare it with f_hat's training
+# set error. If it is, f_hat suffers from high variance, it overfits the training set
+# To remedy overfitting you can try decreasing its complexity or gather more data
+# If the CV error is roughly equal to the training set error, but both errors
+    # are much larger than the desired error, then f_Hat underfits the data,
+    # so increase complexity or gather more relevant features
+
+# K-fold Cross Validation
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error as MSE
+from sklearn.model_selection import cross_val_score
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+dt = DecisionTreeRegressor(max_depth=4, min_samples_leaf=0.14, random_State=123)
+MSE_CV = (-1) * cross_val_score(dt, X_train, y_train, cv=10, scoring='neg_mean_squared_error', n_jobs=-1) # 'n_jobs': exploit all available CPUs
+dt.fit(X_train, y_train)
+y_pred_train = dt.predict(X_train)
+y_pred_test = dt.predict(X_test)
+print('CV MSE: {:.2f}'.format(MSE_CV.mean()))
+print('Training CV MSE: {:.2f}'.format(MSE(y_train, y_pred_train)))
+print('Test CV MSE: {:.2f}'.format(MSE(y_test, y_pred_test)))
 
 
+# ADVANTAGES OF CARTs: simple to understand and interpret, easy to use, non-linear
+    # also you don't need to pre-process your features a lot
+# DISADVANTAGES OF CARTs: it can only produce orthogonal decision boundaries,
+    # sensitive to small variations in the training set, CARTs suffer from high
+    # variance when they are trained without constraints (overfitting)
+# Solution: ENSEMBLE LEARNING
+
+# ENSEMBLE LEARNING
+# 1) Train different models on the same data set
+# 2) Each model makes its predictions
+# 3) Aggregate the predictions of individual models in a meta-model and output it
+# It is more robust and less prone to errors
+    #If one model is wrong, it is compensated by the others
+# VOTING CLASSIFIER / Hard voting / mayority voting
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier as KNN
+from sklearn.ensemble import VotingClassifier
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+lr = LogisticRegression(random_state=123)
+knn = KNN()
+dt = DecisionTreeClassifier(random_state=123)
+classifiers = [('Logistic Regression', lr), ('K Nearest Neighbors', knn), ('Classification Tree', dt)]
+for classifier_name, classifier in classifiers:
+    classifier.fit(X_train, y_train)
+    y_pred = classifier.predict(X_test)
+    print('{:s} : {:3f}'.format(classifier_name, accuracy_score(y_test, y_pred)))
+vc = VotingClassifier(estimators=classifiers)
+vc.fit(X_train, y_train)
+y_pred = vc.predict(y_test)
+print('Voting classifier: {.3f}'.format(accuracy_score(y_test, y_pred)))
 
 
+# --- Ch3. BAGGING AND RANDOM FOREST ---
 
+# BAGGING: bootstrap aggregation
+# A type of ensemble but where are models are the same technique
+# One algorithm that estimates different models with different bootstrap samples
+# This reduces the variance of individual models in the ensemble
+# (it applies to all models, not only trees)
+# In CLASSIFICATION the final prediction is obtained by mayority voting of the
+    # different trees (BaggingClassifier in sk.learn)
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123, stratify=y)
+dt = DecisionTreeClassifier(max_depth=4, min_samples_leaf=6, random_state=123)
+bc = BaggingClassifier(base_estimator=dt, n_estimators=300, n_jobs=-1)
+bc.fit(X_train)
+y_pred = bc.predict(X_test)
+accuracy = accuracy_score(y_pred, y_test)
+print('Accuracy of Bagging Classifier: {.3f}'.format(accuracy))
+# In REGRESSION the final prediction is the average of the predictions of the
+    # different trees (BaggingRegressor in sk.learn)
+
+# OUT OF BAG EVALUATION
+# Because of bootstrapping, some instances may be samples several times,
+    # and some may not be sampled at all (on avg 63% and 37% in each tree)
+# The instances that are not sampled are called "out-of-bag" instances
+# OOB evaluation: since OOB instances are not seen by a model during training,
+# these can be used to estimate the performance of the ensemble without the need for CV
+# Each of the N models is trained with its bootstrap sample, then evaluated
+# on its OOB sample, and then you take an average of all the N OOB scores
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123, stratify=y)
+dt = DecisionTreeClassifier(max_depth=4, min_samples_leaf=6, random_state=123)
+bc = BaggingClassifier(base_estimator=dt, n_estimators=300, n_jobs=-1, oob_score=True) # for regressors use R2 score
+bc.fit(X_train)
+y_pred = bc.predict(X_test)
+accuracy = accuracy_score(y_pred, y_test)
+oob_accuracy = bc.oob_score_
+print('Test set accuracy: {.3f}'.format(accuracy))
+print('OOB accuracy: {.3f}'.format(oob_accuracy))
+
+# RANDOM FOREST
+# An ensemble method that uses a decision tree as a base estimator
+# Each tree is trained on a different bootstrap sample with the same size as the training set
+# It introduces further randomization than the bagging when training each of the base estimators
+# When each tree is trained, only 'd' features (variables) can be sampled at each node without replacement
+# Each node is then split using the sample feature that maximizes the information gain
+# The result is that the overal variance is lower than in individual trees
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error as MSE
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+rf = RandomForestRegressor(n_estimators=400, min_samples_leaf=0.12, random_state=123)
+rf.fit(X_train)
+y_pred = rf.predict(X_test)
+rmse_test = MSE(y_test, y_pred)**(1/2)
+
+# FEATURE IMPORTANCE
+# Measure the predictive power of a feature
+# It is measured by how muc the nodes use a particular feature (weighted average) to reduce impurity
+# It is expressed as a percentage indicating the weight of that feature in training and prediction
+# You can get it with
+model.feature_importances_
+# Visualize feature importance
+import pandas as pd
+from matplotlib import pyplot as plt
+importances_rf = pd.Series(rf.feature_importances_, index=X.columns)
+sorted_importances_rf = importances_rf.sort_values()
+sorted_importances_rf.plot(kind='barh', color='lightgreen')
+plt.show()
+
+
+# --- Ch4: BOOSTING ---
+# Boosting refers to an ensemble method in which many predictors are trained and
+# each predictor learns from the errors of its predecessors
+# Formally, many 'weak learners' are combined to form a 'strong learner'
+# A weak learner is model that does slightly better than random guessing
+# For example a tree with max depth of 1 (called a 'decision stump') is a weak learner
+# There are several boosting methods, we will see: ADABOOST and Gradient Boosting
+# (Estimators do not necessarily have to be trees)
+
+# ADABOOST: adaptive boosting
+# Each predictor pays more attention to the instances that were wrongly predicted by its predecessor
+# This is achieved by constantly changing the weights of the training instances
+# Furthermore, each predictor is assigned a coefficient 'alpha' that weights
+# its contribution in the ensemble's final prediction
+# alpha depends on the predictor's training error
+# Important parameter: the LEARNING RATE 'eta'
+# It is a number between 0 and 1 that shrinks alpha
+# There is a trade-off between the learning rate and the number of estimators
+# A smaller value of eta should be compensated by a greater number of estimators
+# For classification, the prediction is obtained by weighted mayority voting (AdaBoostClassifier)
+# For regression, a weighted average of each estimator's prediction (AdaBoostRegressor)
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+dt = DecisionTreeClassifier(max_depth=1, random_state=123) # a decision 'stump'. it does have to be always a stump
+adb_clf = AdaBoostClassifier(base_estimator=dt, n_estimators=100)
+adb_clf.fit(X_train, y_train)
+y_pred_proba = adb_clf.predict_proba(X_test)[:,1]
+adb_clf_roc_auc_score = roc_auc_score(y_test, y_pred_proba)
+
+# GRADIENT BOOSTING:
+# As AdaBoost, each predictor corrects its predecessor's errors
+# But instead of tweaking the weights of the training instances, each predictor
+#is trained using the residual errors of its predecessor as labels
+# GRADIENT BOOSTING TREES: gradint boosting with CART as the base learner
+# Important parameter: SHRINKAGE
+# The prediction of each tree in the ensemble is shrinked after it is mutiplied by 
+# the learning rate 'eta' which is a number between 0 and 1
+# Similar to adaboost, there is a trade-off between eta and the number of estimators
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error as MSE
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+gbt = GradientBoostingRegressor(n_estimators=300, max_depth=1, random_state=123)
+gbt.fit(X_train, y_train)
+y_pred = gbt.predict(X_test)
+rmse_test = MSE(y_test, y_pred)**(1/2)
+
+# STOCHASTIC GRADIENT BOOSTING
+# Gradient boosting involves an exhaustive search procedure, as each CART is 
+# trained to find the best split points and features
+# This may lead to CARTS that use the same split points and possibly the same features
+# To mitigate this effect you can use the Stochastic gradient boosting algorithm
+# Each tree is trained on a random subset of rows of the training data
+# The sampled instances (40-80% of the training set) are sampled without replacement
+# At the level of each node, features are sampled without replacement when choosing the best split points
+# This creates further diversity in the ensemble and the net effect is adding more variance to the ensemble of trees
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error as MSE
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+sgbt = GradientBoostingRegressor(n_estimators=300, max_depth=1,
+                                    subsample=0.8, # use 80% of the training sample
+                                    max_features=0.2, # use 20% of available features in each tree
+                                    random_state=123)
+sgbt.fit(X_train, y_train)
+y_pred = sgbt.predict(X_test)
+rmse_test = MSE(y_test, y_pred)**(1/2)
+
+# --- Ch5: MODEL TUNING ---
+
+# Here we will only see GridSearch
+
+# Tuning a CART's hyperparameters
+from sklearn.tree import DecisionTreeClassifier
+dt = DecisionTreeClassifier(max_depth=2, random_state=123)
+# Return a dictionary with parameters as keys and default values as values
+print(dt.get_params())
+from sklearn.model_selection import GridSearchCV
+params_dt = {
+    'max_depth': [3,4,5,6],
+    'min_samples_leaf': [0.04, 0.06, 0.08],
+    'max_features': [0.2, 0.4, 0.6, 0.8]
+}
+grid_dt = GridSearchCV(estimator=dt, param_grid=params_dt,
+                        scoring='accuracy', cv=10, n_jobs=-1)
+grid_dt.fit(X_train, y_train)
+best_hyperparams = grid_dt.best_params_
+print('Best hyperparameters: /n', best_hyperparams)
+best_CV_score = grid_dt.best_score_
+print('Best CV accuracy'.format(best_CV_score))
+best_model = grid_dt.best_estimator_ # this model is fitted on the whole training set because the 'refit' parameter of GridSearchCV is True by default
+test_acc = best_model.score(X_test, y_test)
+
+# Tuning a RANDOM FOREST's hyperparameters
+# In addition to all the hyperparameters of the CARTs in the random forest,
+# there are other hyperparams like the number of estimators, whether it uses boostrapping or not, etc.
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error as MSE
+from sklearn.model_selection import GridSearchCV
+rf = RandomForestRegressor(n_estimators=400, min_samples_leaf=0.12, random_state=123)
+rf.get_params()
+params_rf = {
+    'n_estimators': [300,400,500],
+    'max_depth': [4,6,8],
+    'min_samples_leaf': [0.1, 0.2],
+    'max_features': ['log2', 'sqrt'] 
+}
+grid_rf = GridSearchCV(estimator=rf, param_grid=params_rf, verbose=1,
+# 'verbose' controls verbosity, the higher its value the more messages are printed during fitting
+                        scoring='neg_mean_squared_error', cv=3 n_jobs=-1)
+grid_rf.fit(X_train, y_train)
+best_hyperparams = grid_rf.best_params_
+print('Best hyperparameters: /n', best_hyperparams)
+best_model = grid_rf.best_estimator_
+y_pred = best_model.predict(X_test)
+rmse_test = MSE(y_test, y_pred)**(1/2)
