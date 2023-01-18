@@ -5276,7 +5276,7 @@ print('Accuracy of Bagging Classifier: {.3f}'.format(accuracy))
     # different trees (BaggingRegressor in sk.learn)
 
 # OUT OF BAG EVALUATION
-# Because of bootstrapping, some instances may be samples several times,
+# Because of bootstrapping, some instances may be sampled several times,
     # and some may not be sampled at all (on avg 63% and 37% in each tree)
 # The instances that are not sampled are called "out-of-bag" instances
 # OOB evaluation: since OOB instances are not seen by a model during training,
@@ -5447,3 +5447,41 @@ print('Best hyperparameters: /n', best_hyperparams)
 best_model = grid_rf.best_estimator_
 y_pred = best_model.predict(X_test)
 rmse_test = MSE(y_test, y_pred)**(1/2)
+
+
+#%% UNIT TESTING FOR DATA SCIENCE IN PYTHON
+
+# Ch1: UNIT TESTING BASICS
+
+# Testing a custom function on the Python interpreter (eg. passing it the possible arguments and checking the result) is very inefficient.
+# This is because the life cycle of a function involves several testing iterations.
+# A function is tested after the first implementation and then any time the function is modified, which happens mainly when new bugs are found, new features are implemented or the code is refactored.
+# UNIT TESTS automate the repetitive testing process and saves time.
+# In this course I will write a complete unit test for a sample project.
+
+# PYTEST: most popular Python library for unit testing
+# Write a simple unit test using pytest
+# Example data file "housing_data.txt": contains data on housing area (sq. ft.) and market price (usd)
+# 1) Create a file called "test_row_to_list.py" ("row_to_list" is the name of the sample function)
+# - When Pytest sees a file that starts with "test_" it understands that the file contains a unit test.
+# - These files for unit tests are also called "test modules".
+# 2) In the test module,
+import pytest
+import row_to_list
+# The unit test will be written as a Python function whose name starts with "test_" (just like the test module)
+def test_for_clean_row():
+    assert row_to_list("2,081\t314,912\n") == ["2,081", "314,912"]
+# The unit test usually corresponds to exactly one entry in the argument and return-value table for "row_to_list".
+# It checks whether the function has the expected return value when called on this particular argument.
+# The particular value will be using first ("2,081", "314,912") is a clean row.
+# The actual check is done via an assert statement. Every test must contain one.
+# If the function has a bug, the assert statement will raise an assertion error.
+# For the second value ("\t293,410\n") we will create a second function called test_on_missing_area (bcs the arg has a missing area data)
+def test_on_missing_area():
+    assert row_to_list("\t293,410\n") is None
+# And for arguments missing the tab that separates area and price
+def test_on_missing_area():
+    assert row_to_list("1,462238,765\n") is None
+# To test whether row_to_list is functioning well at any point on its life cycle, we would just run "test_row_to_list.py".
+# The standard way to to this is by writting this in the command line
+pytest test_row_to_list.py
