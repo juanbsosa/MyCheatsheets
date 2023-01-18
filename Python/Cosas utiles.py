@@ -5480,8 +5480,21 @@ def test_for_clean_row():
 def test_on_missing_area():
     assert row_to_list("\t293,410\n") is None
 # And for arguments missing the tab that separates area and price
-def test_on_missing_area():
+def test_on_missing_tab():
     assert row_to_list("1,462238,765\n") is None
 # To test whether row_to_list is functioning well at any point on its life cycle, we would just run "test_row_to_list.py".
 # The standard way to to this is by writting this in the command line
 pytest test_row_to_list.py
+# (I have to check on my PC, but the usual way to run the .py from the command line is !pytest test_on_missing_area.py )
+
+# Understanding test result report (this should be watched in the video)
+# When it says 'collected X items", X is the amount of unit tests
+# Then it ouputs the name of each module and a character indicating the result.
+# - ".F." stands for failure (an exception was raised)
+# - '.' means the unit test was passed
+# The following section contains detail information about failed tests
+# - The line raised by the exception is marked by ">"
+# - The lines marked by "E" contain details on the exception
+# - The line containing "where" displays any return values that were calculated when running the assert statement
+#       Here you can see the mismatch between the return value and the expected value
+# The final line is a test result summary (hoy many tests passed, how many failed, and the time it took to run)
