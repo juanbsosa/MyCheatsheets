@@ -5451,6 +5451,8 @@ rmse_test = MSE(y_test, y_pred)**(1/2)
 
 #%% UNIT TESTING FOR DATA SCIENCE IN PYTHON
 
+# A "unit" is any small independent piece of code (like a Python function or class)
+
 # Ch1: UNIT TESTING BASICS
 
 # Testing a custom function on the Python interpreter (eg. passing it the possible arguments and checking the result) is very inefficient.
@@ -5498,3 +5500,26 @@ pytest test_row_to_list.py
 # - The line containing "where" displays any return values that were calculated when running the assert statement
 #       Here you can see the mismatch between the return value and the expected value
 # The final line is a test result summary (hoy many tests passed, how many failed, and the time it took to run)
+
+# More benefits of unit testing:
+# - It serves as documentation.
+# - Increase trust in a package as users can run them an verify that the package works
+        # There are certain "badges" that a package may have which indicate
+        # if is has passes a certain unit test (like "Azure Pipelines")
+# - Can reduce downtime for a productive system. "Continuos integration": runs
+    # all unit tests each time a new code is sent into production
+
+# A "unit" is any small independent piece of code (like a Python function or class)
+# They are called unit tests because they only test a unit
+
+# An INTEGRATION TEST chekcs if multiple units work well together when they are
+# connected and not independently
+
+# END-TO-END check the whole software at ounce. They start from one end (eg. an
+# unprocessed data file), go through all units till the other end, and check
+# whether we get the correct result.
+
+
+
+
+
