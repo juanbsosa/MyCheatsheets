@@ -5449,6 +5449,117 @@ y_pred = best_model.predict(X_test)
 rmse_test = MSE(y_test, y_pred)**(1/2)
 
 
+#%% UNDERSTANDING DATA ENGINEERING
+
+# It is a conceptual course, there is no coding involved.
+
+# Ch1: WHAT IS DATA ENGINEERING?
+
+# 4 general steps through which data flows in an organization:
+# 1) Data collection and storage, 2) Data preparation
+# 3) Exploration and visualization, 4) Experimentation and prediction
+# Data engineers are responsible for the first step of the process
+# Their job is to deliver the data in the right form, to the right people, as efficiently as possible
+# They ingest data from different sources, optimize dbs for analyses, remove corrupted data,
+# develop,construct, test and maintain data architecures
+# They build data pipelines
+
+# DATA ENGINEERS VS DATA SCIENTISTS: 
+# Data scientists intervine on the other 3 parts of the workflow
+# Data engineers enable data scientists
+
+# THE DATA PIPELINE: companies ingest data from many different sources
+# which need to be processed and stored in various ways.
+# To do that we need DATA PIPELINES which efficiently automate the flow from
+# one station the next so that data scientists can use it
+# They involve automating the extracting, transforming, combining, validating and loading of data
+# They reduce human intervention, errors, and the time it takes for data to flow
+
+# ETL PIPELINES: one popular framework for designing data pipelines
+# It breaks up the flow of data into 3 sequential steps:
+# 1) Extract data, 2) Transforming ir, 3) Loading transformed data to another database
+# But not all pipelines are ETL (eg. the data may not be trasnformed)
+
+
+# Ch2: STORING DATA
+
+# DATA STRUCTURES
+
+# STRUCTURED DATA: easy to search and organize, follows a consistent model
+# (eg. rows and cols), has defined data types, can be easily grouped to form relations,
+# it is stored in a relational database, created and queried using SQL
+
+# SEMI-STRUCTURED DATA: relatively easy to organize, less rigid implementation,
+# diffrent types, can be grouped but needs more work, stored in NoSQL dbs like JSON, XML, YAML file formats)
+# Different observations may have different sizes
+
+# UNSTRUCTURED DATA: it does not follow a model, can't be contained in row and column format, 
+# it is difficult to search and organize, examples are text, sound, pictures, videos,
+# usually stored in data lakes, data warehouses or dbs.
+# In the case of Spotify, it could be lyrics, songs, album's pictures.
+# It can be processed by AI and machine learning.
+# Adding information to categorize it would make it semi-structured (like adding a genre to each song)
+
+# SQL DATABASES: the industry standard for querying Relational DB Management System (RDBMS)
+# 2 main advantages: allows you to access many records at once, and group, filter and aggregate them
+# Close to English, so easy to write and understand
+# Engineers use it to create and maintain databases
+# D Scientists use it to query dbs
+
+# DATABASE: organized data, stored and accessed on a computer
+# Relational dbs and data warehouses are examples of dbs
+
+# DATA LAKE: stores all raw data (unprocessed and messy),
+# stores big data, stores all data structures so it does not enforce any
+# model on the way to store the data, which makes it cost-effective, but it
+# is very difficult to analyse it, requires an up-to-date catalog
+# used by data scientists for real-time analytics on big data
+
+# DATA WAREHOUSE: stores specific data for a specific use,
+# usually relatively small (to big data), stores mainly structred data
+# so it is more costly to update, but it is optimized for analytics,
+# they are used by analyst for ad-hod read-only queries.
+
+# DATA CATALOG: "a source of truth that compensates for the lack of structure in a data lake"
+# It stores info on the data sources, how the data is used, who is responsible for
+# maintainin it, and how often it is updated. Good practice and ensures reproducibility.
+
+
+# Ch3: MOVING AND PROCESSING DATA
+
+# To process data is to convert raw data into meaningful information
+# We may need to remove unwanted data, optimze memory/process/network costs,
+# convert data from one type to another, organize data, fit the data into
+# a schema/structure, increase productivity
+
+# SCHEDULING DATA: this can apply to any data processing task, but we will focus
+# on updating tables and dbs. It is the "glue" of a data engineering system
+# as it holds each small piece and organize how they work together by
+# running tasks in a specific order and resolving all dependencies
+
+# There are differnt ways to do this: we can run tasks manually,
+# autmatically at specific times, automatically if a specific condition
+# is met (SENSOR SCHEDULING, requires "sensors" always "listening"
+# if something is being changed)
+
+# HOW THE DATA IS INGESTED: it can be ingested in BATCHES (sent by groups
+# at specific intervals, cheaper) or STREAMS (individual data records are sent
+# through the pipeline as soon as they are updated, eg registering a new user)
+
+# PARALLEL COMPUTING/PROCESSING: the basis of almost all moder data processing tools
+# When big data processing tools perform a processing task, they split it into smaller tasks
+# which are sent to different computers
+# Advantage: extra processing power, reduced memory footprint (as you can partition the data)
+# Disadvantages: costs, re-arranging split data requires communication time between computers
+# (so you have to consider if the time gained by using multiple processing units
+# is greater than the time lost communicating them)
+
+# CLOUD COMPUTING
+# Companies can process data on their own data centers, often on premise
+# Or they can rent servers in the cloud
+
+
+
 #%% UNIT TESTING FOR DATA SCIENCE IN PYTHON
 
 # A "unit" is any small independent piece of code (like a Python function or class)
