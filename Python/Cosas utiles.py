@@ -5559,6 +5559,219 @@ rmse_test = MSE(y_test, y_pred)**(1/2)
 # Or they can rent servers in the cloud
 
 
+#%% INTRODUCTION TO DATA ENGINEERING
+
+# Ch1: INTRO
+
+# An engineer that develops, constructs, tests, and maintains architectures such
+# as datbases and large-scale processing systems
+
+# The job of a data engineer is making the life of the data scientist easier, by
+# gathering data, optimize dbs for analyses, and remove corrupt data
+
+# TOOLS of a Data Engineer:
+# - Database systems (eg. MySQL, PostgreSQL, MongoDB)
+# - Processing tools (parallel processing, Apache Spark, Hive)
+# - Scheduling tools (plan jobs with specific intervals, 
+# resolve dependency requirements of jobs eg. the order of operations. Apache Airflow, Oozie, Linux Cron)
+
+# CLOUD COMPUTING
+# Cloud service providers offer tools for storage, processing, and databases
+
+
+# Ch2: DATA ENGINEERING TOOLBOX
+
+# DATABASES: holds data, organizes data, retrieves data through a DBMS
+
+# STRUCTURED DATA: choherent to a well-defined structure (sometines defined by a schema),
+# SEMI-STRUCTURED DATA: eg. jsons
+# UNSTRUCTURED DATA: have no schema
+
+# SQL DB: has tables, a schema, is relational
+# NoSQL DB: non-relational, structured or unstructured (it is a misconception to relate it to unstructured,
+# schema-less data). Eg: Redis (key-value stores), MongoDB (documents)
+
+# DATABASE SCHEMA: describes a structure and relations of a db
+# SATAR SCHEMA: one or more fact tables referencing any number of dimension tables (a type of schema).
+# Fact tables represent things that happened (eg orders), and dimension tables represent information (eg customer data)
+
+# Query an SQL database with Pandas (PostgreSQL)
+import pandas as pd
+data = pd.read_sql("""
+SELECT first_name, last_name FROM "Customer"
+ORDER BY last_name, first_name
+""", db_engine)
+data = pd.read_sql("""
+SELECT * FROM "Customer"
+INNER JOIN "Order"
+ON "Order"."customer_id"="Customer"."id"
+""", db_engine)
+
+# PARALLEL COMPUTING: split a task into subtasks and distribute them over several computers
+# Benefits: extra processing power, less memory footprint
+# Costs: splitting and re-merging requires communication time, so tasks need to be large.
+    # "Parallel slowdown": due to the communication overhead, speed does not increase linearly
+
+# PARALLEL PROCESSING IN PYTHON - Using multiple cores of the same machine
+# Eg: calculate the average age of participants for each Olympic
+from mutiprocessing import Pool
+def take_mean_age(year_and_group):
+    year, group = year_and_group
+    return pd.DataFrame({"Age": group["Age"].mean()}, index=[year])
+# The func returns a df with 1 obs and 1 col with the mean age of the group, indexed by year
+# Here use 4 cores
+with Pool(4) as p:
+    results = p.map(take_mean_age, athlete_events.groupby("Year"))
+    results_df = pd.concat(results)
+
+# PARALLEL PROCESSING IN PYTHON - Using the Dask package
+import dask.dataframe as dd
+# Partition the df into 4:
+athlete_events_dask = dd.from_pandas(athlete_events, npartitions=4)
+# Run parallel computations on each partition
+results_df = athlete_events_dask.groupby("Year").Age.mean().compute()
+
+# Function to apply a function over multiple cores
+@print_timing # time each operation
+def parallel_apply(apply_func, groups, nb_cores):
+    with Pool(nb_cores) as p:
+        results = p.map(apply_func, groups)
+    return pd.concat(results)
+# Parallel apply using 4 cores
+parallel_apply(take_mean_age, athlete_events.groupby('Year'), 3)
+
+# PARALLEL COMPUTING FRAMEWORKS
+
+# APACHE HADOOP: a collection of open source proyects, including MAPREDUCE and HDFS
+
+# HDFS: distributed file system (nowadays cloud management storage systems ofter replace HDFS)
+
+# MAPREDUCE: one of the first big data processing paradigm, it splits tasks into subtasks over a cluster
+
+# HIVE: a layer on top of the Hadoop ecosystem that makes data from several sources queriable in 
+# a structured way using Hive SQL. Initially created by Facebook.
+# a HIVE QUERY looks like an SQL query, but behind the curtains it transforms it into a job that 
+# can operate on a cluster of computers via Hadoop's Mapreduce
+
+# APACHE SPARK: distributes data processing tasks between clusters of computers.
+# Unlike Mapreduce, it tries to keep as much processing as possible in memory, avoiding disk writes
+# Its architecture relies on Resilient distributed datasets (RDDs), a data strucutre that maintains data
+# which is distributed into multiple nodes, RDDs dont have named columns, you can think of them
+# lists of tuples. You can do 2 types of operations: transformations like .map() or .filter()
+# and actions like .count() or .first()
+# PYSPARK: the Python interface to Spark, similar to pandas, instead of using the SQL format
+
+# Use PYSPARK
+print(type(athlete_events_spark)) # <class 'pyspark.sql.dataframe.DataFrame'>
+# Print the schema of an SQL database with PySpark
+print(athlete_events_spark.printSchema())
+# Group by the Year, and find the mean Age
+print(athlete_events_spark.groupBy('Year').mean('Age').show()) # display a PySpark db with .show()
+
+# Usually you create a .py Spark file and run it in the console like this
+spark-submit master local[4] /folder/sparkfile.py
+
+# WORKFLOW SCHEDULING FRAMEWORKS
+# Example of a pipeline: extract data from csvs, clean it with spark, and load it to an SQL db
+# You could run this periodically by hand, or schedule it
+# Linux's CRON is a useful tool to schedule simple tasks individually
+# but when there are several tasks with dependencies, it is not enough
+# DAG: directed acyclic graph. A set of nodes connected by directed edges
+# THere are no cycles in the graph, meaning that no path following the directed edges
+# sees a specific node more than once
+
+# SPOTIFY's LUIGI: allows for the definition of DAGs for complex pipelines
+
+# APACHE AIRFLOW: created by Airbnb, then open-sourced. Built around the concept of DAGs
+
+# Example: a DAG that starts by starting a cluster, then it ingests cutomer data
+# and ingests product data, and once those two are finished, it enriches customer data
+# Create the DAG object
+dag = DAG(dag_id='example_dag', ..., schedule_interval="0 * * * *")
+# this is crontab notation. Run ever hour at minute N would be "N * * * *"
+# Define operations
+start_cluster = StartClusterOperator(task_id="start_cluster", dag=dag)
+ingest_customer_data = SparkJobOperator(task_id="ingest_customer_data", dag=dag)
+ingest_product_data = SparkJobOperator(task_id="ingest_product_data", dag=dag)
+enrich_customer_data = PythonOperator(task_id="enrich_customer_data", dag=dag)
+# Set up dependency flow
+start_cluster.set_downstream(ingest_customer_data)
+ingest_customer_data.set_downstream(enrich_customer_data)
+ingest_product_data.set_downstream(enrich_customer_data)
+
+
+# Ch3: EXTRACT, TRANSFORM AND LOAD (ETL)
+
+# EXTRACTING DATA: taking data from persistent storage (like a file on Amazon S3 or a SQL db)
+#  which is not suited for data processing into memory
+# - FROM TEXT FILES: unstructured (like a book chapter) or flat files (rows and cols, csv),
+ # semi/scturctured like JSON: 4 atomic data types (number, string boolean and null) and 2
+ # composite data types (arrays and objects), similar to Python dictionaries
+
+# Parse JSON data
+import json
+result = json.loads('{key_1': 'value_1', 'key_2': 'value_2')
+print(result['key_1'])
+
+# Make a get request to an API
+import requests
+response = requests.get("https://hacker-news.firebaseio.com/v0/item/1516800333.json")
+print(response.json()) # .json() parses the income json and transforms it to a Python object
+
+# EXTRACT FROM DATABASES
+# Two main db types:
+# APLICATION DATABASES: optimized for transactions, each transcation changes or inserts
+# rows in a db, called OLTP ("Online transaction processing"), row-oriented
+# ANALYTICAL DATABASES: optimized for analysis, OLAP ("On-line Analytical processing"), column-oriented
+
+# To extract data from a db in Python you will need a CONNECTION STRING/URL (a 
+# string that holds info on how to connect to a db)
+# Example: postgresql://[user[:password]@][host][:port]
+# CONNECT TO AN SQL DATABASE
+import sqlalchemy
+connection_url = "postgresql://repl:password@localhost:5432/paglia"
+db_engine = sqlalchemy.create_engine(connection_url)
+import pandas as pd
+pd.read_sql("SELECT * FROM customer", db_engine)
+
+# Function to extract table to a pandas DataFrame
+def extract_table_to_pandas(tablename, db_engine):
+    query = "SELECT * FROM {}".format(tablename)
+    return pd.read_sql(query, db_engine)
+
+# TRANSFORM
+# Examples of common transformations: select an attribute, translate code values,
+# validate data, splitting columns into multiple columns, joining from multiple sources
+
+# TRANSFOMRING IN PYSPARK
+# First extract the data
+import pyspark.sql
+spark = pyspark.sql.SparkSession.builder.getOrCreate() # spark session object
+spark.read.jdbc("jdbc:postgresql://localhost:5432/paglia", # jdbc helps spark connect to rdbs
+    "customer",
+    properties = {"user": "repl", "password":"password"})
+# Perform a join between two tables
+customer_df # PySpark DataFrame with customer data 
+ratings_df # PySpark DataFrame with ratings data
+# Group by ratings
+ratings_per_customer = ratings_df.groupBy("customer_id").mean("rating")
+# Join on customer ID
+customer_df.join(
+    ratings_per_customer,
+    customer_df.customer_id = ratings_per_customer.customer_id
+)
+
+
+# LOADING
+
+# DBs for Analytics (a) vs DBs for Applications (b)
+# Complex aggregate queries run on (a). Also OLAP
+# COLUMN-ORIENTED, stores data per entire columns, better for parallelization
+# Many transactions per second run on (b). Also OLTP
+# Most (a) are ROW-ORIENTED, we store data per record
+
+# MPP DBs: massively parallel processing databases
+# Examples: Amazon Redshift, Azure SQL Data Warehouse, Google BigQuery
 
 #%% UNIT TESTING FOR DATA SCIENCE IN PYTHON
 
