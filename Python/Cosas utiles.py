@@ -136,7 +136,7 @@ df[df['var'].isnull()]
 df.drop_duplicates(subset=['var'])
 
 # Merge / unir dos data frames
-db1 = db1.merge(db2[['var_a_mergear']] how='left', on=[nombre de variable llave], indicator=True) #indicator te dice si agregar una columma que te diga el resultado del merge, ademas de true se le puede poner el strign que quieras
+db1 = db1.merge(db2[['var_a_mergear']], how='left', on=[nombre de variable llave], indicator=True) #indicator te dice si agregar una columma que te diga el resultado del merge, ademas de true se le puede poner el strign que quieras
 
 # Intertar una columna / variable al principio de un data frame
 df.insert(0, 'nombrevar', var)
@@ -5682,13 +5682,16 @@ spark-submit master local[4] /folder/sparkfile.py
 
 # SPOTIFY's LUIGI: allows for the definition of DAGs for complex pipelines
 
-# APACHE AIRFLOW: created by Airbnb, then open-sourced. Built around the concept of DAGs
+# APACHE AIRFLOW: Python workflow scheduler
+# created by Airbnb, then open-sourced. Built around the concept of DAGs
 
 # Example: a DAG that starts by starting a cluster, then it ingests cutomer data
 # and ingests product data, and once those two are finished, it enriches customer data
 # Create the DAG object
 dag = DAG(dag_id='example_dag', ..., schedule_interval="0 * * * *")
-# this is crontab notation. Run ever hour at minute N would be "N * * * *"
+# this is crontab notation.
+# The leftmost character represents minutes, then hour, day of the month, month, day of the week
+# Run every hour at minute N would be "N * * * *"
 # Define operations
 start_cluster = StartClusterOperator(task_id="start_cluster", dag=dag)
 ingest_customer_data = SparkJobOperator(task_id="ingest_customer_data", dag=dag)
@@ -5724,13 +5727,13 @@ print(response.json()) # .json() parses the income json and transforms it to a P
 # rows in a db, called OLTP ("Online transaction processing"), row-oriented
 # ANALYTICAL DATABASES: optimized for analysis, OLAP ("On-line Analytical processing"), column-oriented
 
-# To extract data from a db in Python you will need a CONNECTION STRING/URL (a 
+# To extract data from a db in Python you will need a CONNECTION STRING/URI (a 
 # string that holds info on how to connect to a db)
 # Example: postgresql://[user[:password]@][host][:port]
 # CONNECT TO AN SQL DATABASE
 import sqlalchemy
-connection_url = "postgresql://repl:password@localhost:5432/paglia"
-db_engine = sqlalchemy.create_engine(connection_url)
+connection_uri = "postgresql://repl:password@localhost:5432/paglia"
+db_engine = sqlalchemy.create_engine(connection_uri)
 import pandas as pd
 pd.read_sql("SELECT * FROM customer", db_engine)
 
@@ -5772,6 +5775,126 @@ customer_df.join(
 
 # MPP DBs: massively parallel processing databases
 # Examples: Amazon Redshift, Azure SQL Data Warehouse, Google BigQuery
+
+# Load data into Amazon Redshift
+# Save a dataframe as a patquet file
+    # With pandas
+df.to_parquet("./s3://path/to/bucket/customer.parquet")
+    # With PySpark
+df.write.parquet("./s3://path/to/bucket/customer.parquet")
+# Connect to Redshift and copy the data
+COPY customer
+FROM './s3://path/to/bucket/customer.parquet'
+FORMAT AS parquet
+...
+
+# Load to a PostgreSQL database with Pandas
+    df.to_sql("df", db_engine, schema="store", if_exists="replace")
+
+# PUTTING IT ALL TOGETHER
+# Ideally, the ETL should be encapsulated in an ETL function
+# Function to extract PostgreSQL table to a Pandas dataframe
+def extrat_table_to_df(tablename, db_engine):
+    return pd.read_sql("SELECT * FROM {}".format(tablename), db_engine)
+# Generic transformation function
+def split_columns_transform(df, column, pat, suffixes)>
+    # Converts columns into strings and splits it on pat...
+# Function to load the transformed data into the PostgreSQL database
+def load_df_into_dwh(film_df, tablename, schema, db_engine):
+    return df.to_sql(tablename, db_engine, schema=schema, if_exists="replace")
+# Open the SQL engine
+db_engines = { ... } # Needs to be configured
+# Define the ETL FUNCTION
+def etl():
+    # Extract
+    film_df = extrat_table_to_df("film", db_engines['store'])
+    # Transform
+    film_df = split_columns_transform(film_df, "rental_rate", ".", ["_dollar", "_cents"])
+    # Load
+    load_df_into_dwh(film_df, "film", "store", db_engines['replace'])
+# Now schedule the workflow using Apache Airflow
+from airflow.models import DAG
+from airflow.operators.python_operator import PythonOperator
+dag = DAG(dag_id='sample', ..., schedule_interval="0 0 * * *")
+etl_task = PythonOperator(task_id="etl_task", python_callable=etl, dag=dag)
+etl_task.set_upstream(wait_for_this_task) # etl task will run only after wait_for_this_task is complete
+# Once you have this DAG definition, you can write it into a python file and place it in the DAG folder of Airflow
+
+
+# Ch4: CASE STUDY: DATACAMP
+# We will use DataCamp's course ratings data.
+# The objective is to start from the data about course ratings from the DataCamp
+# application, which is stored in a PostgreSQL db, then clean the data and 
+# build a recommendation algorithm, and then load it to the SQL Data Warehouse
+# so it is available for use in a product
+# We will use a table called courses and a table called rating
+# Transformation function
+def transform_avg_rating(rating_data):
+    # Group by course_id and extract average rating per course
+    avg_rating = rating_data.groupby('course_id').rating.mean()
+    # Return sorted average ratings per course
+    sort_rating = avg_rating.sort_values(ascending=False).reset_index()
+    return sort_rating
+# Extract the rating data into a DataFrame    
+rating_data = extract_rating_data(db_engines)
+# Use transform_avg_rating on the extracted data and print results
+avg_rating_data = transform_avg_rating(rating_data)
+print(avg_rating_data)
+# The recommendation strategy will be: use the language that the user rated the 
+# most, don't recommend courses that have already been rated by that user, then
+# recommend the three highest rated courses from the remaining combinations
+# Connect to the db
+course_data = extract_course_data(db_engines)
+# Check missing values
+print(course_data.isnull().sum())
+# Fill missing values (tranfsormation)
+def transform_fill_programming_language(course_data):
+    imputed = course_data.fillna({"programming_language": "R"})
+    return imputed
+transformed = transform_fill_programming_language(course_data)
+# Get top 3 rated courses for each user
+def transform_recommendations(avg_course_ratings, courses_to_recommend):
+    # Merge both DataFrames
+    merged = courses_to_recommend.merge(avg_course_ratings, on='course_id') 
+    # Sort values by rating and group by user_id
+    grouped = merged.sort_values("rating", ascending=False).groupby("user_id")
+    # Produce the top 3 values and sort by user_id
+    recommendations = grouped.head(3).sort_values("user_id").reset_index()
+    final_recommendations = recommendations[["user_id", "course_id","rating"]]
+    # Return final recommendations
+    return final_recommendations
+recommendations = transform_recommendations(avg_course_ratings, courses_to_recommend)
+# Load the recommendations to a PostgreSQL table
+recommendations.to_sql("recommendations", db_engine, if_exists='append')
+# Define the ETL function
+def etl():
+    courses = extract_course_data(db_engines)
+    rating = extract_Rating_data(db_engnines)
+    courses = transform_fill_programming_language(courses)
+    avg_course_ratings = transform_avg_rating(rating)
+    courses_to_recommend = transform_courses_to_recommend(rating, courses)
+    recommendations = transform_recommendations(avg_course_rating, courses_to_recommend)
+    load_to_dwh(recommendations, db_engine)
+# Create the DAG to execute the ETL daily
+from airflow.models import DAG
+from airflow.operators.python_operator import PythonOperator
+dag = DAG(dag_id='recommendations', schedule_interval="0 0 * * *")
+task_recommendations = PythonOperator(task_id="recommendations_task", python_callable=etl, dag=dag)
+# Try querying the recommendations table loaded in the Data Warehouse   
+def recommendations_for_user(user_id, threshold=4.5):
+    # Join with the courses table
+    query = """
+    SELECT title, rating FROM recommendations
+    INNER JOIN courses ON courses.course_id = recommendations.course_id
+    WHERE user_id=%(user_id)s AND rating>%(threshold)s
+    ORDER BY rating DESC
+    """
+    # Add the threshold parameter
+    predictions_df = pd.read_sql(query, db_engine, params = {"user_id": user_id, 
+                                                             "threshold": threshold})
+    return predictions_df.title.values
+# Try the function you created
+print(recommendations_for_user(12, 4.65))
 
 #%% UNIT TESTING FOR DATA SCIENCE IN PYTHON
 
