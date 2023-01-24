@@ -939,7 +939,7 @@ base <- base %>% select(-startsWith("hola")) #este no lo probé
 #Otra opción:
 base <- base[,!(names(base) %in% c("variable"))]
 
-#Renombrar una variable:
+#Renombrar una variable / cambiar el nombre de una columna:
 base <- rename(base, nuevo_nombre = viejo_nombre) #o
 base <- base %>% rename(nuevo_nombre=viejo_nombre)
 
@@ -1498,6 +1498,11 @@ stringr::str_split("hola$chau", "\\$")
 
 # Comandos para GRÁFICOS --------------------------------------------------
 
+
+# Partir un título en más de una lína / añadir un line break en un título
+plot <- ggplot(data, aes(var1, var2)) +
+    geom_bar(stat = "identity") +
+    ggtitle("Text in first line\nof and text in second line") # /nof operator
 
 # Show only some of the tick labels
 ggplot(data, aes(var1, var2, group=1)) + # Group one is to deal with an error for line graphs
