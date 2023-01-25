@@ -5896,6 +5896,85 @@ def recommendations_for_user(user_id, threshold=4.5):
 # Try the function you created
 print(recommendations_for_user(12, 4.65))
 
+
+#%% STREAMLINED DATA INGESTION WITH PANDAS
+
+# Ch1: IMPORTING DATA FROM FLAT FILES
+
+# Flat files: simple, esay-to-produce format, data stored as plain text (no formatting),
+# one row per line, values for different fields are separated by a delimiter
+
+# The pandas function read_csv() is used to read ALL flat files, whether csv or not
+
+# Define the file's delimiter
+import pandas as pd
+tax_data = pd.read_csv('us_tax_data_2016.tsv', sep="\t") # here a tab
+
+# LIMIT THE AMOUNT OF DATA READ FROM THE FLAT FILE
+# - Choose only certain columns
+# The keyword arg "usecols" can take a list of col names, col numbers, or functions (
+# such as choosing all cols that start with 'a')
+col_names = ['col1', 'col2']
+df = pd.read_csv('file.csv', usecols=col_names)
+col_numbers = ['0', '1']
+df = pd.read_csv('file.csv', usecols=col_numbers)
+# Limit the number of rows imported from a csv
+df = pd.read_csv('file.csv', nrows=1000)
+# Process a file in chunks
+# 'skiprows' accepts a list of row numbers, a number of rows, or a function to filter rows, to skip
+# You should set 'header' = None so that pandas knows there are no column names
+# Eg get rows 1000 to 1500
+df = pd.read_csv('file.csv', nrows=500, skiprows=1000, header=None)
+# Assign column names when reading a csv (the list must be as long as the number of cols)
+col_names = list(df_first_1000) # save col names from the first chunk
+df_next500 = pd.read_csv('file.csv', nrows=500, skiprows=1000, header=None, names=col_names)
+
+# HANDLING ERRORS AND MISSING DATA (eg. when files are not completely clean)
+# Specifying column data types
+df = pd.read_csv('file.csv', dtype={"zipcode": str}) # the rest of the types are inferred by pandas
+# Specify which symbol stands for a missing value
+# 'na_values' accepts a single value, a list of values, or a dictionary of column-value pairs
+df = pd.read_csv('file.csv', na_values={"zipcode": 0}) # here 0s in zipcodes are NAs
+# Deal with lines with errors (eg having more values than columns)
+df = pd.read_csv('file.csv', error_bad_lines=False # skips unparseable records
+                        warn_bad_lines=True) # display a message when a line is skipped
+
+
+# Ch3: IMPORTING DATA FROM EXCEL FILES
+
+# Unlike flat files, it can have formulas with updating results, and formatting
+
+# Read an excel file with pandas
+df = pd.read_excel('file.xlsx')
+
+# SELECT COLUMNS AND ROWS FROM AN EXCEL FILE
+# nrows: same as read_csv
+# skiprows: number of rows, or specific row numbers
+# usecols: name, positional number, or column letter
+df = pd.read_excel('file.xlsx', skiprows=2, usecols='W:AB, AR')
+
+# GETTING DATA FROM MULTIPLE EXCEL SHEETS
+# Choose sheet: 'sheet_name': by names or zero-indexed position numbers
+df = pd.read_excel('file.xlsx', sheet_name=0)
+df = pd.read_excel('file.xlsx', sheet_name='first_sheet')
+df = pd.read_excel('file.xlsx', sheet_name=['first', 'second'])
+df = pd.read_excel('file.xlsx', sheet_name=[0, 'second'])
+# Load all sheets of an Excel at once
+df = pd.read_excel('file.xlsx', sheet_name=None) # it returns a dictionary
+# Eg load all sheets into the same data frame
+all_responses = pd.DataFrame()
+survey_responses = pd.read_excel('file.xlsx', sheet_name=None)
+for sheet_name, frame in survey_responses.items():
+    frame['SheetID'] = sheet_name
+    all_responses = all_responses.append(frame)
+
+# SPECIAL CONSIDERATIONS WHEN READING BOOLEAN VARIABLES
+
+
+
+# Ch3: IMPORTING DATA FROM DATABASES
+
+
 #%% UNIT TESTING FOR DATA SCIENCE IN PYTHON
 
 # A "unit" is any small independent piece of code (like a Python function or class)
