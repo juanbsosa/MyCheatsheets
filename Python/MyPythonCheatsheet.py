@@ -699,7 +699,7 @@ puntos.plot(ax=base_plot, color='blue');
 
 # Ver ipynb "arreglo_espacioal_estaciones_servicio"
 
-
+# %% DATACAMP COURSES starting from here...
 
 # %% BASIC COMMANDS
 
@@ -5109,6 +5109,283 @@ similarities = df.dot(current_article)
 # Now display the articles with the highest cosine similarity
 print(similarities.nlargest())
 
+#%% LINEAR CLASSIFIERS IN PYTHON
+
+# Auxiliary: a function to plot the classified data in a region
+# https://people.cs.umass.edu/~sheldon/teaching/cs335/lec/09-classification.html
+
+# This course has a lot of graphical explanations, so it is good to watch the videos.
+
+# A classifier is LINEAR when it has a linear DECISION BOUNDARY
+
+# DECISION BOUNDARY: the surface separating different predicted classes
+# CLASSIFICATION: supervised learning when Y has categories.
+# LINEARLY SEPARABLE DATA: a data set that can be perfectly explained by
+#   a linear classifier. With this kind of data you can get training accuracy
+# of 100%.
+
+# Ch1: AAPLYING LOGISTIC REGRESSION AND SVM
+# (this is an introductory part, the last two chapters are about each method    )
+
+# LOGISTIC REGRESSION
+import sklearn.datasets
+from sklearn.linear_model import LogisticRegression
+wine = sklearn.datasets.load_wine()
+lr = LogisticRegression()
+lr.fit(wine.data, wine.target)
+lr.score(wine.data, wine.target) # training accuracy
+# Output CONFIDENCE SCORES instead of definite predictions
+lr.predict_proba(wine.data[:1])
+
+# LINEAR SUPPORT VECTOR CLASSIFIER
+import sklearn.datasets
+from sklearn.svm import LinearSVC
+wine = sklearn.datasets.load_wine()
+svm = LinearSVC()
+svm.fit(wine.data, wine.target)
+svm.score(wine.data, wine.target)
+
+# NON-LINEAR SUPPORT VECTOR MACHINE
+# SVC fits a non-linear SVM by default
+import sklearn.datasets
+from sklearn.svm import SVC
+wine  sklearn.datasets.load_wine()
+svm = SVC()
+svm.fit(wine.data, wine.target)
+svm.score(wine.data, wine.target)
+
+# Code example: Plot different SVM classifiers in the iris dataset
+# https://scikit-learn.org/stable/auto_examples/svm/plot_iris_svc.html
+
+# Ch2: LOSS FUNCTIONS
+
+# Some theory
+
+# DOT PRODUCT:
+# The dot product of vectors (1,2,3) and (4,5,6) is  1*4+2*5+3*6 = 32
+# Numpy version
+import numpy as np
+x = np.array([1,2,3])
+y = np.array([4,5,6])
+np.sum(x*y)
+# Python version
+x@y
+
+# LINEAR CLASSIFIER PREDCITION
+# The predict method calculates the
+# raw model output = coefficients * features + intercept (where * is the dot product),
+# Then checks the sign of the raw model output, and predicts one class if it
+#   is negative and the other if it is possitive
+# This applies for LR and SVM, which have the same predict function,
+# but different fit functions (this diff relates to loss functions)
+# Get the COEFFICIENTS and INTERCEPT of the predicted model
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression()
+lr.fit(X, y)
+lr.coef_ # coefficients
+lr.intercept_ # intercept
+# Replicate the equation above
+lr.coef_ @ X[10] + lr.intercept_ # raw model output
+
+# LOSS FUNCTIONS
+# Many ML algorithms involve minimizing a loss
+# The general idea is that you "try" different combinations of values for the
+# coefficients until you get the minimum value for the loss function
+# The loss function is a penalty score that tells us how poorly the model is
+# doing in the training data. The .fit method minimizes this.
+
+# For classification problems, the squared error is not an appropiate loss function
+# It is natural to use the number of errors made. The "0-1 LOSS" function scores
+# 0 is the prediction is correct, and 1 otherwise.
+# Logistc regression and SVM do NOT minimize the 0-1 loss because it is
+# difficult to do so (reasons beyond the course)
+
+# MINIMIZING A LOSS FUNCTION
+# Eg. minimize Y=X^2
+from scipy.optimize import minimize
+minimize(np.square, 0).x # the first argument is X^2, the second our initial
+# guess. ".x" grabs the input value that makes the function as small as possible
+# The result is 0 bcs X^2 is minimized when X=0
+
+# LINEAR REGRESSION "FROM SCRATCH" / LINEAR REGRESSION MANUALLY
+# The squared error, summed over training examples
+def my_loss(w):
+    s = 0
+    for i in range(y.size):
+        # Get the true and predicted target values for example 'i'
+        y_i_true = y[i]
+        y_i_pred = w@X[i]
+        s = s + (y_i_true - y_i_pred)**2
+    return s
+# Returns the w that makes my_loss(w) smallest
+w_fit = minimize(my_loss, X[0]).x
+print(w_fit)
+# Compare with scikit-learn's LinearRegression coefficients
+lr = LinearRegression(fit_intercept=False).fit(X,y)
+print(lr.coef_)
+
+
+# Ch3: LOGISTIC REGRESSION AND REGULARIZATION
+
+# Key Hyperparameters: C(inverse rgularization strength, penalty(type of regularization),
+# and multi_class (type of multi-class))
+
+# REGULARIZATION STRENGTH
+# In sickit learn, the hyperparameter "C" is the inverse of the regularization
+#   strength: larger C means less regularization and vice versa
+
+# Usually, adding regularization decreases the train accuracy. This is because
+#   we are modifying the loss function to penalize large coefficients, which
+#   "distracts" the original goal of optimizing accuracy. But at the same time
+#   it usually improves test accuracy.
+
+# L1 regularization: LASSO
+# L2 regularization: RIDGE
+
+# Choose the type of regularization in a Logistic Regression
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression(solver='liblinear', penalty='l1') # 'solver' controls the
+    # optimization method used to find the coeffients. We need to set this here
+    # because the default solver is not ocmpatible with L1 regularization.
+
+# Interpret the raw model output of the LogisticRegression classifier as a probability
+# The Sigmoid function translates the raw model output (between -Inf and +Inf)
+#   to a probability between 0 and 1
+
+# MULTI-CLASS LOGISTIC REGRESSION
+# Classification with more than two categories
+
+# Approach 1: ONE-VERSUS-REST STRATEGY ('ovr')
+# One approach is to train a series of binary classifiers for each class
+lr0 = LogisticRegression()
+lr1 = LogisticRegression()
+lr2 = LogisticRegression()
+lr0.fit(X, y==0)
+lr1.fit(X, y==1)
+lr2.fit(X, y==2)
+# Then you choose the class whose model gives the largest raw model output
+lr0.decision_function(X)[0]
+lr1.decision_function(X)[0]
+lr2.decision_function(X)[0]
+# Sickit learn has the option to do the previous automatically
+lr_ovr = LogisticRegression(multi_class='ovr')
+lr_ovr.fit(X, y)
+
+# Approach 2: MULTINOMIAL / SOFTMAX / CROSS-ENTROPY LOSS
+# modify the loss function so that it directly tries to optimize accuracy on
+# multiclass problem.
+# The difference is that you only fit a single classifier which directly
+# predicts the best class. Yet, it can be more complicated. Sometimes is 
+# perfoms better than the previous approach.
+lr_mn = LogisticRegression(multi_class='multinomial')
+lr_mn.fit(X, y)
+# See the coefficients and intercepts of this model
+lr_mn.coef_.shape
+lr_mn.intercept_.shape
+# You get one coefficient per feature, per class, and one intercept per class.
+# (the same quantity as in the multiple binary classificators)
+
+
+# Ch4: SUPPORT VECTOR MACHINES
+
+# Key Hyperparameters: C (inverse rgularization strength, kernel (type of kernel),
+# and gamma (inverse RBF smoothness))
+
+# A Linear SVM if a classifier that uses the HINGE function as a loss function
+#   and L2 regularization.
+
+# Because it uses a hinge loss function (see graph), if a training sample falls
+# in the region with zero loss, it does not contribute to the fit (meaning if that
+# should you remove it, nothing would change). Different from Logistic Reg., in
+# SVM not all samples matter to the fit.
+
+# SUPPORT VECTOR: a traning example that is NOT in the flat part of the loss
+#   diagram. It is an example that is either incorrectly classified, or very
+#   close to the boundary. How you define "close" depends of the regularization
+#   strength. They are the examples that matter to your fit.
+
+# 'Max-margin' viewpoint: the SVM maximizes the margin for linearly separable
+# datasets.
+# Margin: distance from the boundary to the closest points.
+# The idea behind this is the line (or many
+# lines) that the SVM tries to draw between the different points is the one
+# which is the farthest from the points. It tries to leave the largest space
+# between the clouds of points; to draw a line that is halfway between them.
+# This viewpoint applies to linearly separable data. For non-linearly sep. data,
+# this concept can be extended.
+
+# DEMONSTRATION: show how a SVM trained with only the support vectors is the 
+# same as one trained with the whole dataset
+# Train a linear SVM
+svm = SVC(kernel="linear")
+svm.fit(X,y)
+# Make a new data set keeping only the support vectors
+print("Number of original examples", len(X))
+print("Number of support vectors", len(svm.support_)) # get the support vectors of a SVM
+X_small = X[svm.support_]
+y_small = y[svm.support_]
+# Train a new SVM using only the support vectors
+svm_small = SVC(kernel="linear")
+svm_small.fit(X_small, y_small)
+
+# KERNEL SVM
+# When dealing with non-linearly, linear SVMs are not so useful.
+# Fitting a linear model in a transformed space (like x^2), corresponds to
+# fitting a non-linear model (like an elipse region) to the original space (watch the
+# graphical explanation)
+# In general, the transformation is not always squaring, and the boundary is not
+#always an elipse
+# KERNELS implement efficient transformations in a computationally-efficient way.
+from sklearn.svm import SVC
+svm = SVC(gamma=1) # default kernel is 'rbf'
+# 'gamma' controls the smoothness of the boundary (smaller gamma = less segmented boundaries)
+# With the right hyperparameters, rbf SVMs are capable of perfectly separating 
+# almost any dataset. But of course large gamma leads to overfitting.
+
+# Choose hyperparameter gamma
+# Instantiate an RBF SVM
+svm = SVC()
+# Instantiate the GridSearchCV object and run the search
+parameters = {'gamma':[0.00001, 0.0001, 0.001, 0.01, 0.1]}
+searcher = GridSearchCV(svm, parameters)
+searcher.fit(X, y)
+# Report the best parameters
+print("Best CV params", searcher.best_params_)
+
+# Choose hyperparameters gamma and C
+# Instantiate an RBF SVM
+svm = SVC()
+# Instantiate the GridSearchCV object and run the search
+parameters = {'C':[0.1, 1, 10], 'gamma':[0.00001, 0.0001, 0.001, 0.01, 0.1]}
+searcher = GridSearchCV(svm, parameters)
+searcher.fit(X_train, y_train)
+# Report the best parameters and the corresponding score
+print("Best CV params", searcher.best_params_)
+print("Best CV accuracy", searcher.best_score_)
+# Report the test accuracy using these best parameters
+print("Test accuracy of best grid search hypers:", searcher.score(X_test, y_test))
+
+# Comparing SVM vs LogisticRegressions (watch video)
+
+# SGD CLASSIFIER: 'stochastic gradient descent'
+# It can handle very large data sets better than SVM and LR
+# Switch between LR and linear SVM
+from sklearn.linear_model import SGDClassifier
+logreg = SGDClassifier(loss='log_loss', alpha=1) #'alpha' is the regularization
+# parameter, equivalent to 1/C
+linsvm = SGDClassifier(loss='hinge')
+# Example
+# We set random_state=0 for reproducibility 
+linear_classifier = SGDClassifier(random_state=0)
+# Instantiate the GridSearchCV object and run the search
+parameters = {'alpha':[0.00001, 0.0001, 0.001, 0.01, 0.1, 1], 
+             'loss':['hinge', 'log_loss']}
+searcher = GridSearchCV(linear_classifier, parameters, cv=10)
+searcher.fit(X_train, y_train)
+# Report the best parameters and the corresponding score
+print("Best CV params", searcher.best_params_)
+print("Best CV accuracy", searcher.best_score_)
+print("Test accuracy of best grid search hypers:", searcher.score(X_test, y_test))
 
 #%% MACHINE LEARNING WITH TREE-BASED MODELS IN PYTHON
 
