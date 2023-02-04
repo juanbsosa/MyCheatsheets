@@ -53,6 +53,45 @@ replace aux if inlist(var, 1, 3, 6)
 
 * Ver el paquete gtools
 
+*MACHETE STATA
+*Abrir un base de datos:
+use "elpath pero con esta barra /"
+
+*Ver los datos (pero no editarlos)
+browse
+
+*Ver los datos y editarlos
+edit
+
+*Nombrar el directorio para no tener que copiarlo entero si hay que llamarlo de nuevo (MUY ÚTIL, sobre todo si hacés un tp grupal)
+global DATA = "/Users/magibbons/Google Drive/Seminario de Tesis/clase 8/data" 
+cd "$DATA"
+
+*Borrar todo
+clear
+
+*Salir de STATA
+exit
+
+*Fijar la ruta de trabajo/ el directorio:
+cd " "
+
+*Ver qué archivos hay en la carpeta
+dir
+
+*Ver las frecuencias de una variable
+tabulate variable
+
+*Crear variables
+generate (o creo que gen sirve, después hay que ver cómo crear los diferentes tipos de variables)
+
+*Bajar un excel
+import excel
+
+*GRAAAANN COMMAANDOO: /*TE TIRA LO QUE STATA TIENE GUARDADO DESPUES DE QUE HACES UN COMANDO*/
+ereturn list
+
+
 
 **********************
 ** BUENAS PRÁCTICAS **

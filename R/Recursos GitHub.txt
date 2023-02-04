@@ -1,4 +1,0 @@
-Script para hacer un gráfico copado con datos de subte:
-https://github.com/karbartolome/datos_argentina/blob/master/gcba_subte/gcba_subte.md
-https://twitter.com/karbartolome/status/1475274595678699526?s=20
-

@@ -3773,7 +3773,7 @@ results.params
 # Generating predictions
 df = pd.DataFrame()
 df['VAR2'] = np.linspace(df['VAR2'].min(), df['VAR2'].max())
-df['VAR3'] = 12 # hold this variable constant
+df['VAR3'] = 12 # hold this variable constant # i think this should be a list
 pred12 = results.predict(df)
 plt.plot(df['VAR3'], pred12, label='VAR3 = 12')
 # here you could also plot the original scatter plot
@@ -3960,7 +3960,7 @@ df.sample(n=10, random_state=123)
 import numpy as np
 np.random.seed(123)
 numpy.random.beta(a=2, b=2, size=1000) # or binomial, chisquare, t, Poisson, normal, etc
-numpy.random.normal(loc=2, b=6, size=1000)
+    
 
 
 # Ch2: SAMPLING METHODS
@@ -4464,7 +4464,7 @@ cv_results =    (reg, X, y, cv=kf) # model, features, target var, KFold object
 # Return an array of k cross-validation scores
 print(cv_results)
 # To return the root MSE, one has to ask for "negative" MSE because sickit-learn interprets that a higher score is better
-cv_results = cross_val_score(reg, X, y, cv=kf, score='neg_mean_squared_error')
+cv_results = cross_val_score(reg, X, y, cv=kf, scoring='neg_mean_squared_error')
 print(np.sqrt(-cv_results))
 
 # REGULARIZATION to avoid overfitting
@@ -5268,7 +5268,7 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123, stratify=y)
 dt = DecisionTreeClassifier(max_depth=4, min_samples_leaf=6, random_state=123)
 bc = BaggingClassifier(base_estimator=dt, n_estimators=300, n_jobs=-1)
-bc.fit(X_train)
+bc.fit(X_train, y_train)
 y_pred = bc.predict(X_test)
 accuracy = accuracy_score(y_pred, y_test)
 print('Accuracy of Bagging Classifier: {.3f}'.format(accuracy))
@@ -5290,7 +5290,7 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123, stratify=y)
 dt = DecisionTreeClassifier(max_depth=4, min_samples_leaf=6, random_state=123)
 bc = BaggingClassifier(base_estimator=dt, n_estimators=300, n_jobs=-1, oob_score=True) # for regressors use R2 score
-bc.fit(X_train)
+bc.fit(X_train, y_train)
 y_pred = bc.predict(X_test)
 accuracy = accuracy_score(y_pred, y_test)
 oob_accuracy = bc.oob_score_
@@ -5309,7 +5309,7 @@ from sklearn.metrics import mean_squared_error as MSE
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
 rf = RandomForestRegressor(n_estimators=400, min_samples_leaf=0.12, random_state=123)
-rf.fit(X_train)
+rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 rmse_test = MSE(y_test, y_pred)**(1/2)
 

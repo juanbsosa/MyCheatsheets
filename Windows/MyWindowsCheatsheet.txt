@@ -1,0 +1,11 @@
+::::::::::::::::::::::::::::::::::::
+:::: USEFUL HACKS FOR WINDOS :::::::
+::::::::::::::::::::::::::::::::::::
+
+
+:: Show File Extension in File Explorer on Windows 11
+:: https://allthings.how/how-to-show-file-extension-in-file-explorer-on-windows-11/
+
+:: Unzip and "reconstruct" folders downloaded from Google Drive
+:: Run this in PowerShell:
+Get-ChildItem 'path to folder' -Filter *.zip | Expand-Archive -DestinationPath 'path to extract' -Force

@@ -1,4 +1,0 @@
-En Google Drive cuando descargas carpetas muy grandes te divide todo en zips. Para poder "reconstruir" las carpetas de Drive, se puede correr este codigo en Windows PowerShell:
-
-
-Get-ChildItem 'path to folder' -Filter *.zip | Expand-Archive -DestinationPath 'path to extract' -Force

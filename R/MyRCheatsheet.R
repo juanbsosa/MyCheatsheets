@@ -656,6 +656,9 @@ save(df, file = here::here('carpeta1', 'carpeta2', 'nombre_archivo'))
 # Eliminar o esconder el mensaje de advertencia warning message en una funcion:
 suppressWarnings(funcion)
 
+# Esconder el resultado de impresion de un objeto / change print mode to invisible
+invisible(mtcars)
+
 # Invertir una matriz:
 M1<-1:4
 M1<-matrix(1:4,nrow=2)
@@ -1760,6 +1763,10 @@ sum(diag(matriz))
 
 # Econometría -------------------------------------------------------------
 
+# Especificar una variable como categorica / Crear una especificacion con una binaria
+# por cada valor de una variable categorixa
+lm(dep_var ~ factor(categ_var))
+
 # Recuperar los EFECTOS FIJOS de una regresión
     # Para el modelos estimados con el paquete "plm"
 plm::fixef(modelo)
@@ -1775,6 +1782,14 @@ logLik.plm <- function(object){
   attr(out,"nobs") <- plm::nobs(object)
   return(out)
 }
+
+
+# Series de tiempo --------------------------------------------------------
+
+# Sacarle la tendencia lineal a una variable
+pracma::detrend(as.matrix(var), tt = 'linear')
+    # A todas las variables de un df
+df_dt <- as.data.frame(pracma::detrend(as.matrix(df), tt = 'linear'))
 
 
 # Econometría espacial ----------------------------------------------------
@@ -1811,6 +1826,21 @@ spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.side
 # R MARKDOWN --------------------------------------------------------------
 
 # !!! hacer esto en un md
+
+# Cambiar el formato de una fila determinada de una tabla
+knitr::kable(df_tabla) %>%
+    kable_styling()%>%
+    kableExtra::row_spec(nro_fila, bold=T)
+    # en este caso hago que la fila "nro_fila" sea negrita
+
+# Mejorar el formato de una table de Kable
+knitr::kable(df_tabla) %>%
+    kable_styling()
+
+# Hacer referencias a objetos definidos en el ambiente en el texto del markdown
+`r mean(objeto)`
+# Todo lo qie aparezca entre backticks `` y empiece con "r", el markdown lo
+# entiende como codigo en R
 
 # Agregar espacios en blanco en el cuerpo del texto (util para agregar espacio entre chunks con graficos)
 <br><br><br>
