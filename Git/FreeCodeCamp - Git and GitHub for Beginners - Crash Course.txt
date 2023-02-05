@@ -1,0 +1,71 @@
+Git is an open-source version control system
+
+Git is the tool that track changes in your code over time
+Github is a website where you host all of your Git repositories, share them with other people, etc.
+
+Start using it in the terminal.
+
+cd: change directory
+
+Git repository: a folder where your project is kept
+
+BASIC GIT COMMANDS
+clone: bring a repository that is hosted somehwere else into a folder on your local machine
+add: track your files and changes in Git
+push: upload Git commits to a remote repo, like Github
+pull: download changes from remote repo to your local machine
+
+
+CLONE a repo:
+git git clone https://github.com/juanbsosa/HandlingSpatialData.git
+(the hhtps is found by clicking the green button in the Github repository)
+This clones the repo in the directory you are in
+
+GIT STATUS: show all updated/created/deleted files that haven't been saved in a commit yet
+git status
+
+Make a COMMIT:
+git commit -m "Comment on the commit" -m
+'-m' stands for "message"
+
+PUSH a commit:
+
+Unless you use Githu Desktop, in order to push, you need to provide an SSH key to prove that you are the owner of you account
+Generate a local SSH key
+ssh-keygen -t rsa -b 4096 -C "fake_email@hotmail.com"
+'-t': type of encription. '-b': strength of encryption, '-C': email
+Then you can change the name of the ssh key file
+Two keys are generated: a public key, which is uploaded to the Github interface and other people can see,
+and a private key that is kept secure in your local machine. Every time you want to connect to Github, you
+use your private key to show Github that you are the one that generated this public key (by a mathematical prove)
+Print out the public key:
+more test.pub
+Copy the key with a command:
+clip < test.pub
+Then go to Github, settings, SSH and GPG keys
+Add your SSH key to the SSH Agent: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+
+PUSH a commit:
+git push origin master
+'origin' stands for the location of the Git repository
+'master' is the branch we want to push to
+
+GIT BRANCHING: when you create a new branch, at first the code on the master branch and the new branch are the same,
+but once you start making changes, those changes are only reflected in the new branch. Each individual branch is 
+independent of the changes in all other branches. This is useful to have like a 'sandbox' area where you try new features
+for your code, but you do not want to modify the original code until they are fully tested. Then you can merge it back
+to the master branch.
+
+Display the branches of the repository
+git branch
+the start means you are currently in that branch
+
+Create a new branch
+git checkout -b New_branch
+'checkout' is used to change branches
+
+Change branch
+git checkout main
+
+Compare the current version of the code with the one of the last pull
+git diff
