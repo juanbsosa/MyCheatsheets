@@ -69,3 +69,14 @@ git checkout main
 
 Compare the current version of the code with the one of the last pull
 git diff
+
+Merge two branches
+git merge New_branch
+
+Make a pull request
+
+
+------------------------
+
+Host an HTML made with R Markdown on Github:
+https://mbounthavong.com/blog/2022/7/30/hosting-a-r-markdown-html-file-on-a-github-page

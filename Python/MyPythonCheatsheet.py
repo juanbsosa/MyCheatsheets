@@ -6323,6 +6323,219 @@ pytest test_row_to_list.py
 # whether we get the correct result.
 
 
+#%% WEB SCRAPING IN PYTHON
+
+# Ch1: INTRODUCTION TO HTML
+
+# WEB SCRAPING PIPELINE
+# 1) SETUP: define the goal, identify the sources
+# 2) ACQUISITION: accesing, parsing, extracting the data into meaninful data structures
+# 3) PROCESSING: run data rhough analysis to achieve the desired goal
+
+# This course focuses on 1), and uses Python's framework SCRAPY
+
+# HTML: HyperText Markup Language
+# Read by web browsers to render and display website content
+
+# The elements contained between angled brackets <> are called "HTML TAGS"
+# They usually come in pairs: a starting tag and a stopping tag with
+#   a forward slash: <p> Thanks for watching </p>
+
+# ROOT TAG: contains the main html content, <html> ... </html>
+# BODY TAG: defines hte body of the html, <body> ... </body>    
+# DIV TAG: defines the sections of the body, <div> ... </div>
+# P TAGS: define paragraphs within the body <p> ... </p>
+
+# These tags are usually nested, which gives rise to a hierarchy in the HTML
+# The vocabulary used to describe this hierarchy is the same of a family tree: 
+# as you move from left to right, you move "forward generations"; top to bottom
+# "between the same generation", and moving "between siblings" is the elements
+# come from the same parent element
+
+# Example of HTML code (as string in Python):
+html = '''
+<html>
+  <head>
+    <title>Intro HTML</title>
+  </head>
+  <body>
+    <p>Hello World!</p>
+    <p>Enjoy DataCamp!</p>
+  </body>
+</html>
+'''
+
+# HTML ATTRIBUTES
+# Tags can sometimes contain attributes which provide special instructions for 
+# the contents contained within that tag.
+# ATTRIBUTE NAMES are followed by an equal sign "=" and information which is 
+# being passed to that attribute within the tag. The infromation should be in quotes.
+# EXAMPLE: a "div" tag with attributes "id" and "class"
+html = '''
+<div id="unique-id" class="some class">
+    ... div element contents
+</div>
+'''
+# ID: a unique identifier for the tag element (in this case, the id "unique id
+# should only belong to this specific element")
+# CLASS: does not need to be unique
+# No tag needs to have an ID nor a class, but all can be given them.
+# A tag can belong to multiple classes, between "" and divided by spaces (in
+# fact, in the example the tag belongs two two classes: "some" and "class")
+
+# "A" TAG: a tag for hyperlinks
+html = '''
+<a href="https://www.datacamp.com">
+    This text links to DataCamp
+</a>
+        '''
+#  The href attribute is used to input the URL
 
 
+# CRASH COURSE IN XPATH
+# Now the idea is to turn wording navigation of html into a variable for the
+# computer to ingest
+# XPATH NOTATION: one of two common choices for the purpose above
+# example:
+xpath = '/html/body/div[2]'
+# It uses a SINGLE FORWARD SLASH (in an analogous way as URLs) to move
+# forward one generation, somethin like directories.
+# The BRACKETS are used to specify which element/s we want to direct to.
+# For example, there could be several "div" elements which could be children of
+# the "body" element, that is, several "div" siblings. So you use the brackets
+# to chose the "div" we want among those. In the example, we woulb be referring
+# to the second div child of the body element
+# Had it been written '/html/body/div', you would be referring to all div
+# elements in that body element
+# DOUBLE FORWARD SLASH
+xpath = '//table'
+# It tells us to look forward all future generations instead of one generation
+# like the single forward slash.
+# In the example, we aredirecting to ALL table elements of ANY HTML
+# In the next example, navigate to all table elements which are descendants of
+# the second div element:
+xpath = '/html/body/div[2]//table'
 
+# Exercise: navigate to the p element "Where am I"
+html = '''
+<html>
+  <body>
+    <div>
+      <p>Good Luck!</p>
+      <p>Not here...</p>
+    </div>
+    <div>
+      <p>Where am I?</p>
+    </div>
+  </body>
+</html>
+'''
+answer = '/html/body/div[2]/p'
+
+# Exercise: Although we haven't yet gone deep into XPath, one thing we can do is
+# select elements by their attributes using an XPath. For example, if we want to
+# direct to the div element within the HTML document whose id attribute is "uid",
+# then we could write the XPath string '//div[@id="uid"]'. The first part of
+# this string, //div, first looks at all div elements in the HTML document.
+# Then, using the brackets, we specify that we want only the div element with a
+# specific id attribute (in this case uid). To note, the phrase @id="uid" in the
+# brackets would be read as "attribute id equals uid".
+# In this exercise, you will select all span elements whose class attribute
+# equals "span-class". (Note: span is just another possible tag-name).
+answer = '//span[@class="span-class"]'
+# Direct to an ATTRIBUTE in HTML with '@'
+xpath = '/html/body/div/p[2]/@class' # here we direct to the attribute "class"
+# of the second paragraph element in the div elements of the body
+
+
+# Ch2: XPATHS AND SELECTORS
+
+xpath = '//p[1]'
+# This would select the first sibling of all p elements (not very usual)
+
+# WILDCARD CHARACTER '*': indicates we want to IGNORE the tag type
+# For example, in the next code, we would select all children of the body
+# element regardless of their type
+xpath = '/html/body/*'
+
+# The number of elements selected with the XPath string xpath = "/html/body/* is
+# equal to the number of children of the body element; whereas the number of
+# elements selected with the XPath string xpath = "/html/body//*" is equal to
+# the total number of descendants of the body element.
+
+# The number of elements selected by the XPath string xpath = "/*" is equal to
+# the number of root elements within the HTML document, which is typically the 1
+# html root element.
+
+# The number of elements selected by the Xpath string xpath = "//*" is equal to
+# the total number of elements in the entire HTML document.
+# Select ALL elements in the HTML document:
+xpath = "//*"
+
+# Exercise: Create an XPath string to the desired paragraph element
+html = '''
+<html>
+  <body>
+    <div>
+      <p>Hello World!</p>
+      <div>
+        <p>Choose DataCamp!</p>
+      </div>
+    </div>
+    <div>
+      <p>Thanks for Watching!</p>
+    </div>
+  </body>
+</html>
+'''
+answer = '/html/body/div[1]/div/p'
+
+# Select all elements of a specific class
+xpath = '//p[@class="class-1"]'
+# Select all elements of two specific classes
+xpath = '//p[@class="class-1 class-2"]'
+# Here, we select all p elements of class "class-1"
+xpath = '//*[@id="uid"]'
+# Here, we select all elements, of any tag type, that has id equal to "uid"
+xpath = '//div[@id="uid"]/p[2]'
+# Here, the second paragraph child of all div elements of id "uid"
+
+# CONTAINS FUNCTION:
+# syntax: contains(@attri-name, "string-expr")
+# The function searches the attributes of that specific attribute name and 
+# matches those where the string expression is a substring of the full attribute
+# For example, the following expression chooses all elements in which the string
+# "class-1" is contained as a substring within the full class attribute. It
+# could retrieve, for example, the following elements:
+html = '''
+<p class="class-1">...</p>
+<p class="class-1 class-2">...</p>
+<p class="class-12">...</p>
+'''
+# Exercise: Fill in the blanks below to assign an XPath string to the variable
+# xpath which directs to all href attribute values of the hyperlink a elements
+# whose class attributes contain the string "package-snippet".
+xpath = '//a[contains(@class,"package-snippet")]/@href'
+
+# SCRAPY's SELECTOR OBJECTS:
+# the scrapy object used to select portions of the html using xpath or
+# CSS Locators
+from scrapy import selector
+html = '''
+<html>
+  <body>
+    <div class="hello datacamp">
+        <p>Hello World!</p>
+    </div>
+    <p>Enjoy DataCamp!</p>
+  </body>
+</html>
+'''
+sel = selector(text=html) # selector object 
+# We can use the xpath call within a Selector to create new Selectors of 
+# specified pieces of the html code. The return value is a SelectorList: a list
+# with some Scrapy extras containing new selector objects.
+# Example: select all paragraph objects:
+sel.xpath('//p')
+
+# Ch3: CSS LOCATORS, CHAINING, AND RESPONSES

@@ -1544,6 +1544,13 @@ GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(si
 
 # Comandos para manejo de DATOS ESPACIALES --------------------------------
 
+# Descargar capas del geoservicio de INDEC
+indec <- "WFS:http://geoservicios.indec.gov.ar/geoserver/ows?service=wfs&version=1.3.0&request=GetCapabilities"
+capas_indec <- st_layers(indec)
+localidades = st_read(indec, "geocenso2010:localidades_codigo") # leer una capa
+localidades <- st_transform(localidades,crs=5349)
+rm(capas_indec)
+
 # Crear puntos dentro de un polígono o una línea.
 # Su posición puede ser aleatoria (type='random'), regular, estratificada, no alineada, hexagonal, lattice y Fibonacci
 points <- spsample(pol, type = "hexagonal", cellsize = 0.5)
