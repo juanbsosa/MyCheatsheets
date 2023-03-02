@@ -445,7 +445,17 @@ ls("package:ggplot2")
 m <- matrix(rnorm(100), ncol = 10)
 image(t(m[nrow(m):1,] ), axes=FALSE, zlim=c(-4,4), col=gray.colors(100))
 
-# Normalizar una variable entre 0 y un valor
+# Normalizar una variable entre dos valores (a y b) / Re-escalar un vector
+#   entre dos valores
+# https://stats.stackexchange.com/questions/178626/how-to-normalize-data-between-1-and-1
+normalize_ab <- function(vec, a, b){
+    vec_rescaled <- (b-a) * (( (vec - min(vec)) / (max(vec) - min(vec)) )) + a
+    return(vec_rescaled)
+}
+var <- runif(100, min=-27, max=3)
+var_rs <- normalize_ab(var, -1, 1)
+
+# Normalizar una variable entre 0 y un valor / Re-escalar
 a <- c(1,4,3,5,67,8123,2342,23465,123,12)
 norm_minmax <- function(var, k){(var - min(var)) / (max(var)-min(var)) * k}
 norm_minmax(a,10)
@@ -619,6 +629,12 @@ meses <- seq(as.Date('2017-01-01'), as.Date('2017-08-01'), by='1 month')
 
 # Convertir una fecha en formato numerico a formato fecha (es importante desde que dia empieza a contar R, usualmente es el 1 de enero del 1970)
 as.Date(db$numdate, origin='1970-01-01')
+
+# Crear variables de anio/trimestre/mes/semestre a partir de una fecha
+df$year = lubridate::year(df$fecha)
+df$semester = lubridate::semester(df$fecha)
+df$quarter = lubridate::quarter(df$fecha)
+df$month = lubridate::month(df$fecha)
 
 # Reemplazar los valores de una variable en base a una condicion
 db$var <- ifelse(db$var=="valor_a_cambiar", "valor_nuevo", db$var)
@@ -1406,6 +1422,7 @@ lm(y-x)
 
 # recover: hace que cuando haya un error se frene, sin devolverte la consola, hasta que no resuelvas el error
 options(error=recover)
+options(error=NULL) # para revertirlo
 
 #  <<- operator which can be used to assign a value to an object in an environment that is different from the current environment.
 
@@ -1544,6 +1561,10 @@ GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(si
 
 # Comandos para manejo de DATOS ESPACIALES --------------------------------
 
+# Disolver varios poligonos en uno solo / unir poligonos
+st_combine(x,y)
+st_union(x)
+
 # Descargar capas del geoservicio de INDEC
 indec <- "WFS:http://geoservicios.indec.gov.ar/geoserver/ows?service=wfs&version=1.3.0&request=GetCapabilities"
 capas_indec <- st_layers(indec)
@@ -1631,7 +1652,7 @@ df = sf::st_intersection(df, area_polygon)
 # Seleccionar / filtrar los puntos dentro de un poligono
 good_points <- st_filter(point.sf, poly)
 
-# Crear una caja alrededor de un poligono
+# Crear una caja alrededor de un poligono / bounding box
 poligono_box <- sf::st_bbox(poligono)
 
 # Obtener los limites de un poligono (lo mismo que una caja)
@@ -1749,6 +1770,13 @@ bm <- ggmap::get_map(
 gg <- ggmap::ggmap(bm, extent='panel',padding=0)
 gg
 
+# Extraer los limites de un ggmap / extraer el bounding box de un ggmap
+bm <- ggmap::get_map(
+    location='Buenos Aires',
+    zoom=11, crop=T,
+    scale="auto",color="bw",source="google", maptye="roadmap")
+bb <- attr(bm, "bb")
+
 # Algebra lineal ----------------------------------------------------------
 
 # Crear una matriz (vacia)
@@ -1833,6 +1861,11 @@ spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.side
 # R MARKDOWN --------------------------------------------------------------
 
 # !!! hacer esto en un md
+
+# Fijar opciones globales para todo el documento
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE) # Suprimir mensajes normales de R (ej cuando lees un csv)
 
 # Cambiar el formato de una fila determinada de una tabla
 knitr::kable(df_tabla) %>%

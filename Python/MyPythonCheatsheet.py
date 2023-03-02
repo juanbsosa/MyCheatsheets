@@ -6520,7 +6520,7 @@ xpath = '//a[contains(@class,"package-snippet")]/@href'
 # SCRAPY's SELECTOR OBJECTS:
 # the scrapy object used to select portions of the html using xpath or
 # CSS Locators
-from scrapy import selector
+from scrapy import Selector
 html = '''
 <html>
   <body>
@@ -6531,11 +6531,184 @@ html = '''
   </body>
 </html>
 '''
-sel = selector(text=html) # selector object 
+sel = Selector(text=html) # selector object 
 # We can use the xpath call within a Selector to create new Selectors of 
 # specified pieces of the html code. The return value is a SelectorList: a list
 # with some Scrapy extras containing new selector objects.
 # Example: select all paragraph objects:
 sel.xpath('//p')
+# The return value is a SELECTOR LIST, a list with some scrapy extracts
+# containing new selector objects. In this case it would be two selector objects
+# one for each paragraph.
+
+# Extracting data from a SELECTOR LIST
+sel.xpath('//p').extract()
+# Get only the first element
+sel.xpath('//p').extract_first()
+
+# Chaining selectors
+# This
+sel.xpath('/html/body/div[2]')
+# equivalent to this
+sel.xpath('/html').xpath('./body/div[2]')
+# and this
+sel.xpath('/html').xpath('./body').xpath('./div[2]')
+
+# Calculate the total number of children of an element
+len( element.xpath('./*') )
+# Get the total amount of elements in an html
+len( sel.xpath('//*') )
+
+# INSPECTING A REAL HTML
+# View the HTML source code in Firefox: right click, view page source
+# INSPECTING AN ELEMENT: select an element, right click, inspect element
+
+# Get the HTML as a string (then we will see how to do this with scrapy only)
+import requests
+url = 'https://es.wikipedia.org/wiki/Web_scraping'
+html = reguests.get(url).content
+sel = Selector(text=html)
+
 
 # Ch3: CSS LOCATORS, CHAINING, AND RESPONSES
+
+# CSS: cascading style sheets
+# It describes how elements are displayed on the screen.
+# It is an alternative to xpaths. Here are the transalations:
+# - The '/' is replaced by '>' to move one generation forward, and there is no
+# need for a / in the first character:
+xpath = '/html/body/div' #equals
+css = 'html > body > div'
+# // is replaced by a blank space (except in the first character)
+xpath = '//div/span//p' # equals
+css = 'div > span p'
+# [N] is replaced by :nth-of-type(N)
+xpath = '//div/p[2]' # equals
+css = 'div > p:nth-of-type(2)'
+# Another example
+xpath = '/html/body//div/p[2]' # equals
+css = 'html > body div > p:nth-of-type(2)'
+
+# ATTRIBUTES IN CSS: CSS has a simple notation for selecting elements by class or ID
+# Find an element by class: tag_name.class_name
+'p.class-1'
+# Find an element by ID: tag_name#id_name
+'div#uid'
+# Example: CSS locator that navigates to the 'uid' div element, and then whichever
+# paragraph of class1
+css_locator = 'div#uid > p.class1'
+# Example: select all elements whose class attribute belongs to class1
+css_locator = '.class1'
+# ! Differently from xpath, that locator matches elements which have class1 and
+# other classes as well. For xpath to do this we used the contains() function.
+# The CSS Locator string '*' selects all elements in the HTML document. 
+# The CSS Locator string '*#uid' selects the element with id attribute equal to
+# uid, but this is unnecessary since the string '#uid' will also do the same job.
+
+# SELECT ATTRIBUTES with CSS
+xpath = '//div[@id="uid"]/a/@href'
+css = 'div#uid > a::attr(href)'
+
+# TEXT EXTRACTION
+html = '''
+<p id="p-example">
+    Hello World!
+    Try <a href="http://www.datacamp.com">DataCamp</a> today!
+</p>
+'''
+from scrapy import Selector
+sel = Selector(text=html)
+# In Xpath
+sel.xpath('//p[@id="p-example"]/text()').extract() # The '/' before the text
+# method refers us to all the chunks of text within that element, but not within
+# future generations. If you use '//' you will point all chunks within that 
+# element and within its descendants:
+sel.xpath('//p[@id="p-example"]//text()').extract()
+# In CSS, the first case ould be
+sel.css('p#p-example::text').extract()
+# And the second
+sel.css('p#p-example ::text').extract()
+
+# More examples of translations
+xpath = '/html/body/span[1]//a'
+css_locator = 'html > body > span:nth-of-type(1) a'
+#
+xpath = '//div[@id="uid"]/span//h4'
+css_locator = 'div#uid > span h4'
+# Create the CSS Locator to all children of the element whose id is uid
+css_locator = '*#uid > *'
+#
+hrefs_from_css = course_as.css( '::attr(href)' )
+hrefs_from_xpath = course_as.xpath( './@href' )
+#
+css_locator = 'p#p3::text'  
+xpath = '//p[@id="p3"]/text()'
+
+# RESPONSE OBJECTS in Scrapy
+# The Response object has all the tools we learned in Selectors: xpaths and css
+# methods followed by extract() and extract_first() (actually the Selector
+# objectsw were an introduction to Respnse objects)
+# The advantage is that on top of this, these objects keeps track of which url
+# the html is from and hence gives us a tool to crawl between links on sites and
+# scrape multiple links automatically. 
+# The URL is stored as a string:
+response.url
+# FOLLOW METHOD: the response lets us follow a new link
+response.follow(next_url)
+
+# SCRAPING AN EXAMPLE SITE (DATACAMP)
+# Scrape the course directory of DataCamp and create a list of link to the course
+# pages.
+from scrapy import Response
+import requests
+url = 'https://app.datacamp.com/learn/courses'
+html = reguests.get(url).content
+response = Response(text=html)
+course_divs = response.css('div.course-block')
+# amount of courses retreieved
+print(len(course_divs)) 
+# inspecting the first course
+first_div = course_divs[0]
+children = first_div.xpath('./*')
+first_child = children[0]
+print(first_child.extract()) # 
+second_child = children[1]
+print(second_child.extract()) # footer of the course block
+third_child = children[2]
+print(third_child.extract()) # specific info of the course block (invisible)
+# Two options to create the list of courses:
+# 1) Use a single CSS locator
+links = response.css('div.course-block > a::attr(href)').extract()
+# 2) Do it stepwise
+course_divs = response.css('div.course-block')
+hrefs = course_divs.xpath('./a/@href')
+links = hrefs.extrect()
+#
+# Create a SelectorList of the course titles
+crs_title_els = response.css('h4::text')
+# Extract the course titles 
+crs_titles = crs_title_els.extract()
+# Print out the course titles 
+for el in crs_titles:
+  print( ">>", el )
+
+
+# Ch4: SPIDERS
+
+import scrapy
+# Create the spider class, an pass the argument "scrapy.Spider" so that it
+# inherits the methods from a scrapy spider
+class YourSpider(scrapy.Spider):
+  name = "your_spider"
+  # start_requests method
+  def start_requests(self):
+    pass
+  # parse method
+  def parse(self, response):
+    pass
+
+# Inspect Your Class
+inspect_class(YourSpider)
+#%% END OF DATA CAMP
+
+#%%
