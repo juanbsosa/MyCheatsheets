@@ -942,6 +942,9 @@ df.groupby(['col1']).agg({'col2': 'count'}).reset_index()
 # Create a bar plot of the frequencies for unique values
 df["col"].value_counts(sort=False).plot(kind='bar') # sort False is to preserve the original order and not sort by frequency
 
+# Keep rows according to the number of obsevations by group
+nobel.groupby('col').filter(lambda group: len(group) >= 2)
+
 # Drop duplicates
 df.drop_duplicates(subset=["column1", "column2"])
 
@@ -952,6 +955,8 @@ df.groupby("col").agg({'col2':'count'})
 df.groupby(level=0).agg({'col2':'count'}) # first index
 # Group by and get the first element by group
 df.groupby('var').first()
+# Group by without setting the group variable as index
+df.groupby("col", as.index=False)
 
 # When you group by two columns, the result is a MultiIndex Pandas Series
 # Convert a multi index pandas series to a data frame
@@ -1025,6 +1030,9 @@ df.dropna(subset = ['col1', 'col2']) # remove rows with missing values on specif
 # Replace missing values with another value
 df.fillna("MISSING")
 df.col.fillna(0).astype('int') # replace hte missing values of a column with a 0 and convert to numerical
+
+# Select the row/s with the smallest value in a given column
+df.nsmallest(1,columns='year') # return one row with the smallest year
 
 # Replacing the values of a column
 df['col'] = df['col'].replace({'wrong_value':'right_value'})
@@ -1503,6 +1511,10 @@ fig.savefig("file.png", dpi=300)
 # JOINTPLOTS: scatter plots together with histograms of both variables
 sns.jointplot(x = paid_apps['Price'], y = paid_apps['Rating'])
 
+# Adding %-formatting to the y-axis
+from matplotlib.ticker import PercentFormatter
+ax.yaxis.set_major_formatter(PercentFormatter(xmax=1, decimals=0))
+
 # Zoom into an area of a plot / set axis limits
 plt.plot(x, y, 'o', markersize=1, alpha=0.02)
 plt.axis([140, 200, 0, 160])
@@ -1576,6 +1588,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 sns.relplot(x='col1', y='col2', data=df, kind="line")
 plt.show()
+# Or
+sns.lineplot(data=tips, x='total_bill', y='tip')
 
 # Add a trendline to a scatter plot
 sns.lmplot(x='col1', y='col2', data=df, ci=None)
