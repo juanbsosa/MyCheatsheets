@@ -179,7 +179,7 @@ library(stringr)
 library(lubridate)
 
 # Equivalente a f strings en Python
-library(glue)
+library(glue) # tambien usar sprintf de R base
 
 # Hacer resumenes / summary de los datos, estadisticas descriptivas
 library(skimr)
@@ -312,6 +312,32 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Leer archivos Excel especificando los tipos de columnas solo para algunas columnas
+path <- "file.xlsx"
+# Cargo solo una fila para usar nombres de columnas
+df <- read_excel(path, sheet = "Sheet1", n_max = 1)
+col_names <- names(df)
+# Crear un vector con el string "text" para dos cols, y "guess" para el resto
+col_types <- rep("guess", length(col_names))
+col_types[col_names %in% c("col1", "col2")] <- "text"
+# Leer la planilla especificando el tipo de columnas de esas dos columnas
+df <- read_excel(path=path, sheet="Sheet1", col_types=col_types)
+rm(col_names, col_types)
+
+# Eliminar todas las filas de un data frame que tienen missing values en todas
+#   las columnas
+df <- df[rowSums(is.na(df)) != ncol(df), ]
+
+# Crear un data frame a partir de una lista con nombres
+lista <- list(
+    variable1 = c(1,345,14,732,13,52,76,12,5667,12),
+    variable2 = c("asda", "kopk", "asdas")
+)
+df <- stack(lista)
+
+# 
+url <- "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/ministerio-de-educacion/comunas/comunas.zip"
+download.file(url, destfile = "Comunas-poligonos-shp.zip")
 # Extraer numeros de una cadena de texto
 db$var <- readr::parse_number(db$var)
 
@@ -663,6 +689,9 @@ ProjectTemplate::create.project(project.name = "data_analysis", template = "mini
 # Fijar el directorio como el path donde esta el archivo Rproj (prohecto de R)
 #primero crear el Rproj
 here::here()
+
+# Encontrar el directorio donde esta guardado el script donde estas trabajando
+dirname(rstudioapi::getSourceEditorContext()$path)
 
 # Referirte a distintas carpetas dentro del directorio y crear un path desde el directorio
 here::here('carpeta1', 'carpeta2', 'nombre_archivo')
@@ -1158,7 +1187,9 @@ load
 dumping o dputing #preservan la metadata, por ejemplo las clases de las columnas. Pero no son tan eficientes en terminos de espacio
 # Ejemplo: toma un objeto y crea el codigo para reconstruir el objeto en R:
 y <- data.frame(a=1, b="a")
-dput(y)
+dput(y) # ver el output
+# Dput es una funcion que toma un dataframe (u otro objeto) como argumento y 
+#   devuelve un string con el codigo necesario para crear ese objeto
 #convertirlo en un archivo y leerlo con dget:
 dput(y, file="y.R")
 new.y <- dget("y.R")
@@ -1500,7 +1531,7 @@ stringr::str_locate_all("ABCDEC", "C") # todas las veces que aparezcqa
 
 # Determinar si un string se encuentra dentro de otro
 stringr::str_detect("HOLA JUAN", "HOLA")
-
+grepl("hola", "hola chau")
 
 # REGEX -------------------------------------------------------------------
 
@@ -1561,6 +1592,43 @@ GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(si
 
 # Comandos para manejo de DATOS ESPACIALES --------------------------------
 
+# Filtrar poligonos en base a la interseccion con otro objeto espacial
+# En este caso, nos quedamos con todos los poligonos en "poly" que intersecten
+# con al menos un objeto de "sf_objects"
+polys_intersected <- polys[lengths(st_intersects(polys, sf_objects)) > 0, ]
+
+# Para bases en las cuales hay mas de un poligono con el mismo ID, podemos 
+# unificar todos los polígonos con el mismo ID en una sola geometría, y luego
+# eliminar las filas con IDs duplicados.
+# Esto pasa con el censo, sobre todo en los polígonos de islas (San Fernando,
+# Tierra del Fuego)
+poligonos <- poligonos %>%
+    group_by(id) %>%
+    summarize(geom = if(n() == 1) geom else st_union(geom))
+# (Ojo que en ese caso nos estamos quedando solo con la variable ID y la 
+# geometria, si hay mas variables hay que contemplarlas en el summarize o luego
+# hacer un merge)
+
+# Combinar geometrias
+sf::st_union(x, y)
+sf::st_combine(x, y)
+
+# Calcular el área de un polígono
+rgeos::gArea(pol)
+sf::st_area(pol)
+
+# Encontrar los poligonos contiguos a cada poligono
+library(sf)
+comunas <- st_read("directorio_a_comunas_de_caba.shp")
+comunas <- comunas %>% select(COMUNAS) %>% rename(comuna = COMUNAS)
+sf_use_s2(FALSE) # apagar geometria esferica
+comunas$contiguous <- sapply(st_touches(comunas), function(x) {
+    paste(st_drop_geometry(comunas[x, "comuna"]), collapse = ", ")
+})
+sf_use_s2(TRUE)
+comunas$contiguous <- gsub("^c\\(|\\)$", "", as.character(comunas$contiguous))
+comunas$contiguous <- gsub("(\\d+)", "COMUNA \\1", comunas$contiguous)
+
 # Disolver varios poligonos en uno solo / unir poligonos
 st_combine(x,y)
 st_union(x)
@@ -1569,7 +1637,7 @@ st_union(x)
 indec <- "WFS:http://geoservicios.indec.gov.ar/geoserver/ows?service=wfs&version=1.3.0&request=GetCapabilities"
 capas_indec <- st_layers(indec)
 localidades = st_read(indec, "geocenso2010:localidades_codigo") # leer una capa
-localidades <- st_transform(localidades,crs=5349)
+localidades <- st_transform(localidades,crs=5349) # POSGAR 2007 ARGENTINA 7
 rm(capas_indec)
 
 # Crear puntos dentro de un polígono o una línea.
@@ -1610,7 +1678,7 @@ mapview::mapview(polygon) + puntos
   # o asi para darle formaro a ambos
 mapview(elemZones, ...) + mapview(precincts, ...)
 
-# Hacer unplot / grafico de un mapa
+# Hacer un grafico de un mapa
 plot(sf::st_geometry(df))
 # ver opciones en: https://r-spatial.github.io/sf/articles/sf5.html
 # Otra forma es con ggplots
@@ -1621,7 +1689,7 @@ ggplot() + geom_sf(data = df, color = 'red') + geom_sf(data = df2)
 shape <- sf::st_read(path)
 
 # Convertir un data frame en un geo data frame
-df = sf::st_as_sf(df, coords = c("LONGITUDE", "LATITUDE"), crs = 4326)
+df <- sf::st_as_sf(df, coords = c("LONGITUDE", "LATITUDE"), crs = 4326)
 
 # Convertir un geo data frame a un data frame / eliminar el componente espacial de un spatial data frame
 sf::st_drop_geometry(sp_df)
@@ -1858,9 +1926,57 @@ df$sp.lag <- spdep::lag.listw(df$var, matriz_w)
 spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.sided")
 
 
-# R MARKDOWN --------------------------------------------------------------
+# R Markdown --------------------------------------------------------------
 
-# !!! hacer esto en un md
+# Funcion para crear un "image carousel" (carrusel de imagenes) en Mardown
+library(htmlwidgets)
+library(slickR)
+create_image_carousel <- function(path, add_dots=T){
+    
+    # Sources:
+    # https://kenwheeler.github.io/slick/
+    # https://cran.r-project.org/web/packages/slickR/vignettes/basics.html
+    
+    images_path <- list.files(path, full.names=T, pattern="\\.png$")
+    
+    cP1 <- htmlwidgets::JS("function(slick,index) {
+                            return '<a>'+(index+1)+'</a>';
+                       }") # !!! Eventually try to modify this so that it displays months/dates
+    
+    opts_dot_number <- settings(
+        initialSlide = 0,
+        slidesToShow = 1,
+        slidesToScroll = 1,
+        focusOnSelect = TRUE,
+        dots = TRUE,
+        customPaging = cP1
+    )
+    
+    slick <- slickR(
+        obj = images_path,
+        height = "100%",
+        width = "100%"
+    ) 
+    
+    if(add_dots==T){
+        return(slick + opts_dot_number)
+    }
+    else{
+        return(slick)
+    }
+}
+
+# Bullets
+* unordered list
+    + sub-item 1 
+    + sub-item 2 
+        - sub-sub-item 1
+
+# Listas ordenadas
+1.  Bird
+2.  McHale
+3.  Parish
+
 
 # Fijar opciones globales para todo el documento
 knitr::opts_chunk$set(
@@ -1963,3 +2079,12 @@ clusterExport(cl=cl, varlist=list('multiply', 'a', 'b')) # !!! careful: this onl
 results <- c(parLapply(cl=cl, X=n, fun=multiply))
 results
 stopCluster(cl=cl)
+
+
+
+# Github ------------------------------------------------------------------
+
+# Correr un script almacenado en un repositorio de Github
+    # Primero ir al script en la página de Github, cliquear el botón "Raw",
+    # y copiar el URL de la página que se abre
+source("https://raw.githubusercontent.com/Datos3F/GeoPortal/main/funciones/obtenerCapa.R")
