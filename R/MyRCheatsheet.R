@@ -312,6 +312,11 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Recodear una variable / Mapear los valores de una columna a otros valroes /
+# Cambiar los valores de una variabl segun una correspondencia
+mapping <- c("III" = "03", "IV" = "04", "V"="05", "VI"="06") # viejo valor=nuevo valor
+df <- df %>% mutate(var = recode(var, !!!mapping))
+
 # Leer archivos Excel especificando los tipos de columnas solo para algunas columnas
 path <- "file.xlsx"
 # Cargo solo una fila para usar nombres de columnas
@@ -323,6 +328,10 @@ col_types[col_names %in% c("col1", "col2")] <- "text"
 # Leer la planilla especificando el tipo de columnas de esas dos columnas
 df <- read_excel(path=path, sheet="Sheet1", col_types=col_types)
 rm(col_names, col_types)
+
+# Escribir archivos Excel con multiples hojas
+sheets <- list("sheet_name_1" = df1, "sheet_name_2" = df2)
+writexl::write_xlsx(x=sheets, path=path)
 
 # Eliminar todas las filas de un data frame que tienen missing values en todas
 #   las columnas
@@ -1590,7 +1599,42 @@ GGally::ggpairs(flea, columns = 2:4)
     # Cambiar el tamaño (y otra estetica) de los nombre de las variables en un correlograma
 GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(size=15))
 
+
 # Comandos para manejo de DATOS ESPACIALES --------------------------------
+
+# Dividir un polígono en X partes de aproximadamente el mismo tamaño
+# Fuente: https://gis.stackexchange.com/questions/375345/dividing-polygon-into-parts-which-have-equal-area-using-r
+library(sf)
+library(mapview)
+library(tidyverse) 
+library(dismo)
+library(osmdata)  
+library(mapview)
+split_poly <- function(sf_poly, n_areas){
+    # create random points
+    points_rnd <- st_sample(sf_poly, size = 10000)
+    #k-means clustering
+    points <- do.call(rbind, st_geometry(points_rnd)) %>%
+        as_tibble() %>% setNames(c("lon","lat"))
+    k_means <- kmeans(points, centers = n_areas)
+    # create voronoi polygons
+    voronoi_polys <- dismo::voronoi(k_means$centers, ext = sf_poly)
+    # clip to sf_poly
+    crs(voronoi_polys) <- crs(sf_poly)
+    voronoi_sf <- st_as_sf(voronoi_polys)
+    equal_areas <- st_intersection(voronoi_sf, sf_poly)
+    equal_areas$area <- st_area(equal_areas)
+    return(equal_areas)
+}
+
+# Combinar poligonos con IDs duplicados
+radios <- radios %>%
+    group_by(link) %>%
+    summarize(geom = if(n() == 1) geom else st_union(geom))
+# Esto es relevante para los radios censales de ARG. Algunos archivos tienen
+# geometrias repetidas, por un lado, y por otro lado hay algunos radios que se
+# componen de más de una geometría. Por lo tanto, si simplemente eliminás los
+# duplicados, perdés algunas partes de estos radios combinados.
 
 # Filtrar poligonos en base a la interseccion con otro objeto espacial
 # En este caso, nos quedamos con todos los poligonos en "poly" que intersecten
@@ -1863,6 +1907,7 @@ solve(matriz)
 
 # Calcular la traza de una matriz (la suma de los elemntos de la diagonal principal)
 sum(diag(matriz))
+
 
 # Econometría -------------------------------------------------------------
 
