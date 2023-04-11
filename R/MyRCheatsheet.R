@@ -992,9 +992,10 @@ readRDS(file = "otracarpeta/df.rds")
 
 #Eliminar variables por nombre (contiene, o empieza con):
 base <- base %>% select(-contains("hola"))
-base <- base %>% select(-startsWith("hola")) #este no lo probé
 #Otra opción:
 base <- base[,!(names(base) %in% c("variable"))]
+# o
+base <- base[,-grep("^empieza_con", names(base))]
 
 #Renombrar una variable / cambiar el nombre de una columna:
 base <- rename(base, nuevo_nombre = viejo_nombre) #o
