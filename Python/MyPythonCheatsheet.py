@@ -1,703 +1,30 @@
 #PYTHON
 
-###------- VISUAL STUDIO CODE -------###
+# %% VISUAL STUDIO CODE
 
 # KEYBOARD SHORTCUTS
 
-# Guardar la imagen del workspace para poder volver a abrir los mismos archivos que en tu ultima sesion>
+# Access the Command Palette
+CTRL+SHIFT+P
+
+# Save the workspace image so you can reopen the same files as in your last session:
 file -> Add folder to workspace -> Save Workspace As
 
-# Habilitar la opcion de buscar y reemplazar en una seleccion (find and replace in selection) en Visual Studio Code:
-desgargar extension Quick Replace In Selection
-
-# Seleccionar varias lineas al mismo tiempo:
+# Select multiple lines at the same time:
 alt+shift
 
-# Wrap text (que el texto se ajuste al tamaño de la ventana):
+# Wrap text (make text adjust to the window size):
 alt+z
 
-# Seleccionar una palabra y luego seleccionar todas las repeticiones de esa palabra
+# Select a word and then select all the repetitions of that word:
 ctrl + d
 
-# Mostrar/visualizar la base de datos completa con todas las columnas (para ver en Visual Studio Code u otros):
+# Enable the option to find and replace in a selection in Visual Studio Code:
+download Quick Replace In Selection extension
+
+# Show/visualize the entire database with all columns (to view in Visual Studio Code or other tools):
 pd.set_option('display.max_columns', None)
-pd.set_option('max_row', None) #esta otra no sé qué hace
-
-
-###----------------------------------###
-
-###------- USEFUL COMMANDS -------###
-
-# Verification/ verify a condition: assert statement, returns nothing if a condition is met, and an error otherwise
-assert True==False
-assert True==True
-
-# A function that returns True if a string if found in another string
-import re
-def word_in_text(word, text):
-    word = word.lower()
-    text = text.lower()
-    match = re.search(word, text)
-
-    if match:
-        return True
-    return False
-
-# Transform years into decades
-import numpy as np
-(np.floor(df['year']/10)*10).astype(np.int64)
-
-## METODOS DE STRINGS
-# Reemplazar una parte de un string por otra
-saludo = 'hola'
-print(saludo.replace('la', 'mbre'))
-
-# Cambiar todo a mayuscula
-place = "poolhouse"
-print(place.upper())
-
-# Cambiar la primera letra a mayuscula
-print('hola'.capitalize())
-
-## METODOS DE LISTAS
-# Contar la cantidad de veces que aparece un elemento en una lista
-lista1 = [1,2,3,4,1,1]
-print(lista1.count(1))
-
-# Obtener el indice de un objeto dentro de una lista / obtener la posicion de un elemento en una lista
-lista1 = [1,2,3,4]
-print(lista1.index(3))
-
-# The ; sign is used to place commands on the same line. The following two code chunks are equivalent:
-# Same line
-print('Hello'); print('Bye')
-
-# Separate lines
-print('Hello')
-print('Bye')
-
-# Copiar objetos (listas)
-lista1 = [1,2,3,4]
-lista2 = lista1 # aca estas copiando la referencia a la lista1, no los objetos
-del[lista2[2]]
-print(lista1)
-    # Para copiar los elementos, y no solo la referencia, hay que escribir
-y = list[lista1]
-# o
-y = x[:]
-
-# Eliminar un elemento de una lista
-lista1 = [1,2,3,4]
-del[lista1[2]]
-print(lista1)
-
-# Appendear / Agregar filas de otro data frame que no esten en el data frame actual
-df_diff = df2[~df2.col1.isin(A.col1)]
-df_full = pd.concat([df1, df_diff], ignore_index=True)
-
-# Crear un archivo csv / Exportar un data frame a csv
-df.to_csv("path")
-
-# Cambiar el nombre de muchas columnas a la vez
-cambio_cols = {'v1old': 'v1new', 'v2old': 'v2new'}
-df.rename(columns=cambio_cols,
-          inplace=True)
-
-# Crear una variable fecha a partir de variables para anio mes y dia:
-df['fecha'] = pd.to_datetime(dict(year=df.anio, month=df.mes, day=1)) # aca no tengo dia y le pongo 1
-
-# Crear una columna / crear una variable en un data frame que tome diferentes valores de acuerdo una condicion
-db['var'] = np.where(db['var2']=='valor', valorsitrue, valorsifalse)
-
-# Crear una columna / crear una variable en un data frame que tome diferentes valores de acuerdo mas de una condicion
-df = pd.DataFrame({'Type':list('ABBC'), 'Set':list('ZZXY')})
-conditions = [
-    (df['Set'] == 'Z') & (df['Type'] == 'A'),
-    (df['Set'] == 'Z') & (df['Type'] == 'B'),
-    (df['Type'] == 'B')]
-choices = ['yellow', 'blue', 'purple']
-df['color'] = np.select(conditions, choices, default='black')
-print(df)
-
-# Crear una columna variable con un promedio ponderado por grupo:
-func_prom_pond = lambda x: np.average(x, weights=db.loc[x.index, "pesos"])
-db['prom_pond'] = db4.groupby('grupo')['variable'].transform(func_prom_pond)
-
-# Crear una muestra aleatorio de una secuencia
-random.sample(range(1, 11), k=5)
-
-# Generar una muestra aleatoria de un data frame
-db.sample(n=1000, replace=False)
-
-# Seleccionar las filas de un data frame que tengan missing value en una columna
-df[df['var'].isnull()]
-
-# Eliminar duplicados segun una variable:
-df.drop_duplicates(subset=['var'])
-
-# Merge / unir dos data frames
-db1 = db1.merge(db2[['var_a_mergear']], how='left', on=[nombre de variable llave], indicator=True) #indicator te dice si agregar una columma que te diga el resultado del merge, ademas de true se le puede poner el strign que quieras
-
-# Intertar una columna / variable al principio de un data frame
-df.insert(0, 'nombrevar', var)
-
-# Cambiar la posicion de una columna en un data frame (aca se pone en la posicion 0, al principio)
-col = df.pop('Name')
-df.insert(0, 'Name', col)
-
-# Eliminar todos los objetos creados por el usuario:
-for element in dir():
-    if element[0:2] != "__":
-        del globals()[element] # VERR PORQUE GENERA PROBLEMAS
-
-# Seleccionar los elementos de una lsita que empiecen con determinado string:
-result = [i for i in some_list if i.startswith('string')]
-
-# Quedarse con / seleccionar las columnas de un tipo / clase determinado:
-df.select_dtypes(np.number) # u otra clase, no probe con otra
-
-# Convertir todas las columnas & variables a una clase determinada
-def f(x):
-    try:
-        return x.astype(float) # o cualquier otra clase
-    except:
-        return x
-df2 = df.apply(f)
-
-# Quedarse con la primera fila de cada grupo
-db.grouby('var').first()
-
-# Ordenar un data frame segun multiples columnas:
-df.sort_values(['var1', 'var2'], ascending=[False, True])
-
-# Exportar un grafico a png o pdf o jpg:
-import matplotlib as plt
-
-# Calcular media / promedio por grupo:
-db.groupby('variable', as_index=False).mean()
-# y agregarlo como columna>
-db['nueava_var'] = db0.groupby('var_grupo')['var_a_promediar'].transform('mean')
-
-### Hacer graficos de carrera de barras:
-# Primero hay que bajarse un programa para manejar videos que ese llama ffmpeg, unzipearlo en una carpeta tipo C o Program files, y agregarlo al path. Usar este tutorial:
-http://blog.gregzaal.com/how-to-install-ffmpeg-on-windows/
-# Despues instalar el paquete de python para ese progrma en el cmd:
-pip install ffmpeg-python
-# Se puede chequear si se hizo bien poniendo en el cmd:
-ffmpeg -version
-# Instalar el paquete para hacer graficos de carreras en el cmd:
-pip install bar_chart_race
-# Ejemplo de como se usa:
-# es importante que la base este en formato wide. Ver tutorial: https://www.dunderdata.com/blog/official-release-of-bar_chart_race-a-python-package-for-creating-animated-bar-chart-races
-bcr.bar_chart_race(
-    df = db2,
-    filename = path_figures +  'carrera_1.mp4')
-
-# Actualizar un paquete con pip. En cmd escribir:
-pip install paquete --upgrade
-
-# Contar los missing values de todas las columnas de un data frame:
-print(df.isnull().sum())
-
-# Eliminar la ultima fila o la primer fila de un data frame:
-df.drop(df.tail(n).index,inplace=True) # drop last n rows
-df.drop(df.head(n).index,inplace=True) # drop first n rows
-
-# Eliminar la ultima columna de un data frame:
-df.drop(df.columns[[-1,]], axis=1, inplace=True)
-
-# Separar una cadena por un character:
-texto.split(',') #en este caso es una coma
-objeto.text.split('\n') #acá es si el objeto no es texto, primero lo pasás a texto
-
-# Separar una cadena por comas, ignorando las comas entre comillas "":
-funcion = re.compile(r",(?=(?:[^\"']*[\"'][^\"']*[\"'])*[^\"']*$)")
-funcion.split(objeto)
-
-# Equivalente al comando "fillin" de Stata
-import itertools
-cols_a_combinar = ["var1", "var2", "var3"]
-combinaciones = []
-for var in cols_a_combinar:
-    combinaciones.append(db[var].unique().tolist())
-df1 = pd.DataFrame(columns = cols_a_combinar, data=list(itertools.product(*combinaciones)))
-#df1
-
-
-# Convertir un array (series) a una lista:
-array.tolist()
-
-# Obtener los valores únicos de una columna/variable:
-db["variable"].unique()
-#Si querés que sea una lista:
-db["variable"].unique().tolist()
-
-# Factorizar/Encodear una variable (asignarle a cada valor único de string un número):
-pd.factorize(db['variable'])
-
-# Cread dummies para diferentes valores de una misma variable (en realidad se dice "one-hot" encoding, dummies seria si dejas una categoria afuera, como en una regresión):           
-pd.get_dummies(df, columns=["variable"])
-
-# Eliminar todas las variables que empiezan con determinado string:
-db = db.drop(db.filter(like='stringinicial').columns, axis=1)
-
-# Eliminar una lista de columnas / variables a la vez:
-eliminar = ['var1', 'var2']
-db.drop(eliminar, axis=1, inplace=True)
-
-# Tabular una variable:
-db.groupby(['variable']).size()
-#mejor:
-db.variable.value_counts()
-
-# Tabular una variable y quedarse con los procentajes de cada grupo:
-db.groupby(['var1', 'var2'])['var3'].agg('count') / db['var3'].agg('count')
-
-# Traductor de Stata a Python
-http://www.danielmsullivan.com/pages/tutorial_stata_to_python.html
-
-# Seleccionar / ver determinadas columnas de un data frame segun su posicion: (ej. ultimas 10 columnas)
-df.iloc[:,-10:]
-
-# Unir elementos/string/cadenas de una lista (o cualquier otro string/cadena) con un string:
-" ".join(item for item in lista)
-
-# Seleccionar / ver determinadas columnas de un data frame según su nombre:
-db[['var1', 'var2']]
-
-# Seleccionar filas de acuerdo al valor de una columa
-db.loc[db['variable']==valor]
-
-# Seleccionar filas de acuerdo a varios valores de una misma columna:
-db[ db['variable'].isin(['valor1', 'valor2', 'valor3']) ]
-
-#Abrir un CSV como dataframe con Pandas
-import pandas as pd
-df = pd.read_csv('archivo.csv')
-
-#Cambiar un número de entero a no entero:
-variable = float(variableentera)
-
-#Convertir de no entero a entero
-variable = int(variablefloat)
-
-#Floored division: hace una división y te devuelve un núm entero si los dos son enteros y sino n float:
-5//2
-
-#OJO CON LA TOLERANCIA. A veces le preguntas si x==2.5 pero en realidad es 2.50000, o una movida así con el tema de los floats y pedirle enteros
-
-#Hacer una lista:
-nombrelista = [ ]
-#(si le pones parentesis es un tupple, es inmutable)
-
-#Llamar a un elemento de la lista (ojo que empieza desde la posición cero)
-print(nombrelista[0])
-#Para pedir el último valor ponés -1
-
-#Llamar un subgrupo de la lista:
-print(nombrelista[2:4])
-#Ojo que el último (posición 4) no lo agarra
-
-#Agregar un elemento a la lista: 
-nombrelista.append(29)
-
-# Loopear según el nombre de las variables (ej con un sufijo de tiempo) (aca las puse en una lista:
-var1=1
-var2=13
-var3=-5
-lista = []
-for i in range(1,4):
-    lista.append( eval("var"+str(i)) )
-lista
-
-#Un loop: agarrar elemento por elemento y mostrarlo:
-for x in mylist:
-    print(x)
-
-#Un loop: agregar elementos a la lista, acá agrega el 4 y el 5
-a = [1,2,3]
-a += [4,5] 
-#(o sin corchetes)
-
-# Loopear por numeros:
-for i in range(2,10,2): #inicio, fin, salto
-    ...
-
-#Quedarte con los strings de una lista:
-    
-# Imaginemos que tenemos una lista de nombres no ordenados que de alguna manera se incluyeron algunos números al azar.
-# Para este ejercicio, queremos imprimir la lista alfabética de nombres sin los números.
-# Esta no es la mejor manera de hacer el ejercicio, pero ilustrará un montón de técnicas.
-names = ["John", 3234, 2342, 3323, "Eric", 234, "Jessica", 734978234, "Lois", 2384]
-print("Number of names in list: {}".format(len(names)))
-# Primero eliminamos esos números
-new_names = []
-for n in names:
-    if isinstance(n, str):
-        # Si n es string, agregar a la lista
-        # Notar la doble sangría
-        new_names.append(n)
-
-#Eliminar un (dos) elemento de la lista:
-lista[0:2]=[ ]
-
-
-
-#######################################
-############# CURSO UNSAM #############
-#######################################
-
-#OPERACIONES BÁSICAS:
-
-#La potencia es con **
-
-#Sumar y asignar: += . Lo que hace es sumarle tres a la variable y sobreescribirla con el resultado.
-
-
-
-#Definir una funcion:
-def say_hello()
-	print(‘Hello, World’)
-#ejemplo:
-def calificar(sujeto, adjetivo):
-        print("{} es {}".format(sujeto, adjetivo))
-calificar ("Juan", "capo")
-
-#Testear si funciona la función:
-print(callable(say_hello) 	y tendría que salir true
-
-
-return 
-#es como una función que devuelve un valor. Este valor a menudo no es visto por el usuario humano, pero puede ser usado por la computadora en otras funciones.
-#Ej:
-def add_three(num):
-    return num + 3
-
- 
-#%%CURSO UNSAM
-#Usá el guión bajo (underscore, _) para referirte al resultado del último cálculo.
-
-#Ejecutar en una terminal de Windows:
-C:\SomeFolder>hello.py
-hello world
-
-C:\SomeFolder>c:\python36\python hello.py
-hello world
-
-#A veces es conveniente especificar un bloque de código que no haga nada. El comando pass se usa para eso.
-if a > b:
-    pass
-else:
-    print('No ganó a')
-
-x + y      #Suma
-x - y      #Resta
-x * y      #Multiplicación
-x / y      #División (da un float, no un int)
-x // y     #División entera (da un int)
-x % y      #Módulo (resto)
-x ** y     #Potencia
-abs(x)     #Valor absoluto
-
-
-x << n     #Desplazamiento de los bits a la izquierda
-x >> n     #Desplazamiento de los bits a la derecha
-x & y      #AND bit a bit.
-x | y      #OR bit a bit.
-x ^ y      #XOR bit a bit.
-~x         #NOT bit a bit.
-
-import math
-a = math.sqrt(x)
-b = math.sin(x)
-c = math.cos(x)
-d = math.tan(x)
-e = math.log(x)
-
-x < y      #Menor que
-x <= y     #Menor o igual que
-x > y      #Mayor que
-x >= y     #Mayor o igual que
-x == y     #Igual a
-x != y     #No igual a
-
-#Con esto en mente, ¿podrías explicar el siguiente comportamiento?
->>> bool("False")
-True
->>>
-
-#Normalmente las cadenas de caracteres solo ocupan una linea. Las comillas triples nos permiten capturar todo el texto encerrado a lo largo de múltiples lineas:
-# Comillas triples
-c = '''
-Yo no tengo en el amor
-Quien me venga con querellas;
-Como esas aves tan bellas
-Que saltan de rama en rama
-Yo hago en el trébol mi cama
-Y me cubren las estrellas.
-'''
-
-#Código de escape
-#Los códigos de escape (escape codes) son expresiones que comienzan con una barra invertida, \ y se usan para representar caracteres que no pueden ser fácilmente tipeados directamente con el teclado. Estos son algunos códigos de escape usuales:
-'\n'      #Avanzar una línea
-'\r'      #Retorno de carro El retorno de carro (código '\r') mueve el cursor al comienzo de la línea pero sin avanzar una línea. El origen de su nombre está relacionado con las máquinas de escribir.
-'\t'      #Tabulador
-'\''      #Comilla literal
-'\"'      #Comilla doble literal
-'\\'      #Barra invertida literal
-
-#Indexación de cadenas
-#Las cadenas funcionan como los vectores multidimensionales en matemática, permitiendo el acceso a los caracteres individuales. El índice comienza a contar en cero. Los índices negativos se usan para especificar una posición respecto al final de la cadena.
-a = 'Hello world'
-b = a[0]          # 'H'
-c = a[4]          # 'o'
-d = a[-1]         # 'd' (fin de cadena)
-También se puede rebanar (slice) o seleccionar subcadenas especificando un range de índices con :.
-d = a[:5]     # 'Hello'
-e = a[6:]     # 'world'
-f = a[3:8]    # 'lo wo'
-g = a[-5:]    # 'world'
-
-Operaciones con cadenas
-Concatenación, longitud, pertenencia y replicación.
-# Concatenación (+)
-a = 'Hello' + 'World'   # 'HelloWorld'
-b = 'Say ' + a          # 'Say HelloWorld'
-
-# Longitud (len)
-s = 'Hello'
-len(s)                  # 5
-
-# Test de pertenencia (in, not in)
-t = 'e' in s            # True
-f = 'x' in s            # False
-g = 'hi' not in s       # True
-
-# Replicación (s * n)
-rep = s * 5             # 'HelloHelloHelloHelloHello'
-
-#Métodos de las cadenas
-#Las cadenas en Python tienen métodos que realizan diversas operaciones con este tipo de datos.
-#Ejemplo: sacar (strip) los espacios en blanco sobrantes al inicio o al final de una cadena.
-s = '  Hello '
-t = s.strip()     # 'Hello'
-#Ejemplo: Conversión entre mayúsculas y minúsculas.
-s = 'Hello'
-l = s.lower()     # 'hello'
-u = s.upper()     # 'HELLO'
-#Ejemplo: Reemplazo de texto.
-s = 'Hello world'
-t = s.replace('Hello' , 'Hallo')   # 'Hallo world'
-s.center(3, '*') # agrega 3 asteriscos atras y adelante del texto. Si no pones ningun string agrega espacios
-s.rjust(4) # justificacion a la derecha
-s.ljust(4)
-
-#Más métodos de cadenas:
-#Los strings (cadenas) ofrecen una amplia variedad de métodos para testear y manipular textos. Estos son algunos de los métodos:
-s.endswith(suffix)     # Verifica si termina con el sufijo
-s.find(t)              # Primera aparición de t en s (o -1 si no está)
-s.index(t)             # Primera aparición de t en s (error si no está)
-s.isalpha()            # Verifica si los caracteres son alfabéticos
-s.isdigit()            # Verifica si los caracteres son numéricos
-s.islower()            # Verifica si los caracteres son minúsculas
-s.isupper()            # Verifica si los caracteres son mayúsculas
-s.join(slist)          # Une una lista de cadenas usando s como delimitador
-s.lower()              # Convertir a minúsculas
-s.replace(old,new)     # Reemplaza texto
-s.split([delim])       # Parte la cadena en subcadenas
-s.startswith(prefix)   # Verifica si comienza con un sufijo
-s.strip()              # Elimina espacios en blanco al inicio o al final
-s.upper()              # Convierte a mayúsculas
-
-#Los strings son "inmutables" o de sólo lectura. Una vez creados, su valor no puede ser cambiado. Esto implica que las operaciones y métodos que manipulan cadenas deben crear nuevas cadenas para almacenar su resultado.
-
-#Ejercicio 1.16: Testeo de pertenencia (test de subcadena)¶
-#Experimentá con el operador in para buscar subcadenas. En el intérprete interactivo probá estas operaciones:
->>> 'Naranja' in frutas
-?
->>> 'nana' in frutas
-True
->>> 'Lima' in frutas
-?
->>>
-#Ejercicio 1.21: Expresiones regulares
-#Una limitación de las operaciones básicas de cadenas es que no ofrecen ningún tipo de transformación usando patrones más sofisticados. Para eso vas a tener que usar el módulo re de Python y aprender a usar expresiones regulares. El manejo de estas expresiones es un tema en sí mismo. A continuación presentamos un corto ejemplo:
->>> texto = 'Hoy es 6/8/2020. Mañana será 7/8/2020.'
->>> # Encontrar las apariciones de una fecha en el texto
->>> import re
->>> re.findall(r'\d+/\d+/\d+', texto)
-['6/8/2020', '7/8/2020']
->>> # Reemplazá esas apariciones, cambiando el formato
->>> re.sub(r'(\d+)/(\d+)/(\d+)', r'\3-\2-\1', texto)
-'Hoy es 2020-8-6. Mañana será 2020-8-7.'
->>>
-#Para más información sobre el módulo re, mirá la documentación oficial en inglés o algún tutorial en castellano. Es un tema que escapa al contenido del curso pero te recomendamos que mires en detalle en algún momento. Aunque no justo ahora. Sigamos...
-#Comentario
-#A medida que empezás a usar Python es usual que quieras saber qué otras operaciones admiten los objetos con los que estás trabajando. Por ejemplo. ¿cómo podés averiguar qué operaciones se pueden hacer con una cadena?
-#Dependiendo de tu entorno de Python, podrás ver una lista de métodos disponibles apretando la tecla tab. Por ejemplo, intentá esto:
->>> s = 'hello world'
->>> s.<tecla tab>
->>>
-#Si al presionar tab no pasa nada, podés volver al viejo uso de la función dir(). Por ejemplo:
->>> s = 'hello'
->>> dir(s)
-['__add__', '__class__', '__contains__', ..., 'find', 'format',
-'index', 'isalnum', 'isalpha', 'isdigit', 'islower', 'isspace',
-'istitle', 'isupper', 'join', 'ljust', 'lower', 'lstrip', 'partition',
-'replace', 'rfind', 'rindex', 'rjust', 'rpartition', 'rsplit',
-'rstrip', 'split', 'splitlines', 'startswith', 'strip', 'swapcase',
-'title', 'translate', 'upper', 'zfill']
->>>
-#dir() produce una lista con todas las operaciones que pueden aparecer luego del parámetro que le pasaste, en este caso s. También podés usar el comando help() para obtener más información sobre una operación específica:
->>> help(s.upper)
-#Help on built-in function upper:
-
-#upper(...)
-    S.upper() -> string
-
-    #Return a copy of the string S converted to uppercase.
-
-
-#Los elementos de una cadena pueden ser separados en una lista usando el método split():
-line = 'Pera,100,490.10'
-row = line.split(',') #la coma indica el elemento que separa
-row
-['Pera', '100', '490.10']
-
-#Para encontrar rápidamente la posición de un elemento en una lista, usá index().
-nombres = ['Rosita','Manuel','Luciana']
-nombres.index('Luciana')   # 2
-#Si el elemento está presente en más de una posición, index() te va a devolver el índice de la primera aparición. Si el elemento no está en la lista se va a generar una excepción de tipo ValueError.
-#rdenar una lista
-#Las listas pueden ser ordenadas "in-place", es decir, sin usar nuevas variables.
-s = [10, 1, 7, 3]
-s.sort()                    # [1, 3, 7, 10]
-
-# Orden inverso
-s = [10, 1, 7, 3]
-s.sort(reverse=True)        # [10, 7, 3, 1]
-
-# Funciona con cualquier tipo de datos que tengan orden
-s = ['foo', 'bar', 'spam']
-s.sort()                    # ['bar', 'foo', 'spam']
-#Usá sorted() si querés generar una nueva lista ordenada en lugar de ordenar la misma:
-t = sorted(s)               # s queda igual, t guarda los valores ordenados
-
-#Podés acceder a los elementos de las listas anidadas usando múltiples operaciones de acceso por índice.
->>> items[0]
-'spam'
->>> items[0][0]
-'s'
->>> items[1]
-['Banana', 'Mango', 'Frambuesa', 'Pera', 'Granada', 'Manzana', 'Lima']
->>> items[1][1]
-'Mango'
->>> items[1][1][2]
-'n'
->>> items[2]
-[101, 102, 103]
->>> items[2][1]
-102
->>>
-#MANERA DE VER LO QUE ESTÁS ITERANDO (con un ejemplo de la clase):
-for i,c in enumerate(cadena):
-        capadepenapa=capadepenapa+c
-        if c in ("aeiou"):
-            capadepenapa=capadepenapa+"p"+c #es lo mismo que poner capadepenapa += "p"+c
-        print(i,c,capadepenapa)
-print(capadepenapa)
-
-
-#PARA HACER UN BLOQUE/SECCIÓN:
-####   #%% Sección 1
-
-Cómo chequear la versión de Python:
-import sys
-print(sys.version)
-
-
-# Cuantiles ponderados
- 
-def comando_cuantiles(df, variable, cuantiles, ponderador=None):
-
-    import matplotlib.pyplot as plt
-    #!pip install weightedcalcs
-    import weightedcalcs as wc
-
-    if ponderador!=None:
-        calc = wc.Calculator(ponderador)
-        percentiles = []
-        #Computo los percentiles
-        for x in range(1,cuantiles+1) :
-            p = calc.quantile(df[df[variable]>0], variable,x/100)
-            percentiles = percentiles + [p]
-
-        data=df[df[variable]>0]
-        lista_df = []
-        link = []
-        
-        for index, row in data.iterrows():
-            t = False
-            per=0
-            for i in percentiles:
-                if t==False:   
-                    if row[variable]>=i:
-                        t=False
-                    else:
-                        t=True
-                    per += 1
-            lista_df = lista_df  + [per]
-            link = link + [row['link']]
-        dict_df = {'link':link,'percentil':lista_df}
-        out = pd.DataFrame.from_dict(dict_df)
-        out.percentil = out.percentil.astype(int)
-
-        return out
-    # else:
-    #     df.quantile(q=cuantiles)
-        
-#     bar_df = gdf.groupby('percentil').agg({'ponderador':'sum'})
-#     bar_df = bar_df.reset_index()
-#     plt.bar(bar_df['percentil'], bar_df[ponderador])
-
-
-###################################
-###### DATOS ESPACIALES ###########
-###################################
-
-import geopandas as gpd
-
-# Leer un archivo shape / geoespacial
-mapa = gpd.read_file('path')
-
-# Graficar el mapa
-mapa.plot
-
-# Explorar el mapa / graficar el mapa sobre un mapa real:
-mapa.explore()
-
-# Generar una matriz de distancias entre los puntos de un geo data frame:
-matriz_distancias = mapa.geometry.apply(lambda g: mapa.distance(g))
-
-# Covertir un data frame en geo data frame
-db_gdf = gpd.GeoDataFrame(data=db, geometry=gpd.points_from_xy(db.longitud, db.latitud), crs='epsg:4326')
-
-# Uniones espaciales / Seleccionar puntos dentro de un poligono
-db_gdf = gpd.sjoin(db_gdf, polydf, op = 'within')
-
-# Cambiar el CRS de un geo data frame
-db_gdf = db_gdf.to_crs('epsg:4326') # creo que hay otro que se llama set_crs # y otra es db_gdf.crs = {'init': 'epsg:4326'}
-
-# Crear un shapefile / convertir un geo data frame a shapefile
-gdf.to_file("algo.shp")
-
-# Diferencia entre estos dos CRSs 3857 y 4326: https://gist.github.com/Rub21/49ed3e8fea3ae5527ea913bf80fbb8d7
-
-# Graficar dos capas juntas
-base_plot = poligono.plot()
-puntos.plot(ax=base_plot, color='blue');
-
-# Ver ipynb "arreglo_espacioal_estaciones_servicio"
+pd.set_option('max_row', None) #I don't know what this one does
 
 # %% DATACAMP COURSES starting from here...
 
@@ -5740,6 +5067,358 @@ y_pred = best_model.predict(X_test)
 rmse_test = MSE(y_test, y_pred)**(1/2)
 
 
+#%% EXTREME GRADIENT BOOSTING WITH XGBOOST
+
+# XGBOOST is a library for optimized gradient-boosting ML models
+# Applies to supervised learning problems
+# Benefit: speed (parallelizable) and performance
+
+# It is an ENSEMBLE LEARNING method
+
+# BOOSTING: an ensemble meta algorithm used to convert many weak learners into
+# a strong learned. It is implemented by iteratively learning a set of weak 
+# models on subsets of the data, weighing each weak prediction according to each
+# weak learner's performance, and then combining all the weighted predictions to 
+# obtain a single weighted prediction
+
+# WEAK LEARNER: a model that barely outperfoms random guessing
+
+# When it SHOULD be used: supervised ML task that fits the following criteria:
+# - Large N of training samples (>1000 and <100 features)
+# - N features < N training samples
+# - When you have a mixture of categorical and numeric features, or just numerical
+
+# When it SHOULD NOT be used (suboptimal compared to deep learning):
+# - Image recognition
+# - Computer vision
+# - NLP
+
+
+# --- Ch1: Classification with XGBoost ---
+
+import xgboost as xgb
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+X, y = dt.iloc[:,:-1], df.iloc[:,-1]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+# Initiate XGBoost classifier instance
+xg_cl = xgb.XGBClassifier(objective='binary:logistic', n_estimators=10, seed=123)
+
+xg_cl.fit(X_train, y_train)
+preds = xg_cl.predict(X_test)
+accuracy = float(np.sum(preds==y_test))/y_test.shape[0]
+print("accuracy: %f" % (accuracy))
+
+
+# CROSS VALIDATION is implemented differently with this API, it is already built in
+import xgboost as xgb
+import pandas as pd
+
+churn_data = pd.read_csv('classification_data.csv')
+
+# Convert data set into optimized structure (DMatrix)
+# (in the previous example, with XGBClassifier the data was converted on the fly.
+# But when using the xgb object you have to do this beforehand)
+churn_dmatrix = xgb.DMatrix(data=churn_data.iloc[:,:-1], # X variables
+                            label=chrun_data.month_5_still_here # Y variable
+                            )
+
+# Set the parameters for each tree
+params = {"objective":"binary:logistic", "max_depth":4}
+
+# Implement CB with the .cv method
+cv_results = xgb.cv(dtrain=churn_dmatrix, 
+                    params=params, 
+                    nfold=4, # n of folds
+                    num_boost_round=10, # number of trees
+                    metrics='error', # metric to compute (you could use "auc" for example)
+                    as_pandas=True)
+print("Accuracy: %f" %((1-cv_results["test-error-mean").iloc[-1]]))
+
+
+# --- Ch2: Regression with XGBoost ---
+
+# The metrics will now be RMSE or MAE (mean absolute error)
+
+# LOSS FUNCTION: quantifies how far off a prediction is from the actual result.
+# It measures the difference between estimated and true values for some collection of data
+# The goal is to find the model that minimizes the loss function.
+
+# COMMMON LOSS FUNCTIONS FOR XGBOOST:
+# For regression: 'reg:linear'
+# For binary classification problems, when you care about the decision and not the probability: 'reg:logistic'
+# For binary classification problems, when you care about the probability: 'binary:logistic'
+
+# The goal of XGBoost is to have base learners that are slightly better than random guessing on certain subsets of 
+# training examples, and uniformly bad at the remainder. So that, when all the predictions are combined, the uniformly 
+# bad predictions cancel out, and those slightly better learners combine into a single very good non-linear prediction.
+
+# Comparing BASE LEARNERS in XGBoost
+# LINEAR BASE LEARNER:
+# - A sum of linear terms, exactly as you would find in a logistic or linear regression model-
+# - When you combine them into an ensemble, you get a weighted sum of linear models, which is itself linear. Therefore,
+# you do not get any non-linear features in the final model. Very similar results can be obtained with any other linear
+# model, that's why this method is rarely used.
+# TREE BASE LEARNER:
+# - A decision tree
+# - When they are combined into an ensemble, the combination becomes a non-linear function of each individual tree, 
+# which is non-linear
+
+# XBGOOST with TREES as base learners using XGBoost Scikit-Learn-compatible API
+import xgboost as xgb
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+boston_data = pd.read_csv('boston_housing.csv')
+X, y = boston_data.iloc[:, :-1], boston_data.iloc[:, -1]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+xg_reg = xgb.XGBRegressor(objective='reg:linear', n_estimators=10, seed=123)
+xg_reg.fit(X_train, y_train)
+
+preds=xg_reg.predict(X_test)
+
+rmse=np.sqrt(mean_squared_error(y_test, preds))
+print("RMSE: %f" % (rmse))
+
+# Repeat but without using the Scikit-Learn API, just use the Learning API in XGBoost
+# (and use a linear learner as the base learner)
+import xgboost as xgb
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+boston_data = pd.read_csv('boston_housing.csv')
+X, y = boston_data.iloc[:, :-1], boston_data.iloc[:, -1]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+
+DM_train = xgb.DMatrix(data=X_train, label=y_train)
+DM_test = xgb.DMatrix(data=X_test, label=y_test)
+
+params = {"booster":"gblinear", # base learer (linear learner insteaed of tree)
+          "objective":"reg:linear"}
+
+xg_reg = xgb.train(params=params, dtrain=DM_train, 
+                   num_boost_round=10) # boosting rounds
+
+preds=xg_reg.predict(DM_test)
+rmse=np.sqrt(mean_squared_error(y_test, preds))
+print("RMSE: %f" % (rmse))
+
+
+# CROSS VALIDATION
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+
+params = {"objective":"reg:linear", # loss function
+          "max_depth":4}
+
+cv_results = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=4, num_boost_round=5, metrics="rmse", as_pandas=True, seed=123)
+
+print(cv_results)
+print((cv_results["test-rmse-mean"]).tail(1))
+
+
+# REGULARIZATION IN XGBOOST
+# XGBoost does regularization.
+# Parameters for regularization:
+# For tree-based learners:
+# - gamma: minimum loss reduction allowed for a split to occur. It controls whether a given 
+# node on a base learner will split based on the expected reduction in the loss that would occur after performing the 
+# split. Higher values lead to fewer splits.
+# - alpha: l1 regularization on leaf weights. Higher values lead to stronger regularization
+#   which causes many leaf weights in the base learners to go to zero.
+# - lambda: l2 regularization on leaf weights. Smoother than l1. Causes leaf weights to smoothly decrease.
+
+# l1 REGULARIZATION with XGBoost
+import xgboost as xgb
+import pandas as pd
+
+boston_data = pd.read_csv('boston_housing.csv')
+X, y = boston_data.iloc[:, :-1], boston_data.iloc[:, -1]
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+
+params = {"objective":"reg:linear", "max_depth":4}
+
+l1_params = [1, 10, 100] # we will try these l1 values
+rmses_l1 =[]
+for reg in l1_params:
+    params['alpha'] = reg
+    cv_results = xgb.cv(dtrain=boston_dmatrix, params=params, nfold=4, num_boost_round=10,
+                                                     metrics='rmse', as_pandas=True, seed=123)
+    rmses_l1.append(cv_results['test-rmse-mean'].tail(1).values[0])
+print('Best rmse as a function of l1:')
+print(pd.DataFrame(list(zip(l1_params, rmses_l1))), columns=['le', 'rmse'])
+
+
+# l2 REGULARIZATION with XGBoost
+# Create the DMatrix: housing_dmatrix
+housing_dmatrix = xgb.DMatrix(data=X, label=y)
+
+reg_params = [1, 10, 100]
+
+params = {"objective":"reg:linear", "max_depth":3}
+rmses_l2 = []
+for reg in reg_params:
+    params["lambda"] = reg
+    cv_results_rmse = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=2, num_boost_round=5, metrics="rmse", as_pandas=True, seed=123)
+    rmses_l2.append(cv_results_rmse['test-rmse-mean'].tail(1).values[0])
+
+print("Best rmse as a function of l2:")
+print(pd.DataFrame(list(zip(reg_params, rmses_l2)), columns=["l2", "rmse"]))
+
+
+# VISUALIZING individual XGBoost trees
+housing_dmatrix = xgb.DMatrix(data=X, label=y)
+params = {"objective":"reg:linear", "max_depth":2}
+xg_reg = xgb.train(params=params, dtrain=housing_dmatrix, num_boost_round=10)
+# Plot the first tree
+xgb.plot_tree(xg_reg, num_trees=0)
+plt.show()
+# Plot the fifth tree
+xgb.plot_tree(xg_reg, num_trees=4)
+plt.show()
+# Plot the last tree sideways
+xgb.plot_tree(xg_reg, num_trees=9, rankdir="LR")
+plt.show()
+
+
+# VISUALIZING the most import features in the dataset for the model
+# One simple way of doing this involves counting the number of times each feature is split on across all boosting rounds
+#  (trees) in the model, and then visualizing the result as a bar graph, with the features ordered according to how many
+#  times they appear.
+housing_dmatrix = xgb.DMatrix(data=X, label=y)
+params = {"objective":"reg:linear", "max_depth":2}
+xg_reg = xgb.train(params=params, dtrain=housing_dmatrix, num_boost_round=10)
+# Plot the feature importances
+xgb.plot_importance(xg_reg)
+plt.show()
+
+
+# --- Ch3: Fine-tuning your XGBoost model ---
+
+# Example: tune number of roundsimport xgboost as xgb
+import pandas as pd
+import numpy as np
+
+housing_dmatrix = xgb.DMatrix(data=X, label=y)
+
+params = {"objective":"reg:linear", "max_depth":3}
+
+num_rounds = [5, 10, 15]
+final_rmse_per_round = []
+for curr_num_rounds in num_rounds:
+    cv_results = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=3, num_boost_round=curr_num_rounds, metrics="rmse", as_pandas=True, seed=123)
+    final_rmse_per_round.append(cv_results["test-rmse-mean"].tail().values[-1])
+
+num_rounds_rmses = list(zip(num_rounds, final_rmse_per_round))
+print(pd.DataFrame(num_rounds_rmses,columns=["num_boosting_rounds","rmse"]))
+
+# Let XGBoost automatically select th best value for the parameter using EARLY STOPPING
+# Early stopping works by testing the XGBoost model after every boosting round against a hold-out dataset and stopping 
+# the creation of additional boosting rounds (thereby finishing training of the model early) if the hold-out metric 
+# ("rmse" in our case) does not improve for a given number of rounds.
+# Bear in mind that if the holdout metric continuously improves up through when num_boost_rounds is reached, then early 
+# stopping does not occur
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+params = {"objective":"reg:linear", "max_depth":4}
+
+cv_results = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=3, 
+                    num_boost_round=50, 
+                    early_stopping_rounds=10,
+                    metrics="rmse", as_pandas=True, seed=123)
+print(cv_results)
+
+# Overview of XGBoost's hyperparameters
+# The parameters that can be tuned depend on the base learner you use
+
+# For TREES:
+# - learning rate ('eta'): affects how quicky the model fits the residual error using additional base learners. A model with a 
+# low learning rate will require more boosting rounds to achieve the same reduction in residual error
+# - gamma: min loss reduction to create new tree split
+# - lambda: L2 reg on leaf weights
+# - alpha: L1 reg on leaf weights
+# - max_depth: how deeply each tree is allowed to grow doing any boosting round
+# - subsample: the fraction of the total training set that can be used for any boosting round. A low value may lead to
+# underfitting, and a high value to over-fitting
+# - colsample_bytree: the fraction of features you can select from during any bootsing round. A large value means that
+# almost all features can be ued to build a tree during a given boosting round. In genearal, smaller values can be 
+# thought of providing addition regularization, while high values can lead to over-fitting. (Equivalent to 
+# "max_features" in Random Forest)
+
+# For LINEAR BASE LEARNERS:
+# - lambda: L2 reg on weights
+# - apha: L1 reg on weighst
+# - lambda_bias: L2 reg term on bias
+
+# The number of boosting rounds, that is, the number of trees or base learners you construct, is also a tuneable parameter
+
+
+# Example: tune the LEARNING RATE
+housing_dmatrix = xgb.DMatrix(data=X, label=y)
+
+params = {"objective":"reg:linear", "max_depth":3}
+
+eta_vals = [0.001, 0.01, 0.1]
+best_rmse = []
+for curr_val in eta_vals:
+    params["eta"] = curr_val    
+    cv_results = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=3, 
+                    num_boost_round=10, 
+                    early_stopping_rounds=5,
+                    metrics="rmse", as_pandas=True, seed=123)
+    best_rmse.append(cv_results["test-rmse-mean"].tail().values[-1])
+    best_rmse.append(cv_results["test-rmse-mean"].tail().values[-1])
+
+print(pd.DataFrame(list(zip(eta_vals, best_rmse)), columns=["eta","best_rmse"]))
+
+
+# Example: tune MAX_DEPTH
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+
+params = {"objective":"reg:linear"}
+
+max_depths = [2,5,10,20]
+best_rmse = []
+
+for curr_val in max_depths:
+    params["max_depth"] = curr_val
+    cv_results = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=2, 
+                    num_boost_round=10, 
+                    early_stopping_rounds=5,
+                    metrics="rmse", as_pandas=True, seed=123)
+    best_rmse.append(cv_results["test-rmse-mean"].tail().values[-1])
+print(pd.DataFrame(list(zip(max_depths, best_rmse)),columns=["max_depth","best_rmse"]))
+
+
+# Example: tune COLSAMPLE_BYTREE
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+
+params={"objective":"reg:linear","max_depth":3}
+
+colsample_bytree_vals = [0.1, 0.5, 0.8, 1]
+best_rmse = []
+
+# Systematically vary the hyperparameter value 
+for curr_val in colsample_bytree_vals:
+    params['colsample_bytree'] = curr_val
+    cv_results = xgb.cv(dtrain=housing_dmatrix, params=params, nfold=2,
+                 num_boost_round=10, early_stopping_rounds=5,
+                 metrics="rmse", as_pandas=True, seed=123)
+    best_rmse.append(cv_results["test-rmse-mean"].tail().values[-1])
+print(pd.DataFrame(list(zip(colsample_bytree_vals, best_rmse)), columns=["colsample_bytree","best_rmse"]))
+
+
+# Review of GRID SEARCH and RANDOM SEARCH
+# Grid search: 
+
+# --- Ch4: Using XGBoost in pipelines ---
+
+
+
 #%% UNDERSTANDING DATA ENGINEERING
 
 # It is a conceptual course, there is no coding involved.
@@ -6723,6 +6402,648 @@ class YourSpider(scrapy.Spider):
 
 # Inspect Your Class
 inspect_class(YourSpider)
-#%% END OF DATA CAMP
+#%% END OF DATA CAMP ----------------------------------------------------------
 
-#%%
+# %% USEFUL COMMANDS
+
+# Creating a DataFrame from multiple equal-length lists
+import pandas as pd
+pd.DataFrame(list(zip(list1,list2), columns=['list1', 'list2']))
+
+# Verification/ verify a condition: assert statement, returns nothing if a condition is met, and an error otherwise
+assert True==False
+assert True==True
+
+# A function that returns True if a string if found in another string
+import re
+def word_in_text(word, text):
+    word = word.lower()
+    text = text.lower()
+    match = re.search(word, text)
+
+    if match:
+        return True
+    return False
+
+# Transform years into decades
+import numpy as np
+(np.floor(df['year']/10)*10).astype(np.int64)
+
+## METODOS DE STRINGS
+# Reemplazar una parte de un string por otra
+saludo = 'hola'
+print(saludo.replace('la', 'mbre'))
+
+# Cambiar todo a mayuscula
+place = "poolhouse"
+print(place.upper())
+
+# Cambiar la primera letra a mayuscula
+print('hola'.capitalize())
+
+## METODOS DE LISTAS
+# Contar la cantidad de veces que aparece un elemento en una lista
+lista1 = [1,2,3,4,1,1]
+print(lista1.count(1))
+
+# Obtener el indice de un objeto dentro de una lista / obtener la posicion de un elemento en una lista
+lista1 = [1,2,3,4]
+print(lista1.index(3))
+
+# The ; sign is used to place commands on the same line. The following two code chunks are equivalent:
+# Same line
+print('Hello'); print('Bye')
+
+# Separate lines
+print('Hello')
+print('Bye')
+
+# Copiar objetos (listas)
+lista1 = [1,2,3,4]
+lista2 = lista1 # aca estas copiando la referencia a la lista1, no los objetos
+del[lista2[2]]
+print(lista1)
+    # Para copiar los elementos, y no solo la referencia, hay que escribir
+y = list[lista1]
+# o
+y = x[:]
+
+# Eliminar un elemento de una lista
+lista1 = [1,2,3,4]
+del[lista1[2]]
+print(lista1)
+
+# Appendear / Agregar filas de otro data frame que no esten en el data frame actual
+df_diff = df2[~df2.col1.isin(A.col1)]
+df_full = pd.concat([df1, df_diff], ignore_index=True)
+
+# Crear un archivo csv / Exportar un data frame a csv
+df.to_csv("path")
+
+# Cambiar el nombre de muchas columnas a la vez
+cambio_cols = {'v1old': 'v1new', 'v2old': 'v2new'}
+df.rename(columns=cambio_cols,
+          inplace=True)
+
+# Crear una variable fecha a partir de variables para anio mes y dia:
+df['fecha'] = pd.to_datetime(dict(year=df.anio, month=df.mes, day=1)) # aca no tengo dia y le pongo 1
+
+# Crear una columna / crear una variable en un data frame que tome diferentes valores de acuerdo una condicion
+db['var'] = np.where(db['var2']=='valor', valorsitrue, valorsifalse)
+
+# Crear una columna / crear una variable en un data frame que tome diferentes valores de acuerdo mas de una condicion
+df = pd.DataFrame({'Type':list('ABBC'), 'Set':list('ZZXY')})
+conditions = [
+    (df['Set'] == 'Z') & (df['Type'] == 'A'),
+    (df['Set'] == 'Z') & (df['Type'] == 'B'),
+    (df['Type'] == 'B')]
+choices = ['yellow', 'blue', 'purple']
+df['color'] = np.select(conditions, choices, default='black')
+print(df)
+
+# Crear una columna variable con un promedio ponderado por grupo:
+func_prom_pond = lambda x: np.average(x, weights=db.loc[x.index, "pesos"])
+db['prom_pond'] = db4.groupby('grupo')['variable'].transform(func_prom_pond)
+
+# Crear una muestra aleatorio de una secuencia
+random.sample(range(1, 11), k=5)
+
+# Generar una muestra aleatoria de un data frame
+db.sample(n=1000, replace=False)
+
+# Seleccionar las filas de un data frame que tengan missing value en una columna
+df[df['var'].isnull()]
+
+# Eliminar duplicados segun una variable:
+df.drop_duplicates(subset=['var'])
+
+# Merge / unir dos data frames
+db1 = db1.merge(db2[['var_a_mergear']], how='left', on=[nombre de variable llave], indicator=True) #indicator te dice si agregar una columma que te diga el resultado del merge, ademas de true se le puede poner el strign que quieras
+
+# Intertar una columna / variable al principio de un data frame
+df.insert(0, 'nombrevar', var)
+
+# Cambiar la posicion de una columna en un data frame (aca se pone en la posicion 0, al principio)
+col = df.pop('Name')
+df.insert(0, 'Name', col)
+
+# Eliminar todos los objetos creados por el usuario:
+for element in dir():
+    if element[0:2] != "__":
+        del globals()[element] # VERR PORQUE GENERA PROBLEMAS
+
+# Seleccionar los elementos de una lsita que empiecen con determinado string:
+result = [i for i in some_list if i.startswith('string')]
+
+# Quedarse con / seleccionar las columnas de un tipo / clase determinado:
+df.select_dtypes(np.number) # u otra clase, no probe con otra
+
+# Convertir todas las columnas & variables a una clase determinada
+def f(x):
+    try:
+        return x.astype(float) # o cualquier otra clase
+    except:
+        return x
+df2 = df.apply(f)
+
+# Quedarse con la primera fila de cada grupo
+db.grouby('var').first()
+
+# Ordenar un data frame segun multiples columnas:
+df.sort_values(['var1', 'var2'], ascending=[False, True])
+
+# Exportar un grafico a png o pdf o jpg:
+import matplotlib as plt
+
+# Calcular media / promedio por grupo:
+db.groupby('variable', as_index=False).mean()
+# y agregarlo como columna>
+db['nueava_var'] = db0.groupby('var_grupo')['var_a_promediar'].transform('mean')
+
+### Hacer graficos de carrera de barras:
+# Primero hay que bajarse un programa para manejar videos que ese llama ffmpeg, unzipearlo en una carpeta tipo C o Program files, y agregarlo al path. Usar este tutorial:
+http://blog.gregzaal.com/how-to-install-ffmpeg-on-windows/
+# Despues instalar el paquete de python para ese progrma en el cmd:
+pip install ffmpeg-python
+# Se puede chequear si se hizo bien poniendo en el cmd:
+ffmpeg -version
+# Instalar el paquete para hacer graficos de carreras en el cmd:
+pip install bar_chart_race
+# Ejemplo de como se usa:
+# es importante que la base este en formato wide. Ver tutorial: https://www.dunderdata.com/blog/official-release-of-bar_chart_race-a-python-package-for-creating-animated-bar-chart-races
+bcr.bar_chart_race(
+    df = db2,
+    filename = path_figures +  'carrera_1.mp4')
+
+# Actualizar un paquete con pip. En cmd escribir:
+pip install paquete --upgrade
+
+# Contar los missing values de todas las columnas de un data frame:
+print(df.isnull().sum())
+
+# Eliminar la ultima fila o la primer fila de un data frame:
+df.drop(df.tail(n).index,inplace=True) # drop last n rows
+df.drop(df.head(n).index,inplace=True) # drop first n rows
+
+# Eliminar la ultima columna de un data frame:
+df.drop(df.columns[[-1,]], axis=1, inplace=True)
+
+# Separar una cadena por un character:
+texto.split(',') #en este caso es una coma
+objeto.text.split('\n') #acá es si el objeto no es texto, primero lo pasás a texto
+
+# Separar una cadena por comas, ignorando las comas entre comillas "":
+funcion = re.compile(r",(?=(?:[^\"']*[\"'][^\"']*[\"'])*[^\"']*$)")
+funcion.split(objeto)
+
+# Equivalente al comando "fillin" de Stata
+import itertools
+cols_a_combinar = ["var1", "var2", "var3"]
+combinaciones = []
+for var in cols_a_combinar:
+    combinaciones.append(db[var].unique().tolist())
+df1 = pd.DataFrame(columns = cols_a_combinar, data=list(itertools.product(*combinaciones)))
+#df1
+
+
+# Convertir un array (series) a una lista:
+array.tolist()
+
+# Obtener los valores únicos de una columna/variable:
+db["variable"].unique()
+#Si querés que sea una lista:
+db["variable"].unique().tolist()
+
+# Factorizar/Encodear una variable (asignarle a cada valor único de string un número):
+pd.factorize(db['variable'])
+
+# Cread dummies para diferentes valores de una misma variable (en realidad se dice "one-hot" encoding, dummies seria si dejas una categoria afuera, como en una regresión):           
+pd.get_dummies(df, columns=["variable"])
+
+# Eliminar todas las variables que empiezan con determinado string:
+db = db.drop(db.filter(like='stringinicial').columns, axis=1)
+
+# Eliminar una lista de columnas / variables a la vez:
+eliminar = ['var1', 'var2']
+db.drop(eliminar, axis=1, inplace=True)
+
+# Tabular una variable:
+db.groupby(['variable']).size()
+#mejor:
+db.variable.value_counts()
+
+# Tabular una variable y quedarse con los procentajes de cada grupo:
+db.groupby(['var1', 'var2'])['var3'].agg('count') / db['var3'].agg('count')
+
+# Traductor de Stata a Python
+http://www.danielmsullivan.com/pages/tutorial_stata_to_python.html
+
+# Seleccionar / ver determinadas columnas de un data frame segun su posicion: (ej. ultimas 10 columnas)
+df.iloc[:,-10:]
+
+# Unir elementos/string/cadenas de una lista (o cualquier otro string/cadena) con un string:
+" ".join(item for item in lista)
+
+# Seleccionar / ver determinadas columnas de un data frame según su nombre:
+db[['var1', 'var2']]
+
+# Seleccionar filas de acuerdo al valor de una columa
+db.loc[db['variable']==valor]
+
+# Seleccionar filas de acuerdo a varios valores de una misma columna:
+db[ db['variable'].isin(['valor1', 'valor2', 'valor3']) ]
+
+#Abrir un CSV como dataframe con Pandas
+import pandas as pd
+df = pd.read_csv('archivo.csv')
+
+#Cambiar un número de entero a no entero:
+variable = float(variableentera)
+
+#Convertir de no entero a entero
+variable = int(variablefloat)
+
+#Floored division: hace una división y te devuelve un núm entero si los dos son enteros y sino n float:
+5//2
+
+#OJO CON LA TOLERANCIA. A veces le preguntas si x==2.5 pero en realidad es 2.50000, o una movida así con el tema de los floats y pedirle enteros
+
+#Hacer una lista:
+nombrelista = [ ]
+#(si le pones parentesis es un tupple, es inmutable)
+
+#Llamar a un elemento de la lista (ojo que empieza desde la posición cero)
+print(nombrelista[0])
+#Para pedir el último valor ponés -1
+
+#Llamar un subgrupo de la lista:
+print(nombrelista[2:4])
+#Ojo que el último (posición 4) no lo agarra
+
+#Agregar un elemento a la lista: 
+nombrelista.append(29)
+
+# Loopear según el nombre de las variables (ej con un sufijo de tiempo) (aca las puse en una lista:
+var1=1
+var2=13
+var3=-5
+lista = []
+for i in range(1,4):
+    lista.append( eval("var"+str(i)) )
+lista
+
+#Un loop: agarrar elemento por elemento y mostrarlo:
+for x in mylist:
+    print(x)
+
+#Un loop: agregar elementos a la lista, acá agrega el 4 y el 5
+a = [1,2,3]
+a += [4,5] 
+#(o sin corchetes)
+
+# Loopear por numeros:
+for i in range(2,10,2): #inicio, fin, salto
+    ...
+
+#Quedarte con los strings de una lista:
+    
+# Imaginemos que tenemos una lista de nombres no ordenados que de alguna manera se incluyeron algunos números al azar.
+# Para este ejercicio, queremos imprimir la lista alfabética de nombres sin los números.
+# Esta no es la mejor manera de hacer el ejercicio, pero ilustrará un montón de técnicas.
+names = ["John", 3234, 2342, 3323, "Eric", 234, "Jessica", 734978234, "Lois", 2384]
+print("Number of names in list: {}".format(len(names)))
+# Primero eliminamos esos números
+new_names = []
+for n in names:
+    if isinstance(n, str):
+        # Si n es string, agregar a la lista
+        # Notar la doble sangría
+        new_names.append(n)
+
+#Eliminar un (dos) elemento de la lista:
+lista[0:2]=[ ]
+
+ 
+#%% CURSO UNSAM
+
+#Ejecutar en una terminal de Windows:
+C:\SomeFolder>hello.py
+hello world
+
+C:\SomeFolder>c:\python36\python hello.py
+hello world
+
+#A veces es conveniente especificar un bloque de código que no haga nada. El comando pass se usa para eso.
+if a > b:
+    pass
+else:
+    print('No ganó a')
+
+x + y      #Suma
+x - y      #Resta
+x * y      #Multiplicación
+x / y      #División (da un float, no un int)
+x // y     #División entera (da un int)
+x % y      #Módulo (resto)
+x ** y     #Potencia
+abs(x)     #Valor absoluto
+
+
+x << n     #Desplazamiento de los bits a la izquierda
+x >> n     #Desplazamiento de los bits a la derecha
+x & y      #AND bit a bit.
+x | y      #OR bit a bit.
+x ^ y      #XOR bit a bit.
+~x         #NOT bit a bit.
+
+import math
+a = math.sqrt(x)
+b = math.sin(x)
+c = math.cos(x)
+d = math.tan(x)
+e = math.log(x)
+
+x < y      #Menor que
+x <= y     #Menor o igual que
+x > y      #Mayor que
+x >= y     #Mayor o igual que
+x == y     #Igual a
+x != y     #No igual a
+
+#Con esto en mente, ¿podrías explicar el siguiente comportamiento?
+>>> bool("False")
+True
+>>>
+
+#Normalmente las cadenas de caracteres solo ocupan una linea. Las comillas triples nos permiten capturar todo el texto encerrado a lo largo de múltiples lineas:
+# Comillas triples
+c = '''
+Yo no tengo en el amor
+Quien me venga con querellas;
+Como esas aves tan bellas
+Que saltan de rama en rama
+Yo hago en el trébol mi cama
+Y me cubren las estrellas.
+'''
+
+#Código de escape
+#Los códigos de escape (escape codes) son expresiones que comienzan con una barra invertida, \ y se usan para representar caracteres que no pueden ser fácilmente tipeados directamente con el teclado. Estos son algunos códigos de escape usuales:
+'\n'      #Avanzar una línea
+'\r'      #Retorno de carro El retorno de carro (código '\r') mueve el cursor al comienzo de la línea pero sin avanzar una línea. El origen de su nombre está relacionado con las máquinas de escribir.
+'\t'      #Tabulador
+'\''      #Comilla literal
+'\"'      #Comilla doble literal
+'\\'      #Barra invertida literal
+
+#Indexación de cadenas
+#Las cadenas funcionan como los vectores multidimensionales en matemática, permitiendo el acceso a los caracteres individuales. El índice comienza a contar en cero. Los índices negativos se usan para especificar una posición respecto al final de la cadena.
+a = 'Hello world'
+b = a[0]          # 'H'
+c = a[4]          # 'o'
+d = a[-1]         # 'd' (fin de cadena)
+También se puede rebanar (slice) o seleccionar subcadenas especificando un range de índices con :.
+d = a[:5]     # 'Hello'
+e = a[6:]     # 'world'
+f = a[3:8]    # 'lo wo'
+g = a[-5:]    # 'world'
+
+Operaciones con cadenas
+Concatenación, longitud, pertenencia y replicación.
+# Concatenación (+)
+a = 'Hello' + 'World'   # 'HelloWorld'
+b = 'Say ' + a          # 'Say HelloWorld'
+
+# Longitud (len)
+s = 'Hello'
+len(s)                  # 5
+
+# Test de pertenencia (in, not in)
+t = 'e' in s            # True
+f = 'x' in s            # False
+g = 'hi' not in s       # True
+
+# Replicación (s * n)
+rep = s * 5             # 'HelloHelloHelloHelloHello'
+
+#Métodos de las cadenas
+#Las cadenas en Python tienen métodos que realizan diversas operaciones con este tipo de datos.
+#Ejemplo: sacar (strip) los espacios en blanco sobrantes al inicio o al final de una cadena.
+s = '  Hello '
+t = s.strip()     # 'Hello'
+#Ejemplo: Conversión entre mayúsculas y minúsculas.
+s = 'Hello'
+l = s.lower()     # 'hello'
+u = s.upper()     # 'HELLO'
+#Ejemplo: Reemplazo de texto.
+s = 'Hello world'
+t = s.replace('Hello' , 'Hallo')   # 'Hallo world'
+s.center(3, '*') # agrega 3 asteriscos atras y adelante del texto. Si no pones ningun string agrega espacios
+s.rjust(4) # justificacion a la derecha
+s.ljust(4)
+
+#Más métodos de cadenas:
+#Los strings (cadenas) ofrecen una amplia variedad de métodos para testear y manipular textos. Estos son algunos de los métodos:
+s.endswith(suffix)     # Verifica si termina con el sufijo
+s.find(t)              # Primera aparición de t en s (o -1 si no está)
+s.index(t)             # Primera aparición de t en s (error si no está)
+s.isalpha()            # Verifica si los caracteres son alfabéticos
+s.isdigit()            # Verifica si los caracteres son numéricos
+s.islower()            # Verifica si los caracteres son minúsculas
+s.isupper()            # Verifica si los caracteres son mayúsculas
+s.join(slist)          # Une una lista de cadenas usando s como delimitador
+s.lower()              # Convertir a minúsculas
+s.replace(old,new)     # Reemplaza texto
+s.split([delim])       # Parte la cadena en subcadenas
+s.startswith(prefix)   # Verifica si comienza con un sufijo
+s.strip()              # Elimina espacios en blanco al inicio o al final
+s.upper()              # Convierte a mayúsculas
+
+#Los strings son "inmutables" o de sólo lectura. Una vez creados, su valor no puede ser cambiado. Esto implica que las operaciones y métodos que manipulan cadenas deben crear nuevas cadenas para almacenar su resultado.
+
+#Ejercicio 1.16: Testeo de pertenencia (test de subcadena)¶
+#Experimentá con el operador in para buscar subcadenas. En el intérprete interactivo probá estas operaciones:
+>>> 'Naranja' in frutas
+?
+>>> 'nana' in frutas
+True
+>>> 'Lima' in frutas
+?
+>>>
+#Ejercicio 1.21: Expresiones regulares
+#Una limitación de las operaciones básicas de cadenas es que no ofrecen ningún tipo de transformación usando patrones más sofisticados. Para eso vas a tener que usar el módulo re de Python y aprender a usar expresiones regulares. El manejo de estas expresiones es un tema en sí mismo. A continuación presentamos un corto ejemplo:
+>>> texto = 'Hoy es 6/8/2020. Mañana será 7/8/2020.'
+>>> # Encontrar las apariciones de una fecha en el texto
+>>> import re
+>>> re.findall(r'\d+/\d+/\d+', texto)
+['6/8/2020', '7/8/2020']
+>>> # Reemplazá esas apariciones, cambiando el formato
+>>> re.sub(r'(\d+)/(\d+)/(\d+)', r'\3-\2-\1', texto)
+'Hoy es 2020-8-6. Mañana será 2020-8-7.'
+>>>
+#Para más información sobre el módulo re, mirá la documentación oficial en inglés o algún tutorial en castellano. Es un tema que escapa al contenido del curso pero te recomendamos que mires en detalle en algún momento. Aunque no justo ahora. Sigamos...
+#Comentario
+#A medida que empezás a usar Python es usual que quieras saber qué otras operaciones admiten los objetos con los que estás trabajando. Por ejemplo. ¿cómo podés averiguar qué operaciones se pueden hacer con una cadena?
+#Dependiendo de tu entorno de Python, podrás ver una lista de métodos disponibles apretando la tecla tab. Por ejemplo, intentá esto:
+>>> s = 'hello world'
+>>> s.<tecla tab>
+>>>
+#Si al presionar tab no pasa nada, podés volver al viejo uso de la función dir(). Por ejemplo:
+>>> s = 'hello'
+>>> dir(s)
+['__add__', '__class__', '__contains__', ..., 'find', 'format',
+'index', 'isalnum', 'isalpha', 'isdigit', 'islower', 'isspace',
+'istitle', 'isupper', 'join', 'ljust', 'lower', 'lstrip', 'partition',
+'replace', 'rfind', 'rindex', 'rjust', 'rpartition', 'rsplit',
+'rstrip', 'split', 'splitlines', 'startswith', 'strip', 'swapcase',
+'title', 'translate', 'upper', 'zfill']
+>>>
+#dir() produce una lista con todas las operaciones que pueden aparecer luego del parámetro que le pasaste, en este caso s. También podés usar el comando help() para obtener más información sobre una operación específica:
+>>> help(s.upper)
+#Help on built-in function upper:
+
+#upper(...)
+    S.upper() -> string
+
+    #Return a copy of the string S converted to uppercase.
+
+
+#Los elementos de una cadena pueden ser separados en una lista usando el método split():
+line = 'Pera,100,490.10'
+row = line.split(',') #la coma indica el elemento que separa
+row
+['Pera', '100', '490.10']
+
+#Para encontrar rápidamente la posición de un elemento en una lista, usá index().
+nombres = ['Rosita','Manuel','Luciana']
+nombres.index('Luciana')   # 2
+#Si el elemento está presente en más de una posición, index() te va a devolver el índice de la primera aparición. Si el elemento no está en la lista se va a generar una excepción de tipo ValueError.
+#rdenar una lista
+#Las listas pueden ser ordenadas "in-place", es decir, sin usar nuevas variables.
+s = [10, 1, 7, 3]
+s.sort()                    # [1, 3, 7, 10]
+
+# Orden inverso
+s = [10, 1, 7, 3]
+s.sort(reverse=True)        # [10, 7, 3, 1]
+
+# Funciona con cualquier tipo de datos que tengan orden
+s = ['foo', 'bar', 'spam']
+s.sort()                    # ['bar', 'foo', 'spam']
+#Usá sorted() si querés generar una nueva lista ordenada en lugar de ordenar la misma:
+t = sorted(s)               # s queda igual, t guarda los valores ordenados
+
+#Podés acceder a los elementos de las listas anidadas usando múltiples operaciones de acceso por índice.
+>>> items[0]
+'spam'
+>>> items[0][0]
+'s'
+>>> items[1]
+['Banana', 'Mango', 'Frambuesa', 'Pera', 'Granada', 'Manzana', 'Lima']
+>>> items[1][1]
+'Mango'
+>>> items[1][1][2]
+'n'
+>>> items[2]
+[101, 102, 103]
+>>> items[2][1]
+102
+>>>
+#MANERA DE VER LO QUE ESTÁS ITERANDO (con un ejemplo de la clase):
+for i,c in enumerate(cadena):
+        capadepenapa=capadepenapa+c
+        if c in ("aeiou"):
+            capadepenapa=capadepenapa+"p"+c #es lo mismo que poner capadepenapa += "p"+c
+        print(i,c,capadepenapa)
+print(capadepenapa)
+
+
+#PARA HACER UN BLOQUE/SECCIÓN:
+####   #%% Sección 1
+
+Cómo chequear la versión de Python:
+import sys
+print(sys.version)
+
+
+# Cuantiles ponderados
+ 
+def comando_cuantiles(df, variable, cuantiles, ponderador=None):
+
+    import matplotlib.pyplot as plt
+    #!pip install weightedcalcs
+    import weightedcalcs as wc
+
+    if ponderador!=None:
+        calc = wc.Calculator(ponderador)
+        percentiles = []
+        #Computo los percentiles
+        for x in range(1,cuantiles+1) :
+            p = calc.quantile(df[df[variable]>0], variable,x/100)
+            percentiles = percentiles + [p]
+
+        data=df[df[variable]>0]
+        lista_df = []
+        link = []
+        
+        for index, row in data.iterrows():
+            t = False
+            per=0
+            for i in percentiles:
+                if t==False:   
+                    if row[variable]>=i:
+                        t=False
+                    else:
+                        t=True
+                    per += 1
+            lista_df = lista_df  + [per]
+            link = link + [row['link']]
+        dict_df = {'link':link,'percentil':lista_df}
+        out = pd.DataFrame.from_dict(dict_df)
+        out.percentil = out.percentil.astype(int)
+
+        return out
+    # else:
+    #     df.quantile(q=cuantiles)
+        
+#     bar_df = gdf.groupby('percentil').agg({'ponderador':'sum'})
+#     bar_df = bar_df.reset_index()
+#     plt.bar(bar_df['percentil'], bar_df[ponderador])
+
+# %% SPATIAL DATA
+
+import geopandas as gpd
+
+# Transform a geodataframe to a dataframe and drop the geometry column
+df = pd.DataFrame(gdf.drop(columns='geometry'))
+
+# Read a shape / geospatial file
+mapa = gpd.read_file('path')
+
+# Plot the map
+mapa.plot()
+
+# Explore the map / plot the map on a real map:
+mapa.explore()
+
+# Generate a distance matrix between points in a geo data frame:
+matriz_distancias = mapa.geometry.apply(lambda g: mapa.distance(g))
+
+# Convert a data frame to a geo data frame
+db_gdf = gpd.GeoDataFrame(data=db, geometry=gpd.points_from_xy(db.longitude, db.latitude), crs='epsg:4326')
+
+# Spatial joins / Select points within a polygon
+db_gdf = gpd.sjoin(db_gdf, polydf, op = 'within')
+
+# Change the CRS of a geo data frame
+db_gdf = db_gdf.to_crs('epsg:4326') # I think there is another one called set_crs # and another is db_gdf.crs = {'init': 'epsg:4326'}
+
+# Create a shapefile / convert a geo data frame to a shapefile
+gdf.to_file("algo.shp")
+
+# Difference between these two CRSs 3857 and 4326: https://gist.github.com/Rub21/49ed3e8fea3ae5527ea913bf80fbb8d7
+
+# Plot two layers together
+base_plot = poligono.plot()
+puntos.plot(ax=base_plot, color='blue');
+
+# See ipynb "arreglo_espacioal_estaciones_servicio"

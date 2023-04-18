@@ -741,6 +741,10 @@ names(df) <- c('col1', 'col2')
 datestring <- c("January 10, 2012 10:40", "December 9, 2011 9:10")
 x <- strptime(datestring, "%B %d, %Y %H:%M")
 x
+# otra forma
+x <- "20181201"
+x <- as.Date(x, "%Y%m%d")
+x
 
 # El tiempo actual / hoy:
 Sys.time()
@@ -1000,6 +1004,9 @@ base <- base[,-grep("^empieza_con", names(base))]
 #Renombrar una variable / cambiar el nombre de una columna:
 base <- rename(base, nuevo_nombre = viejo_nombre) #o
 base <- base %>% rename(nuevo_nombre=viejo_nombre)
+# Si el nombre nuevo esta en un objeto definido, usar:
+objeto <- "nuevo_nombre"
+iris <- iris %>% rename(!!as.name(objeto) := Species)
 
 # Cambiar el nombre de muchas columnas / variables al mismo tiempo
 data.table::setnames(d, old = c('a','d'), new = c('anew','dnew'))
@@ -1557,7 +1564,7 @@ stringr::str_split("hola$chau", "\\$")
 # el $ significa que ese es el final del caracter
 
 
-# Comandos para GRÁFICOS --------------------------------------------------
+# Graficos --------------------------------------------------
 
 
 # Partir un título en más de una lína / añadir un line break en un título
@@ -1601,7 +1608,7 @@ GGally::ggpairs(flea, columns = 2:4)
 GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(size=15))
 
 
-# Comandos para manejo de DATOS ESPACIALES --------------------------------
+# Datos espaciales --------------------------------
 
 # Dividir un polígono en X partes de aproximadamente el mismo tamaño
 # Fuente: https://gis.stackexchange.com/questions/375345/dividing-polygon-into-parts-which-have-equal-area-using-r
@@ -1920,6 +1927,15 @@ lm(dep_var ~ factor(categ_var))
     # Para el modelos estimados con el paquete "plm"
 plm::fixef(modelo)
 
+# Estimar un modelo de panel con efectos fijos por tiempo e individuos
+model <- plm(formula=specification, 
+             data=panel,
+             model = "within",
+             index=c('id_grid_pt', "year_month"), # id vars for individuals and time
+             effect="twoways" # !!! very important that this argument is called
+             # "effect" and not "effects". Otherwise it will not produce a two-way model
+)
+
 # Weak instrument Test / Test Cragg Donald para instrumentos débiles
 # https://cran.r-project.org/web/packages/cragg/vignettes/introduction.html
 
@@ -2026,20 +2042,28 @@ create_image_carousel <- function(path, add_dots=T){
 
 # Fijar opciones globales para todo el documento
 knitr::opts_chunk$set(
-    echo = TRUE,
-    message = FALSE) # Suprimir mensajes normales de R (ej cuando lees un csv)
+    echo = TRUE, # Mostrar el codigo de cada chunk
+    tidy = TRUE, # decorar el codigo
+    include = TRUE, # Mostrar el resultado de cada chunk
+    message = FALSE, # Suprimir mensajes normales de R (ej cuando lees un csv)
+    warning = FALSE # Suprimir warnings
+    ) 
+
+# Ver todas las opciones globales posibles
+str(knitr::opts_chunk$get())
 
 # Cambiar el formato de una fila determinada de una tabla
 knitr::kable(df_tabla) %>%
-    kable_styling()%>%
+    kableExtra::kable_styling()%>%
     kableExtra::row_spec(nro_fila, bold=T)
     # en este caso hago que la fila "nro_fila" sea negrita
 
 # Mejorar el formato de una table de Kable
 knitr::kable(df_tabla) %>%
-    kable_styling()
+    kableExtra::kable_styling()
 
 # Hacer referencias a objetos definidos en el ambiente en el texto del markdown
+# Correr codigo de r en markdown
 `r mean(objeto)`
 # Todo lo qie aparezca entre backticks `` y empiece con "r", el markdown lo
 # entiende como codigo en R

@@ -32,13 +32,7 @@ Ahora (feb 2022)
 
 !pip install paquete
 
+Ahora (abr 2023)
+python -m pip install openpyxl
+
 ----------------------
-
-Paquetes a instalar:
-
-geopandas (este requiere fiona, gdal y cosas raras)
-numpy
-matplotlib
-plotly
-seaborn
-os
