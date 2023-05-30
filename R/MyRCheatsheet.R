@@ -229,7 +229,7 @@ library(fable)
 
 # Paralelizar procesos:
 library(parallel)
-    
+
 
 #__________ Tema: paquete googledrive
     
@@ -311,6 +311,23 @@ library(readr) #solo hay que correr eso y se define la variable
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
+
+# Hacer un calculo por grupo y crear muchas variables a la vez con la misma funcion /
+# Agrupar una base y realizar una operacion en muchas columnas a la vez
+variables <- c("var1", "var2", "var3")
+result <- df %>%
+    group_by(var_grupos) %>%
+    summarise(across(all_of(variables), sum))
+
+# Definir el encoding para un script
+Sys.setlocale("LC_CTYPE", "en_US.UTF-8")
+
+# Obtener el codigo fuente de una funcion
+getAnywhere(summary.data.frame)
+
+# Verificar si R se esta corriendo de forma interactiva (en R  Rstudio) (TRUE),
+# o verificar si R se esta corriendo en la consola (FALSE)
+interactive()
 
 # Recodear una variable / Mapear los valores de una columna a otros valroes /
 # Cambiar los valores de una variabl segun una correspondencia
@@ -447,7 +464,8 @@ as.formula("y ~ x1 + x2")
 df <- powerjoin::power_left_join(df1, df2, by = c("var1", "var2", "var3"), conflict = powerjoin::coalesce_yx)
 
 # Crear un objeto en el ambiente padre / asignar un objeto en el ambiente por fuera de una funcion
-assign("le_pongo_este_nombre", este_es_el_objeto, envir=parent.frame())
+assign("le_pongo_este_nombre", este_es_el_objeto, envir=globalenv()) 
+# a veces hay que usar parent.frame() en vez de globalenv()
 
 
 # Crear un indice por grupo
@@ -1610,6 +1628,17 @@ GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(si
 
 # Datos espaciales --------------------------------
 
+# Encontrar los poligonos de un data frame que se superpongan
+# (con otros poligonos del data frame)
+mask <- rowSums(st_intersects(df_sf, df_sf, sparse =  FALSE)) > 1
+df_sf_superpuestos <- df_sf[which(mask), ]
+
+# Ver las capas disponibles en en un geo-servicio WFS
+sf::st_layers("https://mapa.educacion.gob.ar/geoserver/ows?service=wfs&version=1.1.0&request=GetCapabilities")
+
+# Ver missings en la columna con geometrias
+st_is_empty(df$geometry)
+
 # Dividir un polígono en X partes de aproximadamente el mismo tamaño
 # Fuente: https://gis.stackexchange.com/questions/375345/dividing-polygon-into-parts-which-have-equal-area-using-r
 library(sf)
@@ -1643,6 +1672,18 @@ radios <- radios %>%
 # geometrias repetidas, por un lado, y por otro lado hay algunos radios que se
 # componen de más de una geometría. Por lo tanto, si simplemente eliminás los
 # duplicados, perdés algunas partes de estos radios combinados.
+# Otra opción (màs rápida) es combinar las geometrias solo para los poligonos
+#   con IDs duplicados, luego eliminarlos de la base original, y volver
+#   a insertarlos con las geometrias unidas
+radios_aux <- radios %>%
+    group_by(link) %>% filter(n()>1) %>% 
+    summarize(
+        geometry=st_union(geometry),
+        area = sum(area)
+    )
+radios <- radios[!(radios$link %in% radios_aux$CCA),]
+radios <- rbind(radios, radios_aux)
+rm(radios_aux)
 
 # Filtrar poligonos en base a la interseccion con otro objeto espacial
 # En este caso, nos quedamos con todos los poligonos en "poly" que intersecten
@@ -1989,6 +2030,47 @@ spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.side
 
 
 # R Markdown --------------------------------------------------------------
+
+# Definir el formato de los diferentes elementos del html
+# Hay que crear un archivo .css en el mismo directorio que el markdown, 
+# que puede tener, por ejemplo, estos parámetros:
+body {
+    /* text-align: center;  Center all document */
+        font-size: 18px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #333; /* Heading text color */
+}
+
+ul {
+    text-align: left;
+    font-size: 24px; /* Allign unordered list to the left */
+}
+
+ol {
+    text-align: left;
+    font-size: 24px; /* Allign ordered list to the left */
+}
+
+
+.bigger {
+    color: #333;
+        font-weight: bold;
+    font-size: 32px; /* Adjust the font size as desired */
+}
+# Y luego cargar ese archivo en las opciones globales del markdown
+output:
+    html_document:
+        css: styles.css
+
+# Definir la fecha de manera automatica
+date: "`r format(Sys.time(), '%d %B, %Y')`" # al inicio del doc
+
+# Intestar una foto /archivo png o jpg
+![Caption que quieras](path/archivo.png)
+# O usando knitr
+knitr::include_graphics("imagen.png")
 
 # Funcion para crear un "image carousel" (carrusel de imagenes) en Mardown
 library(htmlwidgets)

@@ -5093,6 +5093,9 @@ rmse_test = MSE(y_test, y_pred)**(1/2)
 # - Computer vision
 # - NLP
 
+# One data set used here:
+# https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+
 
 # --- Ch1: Classification with XGBoost ---
 
@@ -5413,10 +5416,447 @@ print(pd.DataFrame(list(zip(colsample_bytree_vals, best_rmse)), columns=["colsam
 
 
 # Review of GRID SEARCH and RANDOM SEARCH
-# Grid search: 
+
+# GRID SEARCH: exhaustibly searching through a collection of values
+import pandas as pd
+import xgboost as xgb
+import numpy as np
+from sklearn.model_selection import GridSearchCV
+housing_data = pd.read_csv('hdata.csv')
+X, y = housing_data[housing_data.columns.to_list()[:-1]], housing_data[housing_data.columns.to_list()[-1]]
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+
+# Define parameter grid
+gbm_param_grid = {'learning_rate': [0.01, 0.1, 0.5, 0.9],
+                  'n_estimators': [200],
+                  'subsample':[0.3, 0.6, 0.9]}
+                  # 12 combinations
+gmb = xgb.XGBRegressor()
+grid_mse = GridSearchCV(estimator=gbm, param_grid=gbm_param_grid,
+                        scoring='neg_mean_squared_error', # metric
+                        cv=4, # cv folds
+                        verbose=1) # define kind of output
+grid_mse.fit(X, y)
+print('Best parameters found: ', grid_mse.best_params_)
+print('Lowest RMSE found: ', np.sqrt(np.abs(grid_mse.best_score_)))
+
+# Disadvantages: as the nº of values increases, the combinatios and therefore the time increase exponentially
+
+
+# RANDOM SEARCH: you create a range of hyperparameter values you would like to search over, and
+#   set the number of iterations you would like for the random search to continue. You draw a random set of values a 
+#   defined amount of times, and then pick the best one.
+import pandas as pd
+import xgboost as xgb
+import numpy as np
+from sklearn.model_selection import RandomizedSearchCV
+housing_data = pd.read_csv('hdata.csv')
+X, y = housing_data[housing_data.columns.to_list()[:-1]], housing_data[housing_data.columns.to_list()[-1]]
+housing_dmatrix = xgb.DMatrix(data=X,label=y)
+
+# Define parameter grid
+gbm_param_grid = {'learning_rate': np.arrange(0.05, 1.05, .05),
+                  'n_estimators': [200],
+                  'subsample': np.arrange(0.05, 1.05, .05)} 
+                  # if you ran a grid search, these would amount to 400 combinations
+gmb = xgb.XGBRegressor()
+randomized_mse = RandomizedSearchCV(estimator=gbm, 
+                              param_distributions=gbm_param_grid,
+                              n_iter=25, # number of iterations of the random search (n of combinatios)
+                              scoring='neg_mean_squared_error', # metric
+                              cv=4, # cv folds
+                              verbose=1)
+randomized_mse.fit(X, y)
+print('Best parameters found: ', randomized_mse.best_params_)
+print('Lowest RMSE found: ', np.sqrt(np.abs(randomized_mse.best_score_)))
+
+# Disadvantage: as you add new values the parameter space becomes exponentially large and it reduces the chances of
+#   getting the best combination, so it takes more time.
+
 
 # --- Ch4: Using XGBoost in pipelines ---
 
+# PREPROCESSING strategy: 
+# 1) Use LabelEncoder and OneHot Encoder (which cannot be run in a Pipeline)
+# LabelEncoder: converts a categorical column of strings into integers that map onto those strings
+# OneHotEncoder: takes the column of integers and encodes them as dummy variables
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+
+df =pd.read_csv('ames_housing_data.csv')  https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+import LabelEncoder
+df.LotFrontage = df.LotFrontage.fillna(0)
+categorical_mask = (df.dtypes == 'object')
+categorical_columns = df.columns[categorical_mask].tolist()
+
+# Create LabelEncoder object: le
+le = LabelEncoder
+
+# Apply LabelEncoder to categorical columns
+df[categorical_columns] = df[categorical_columns].apply(lambda x: le.fit_transform(x))
+
+# Print the head of the LabelEncoded categorical columns
+print(df[categorical_columns].head())
+
+# Create OneHotEncoder: ohe
+ohe = OneHotEncoder(sparse=False)
+
+# Apply OneHotEncoder to categorical columns - output is no longer a dataframe: df_encoded
+df_encoded = ohe.fit_transform(df)
+
+# Print first 5 rows of the resulting dataset - again, this will no longer be a pandas dataframe
+print(df_encoded[:5, :])
+
+
+# 2) DictVectorizer: converts lists of feature mapping into vectors
+# You first need to convert the DataFrame into a list of dictionary entries
+import pandas as pd
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.pipeline import Pipeline
+import xgboost as xgb
+
+# Convert df into a dictionary: df_dict
+df_dict = df.to_dict("records")
+
+# Create the DictVectorizer object: dv
+dv = DictVectorizer(sparse=False)
+
+# Apply dv on df: df_encoded
+df_encoded = dv.fit_transform(df_dict)
+
+# Print the resulting first five rows
+print(df_encoded[:5,:])
+
+# Print the vocabulary
+print(dv.vocabulary_)
+
+# Fill LotFrontage missing values with 0
+X.LotFrontage = X.LotFrontage.fillna(0)
+
+# Setup the pipeline steps: steps
+steps = [("ohe_onestep", DictVectorizer(sparse=False)),
+         ("xgb_model", xgb.XGBRegressor())]
+
+# Create the pipeline: xgb_pipeline
+xgb_pipeline = Pipeline(steps)
+
+# Fit the pipeline
+xgb_pipeline.fit(X.to_dict("records"), y)
+
+
+# Incorporating XGBoost into pipelines
+# Use XGBoost scikit learn API within a pipeline object
+import pandas as pdimport xgboost as xgb
+import numpy as npfrom sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+
+names = ['crime', 'zone', 'industry', 'charles', 'no', 'rooms', 'age',
+         'distance', 'radial', 'tax', 'pupil', 'aam', 'lower', 'med_price']
+data = pd.read_csv("boston_housing.csv", names=names)
+X, y = data.iloc[:,:-1], data.iloc[:,-1]
+xgb_pipeline = Pipeline([('st_scaler', StandardScaler()),
+                        ('xgb_model', xgb.XGBRegressor())])
+# Compute the corss validated negative mse using 10-fold CV
+scores = cross_val_score(xgb.pipeline, X, y, scoring="neg_mean_squared_error", 
+                         cv=10)
+# Convert the 10-fold negative MSE into an average RMSE across all 10 folds
+final_avg_rmse = np.mean(np.sqrt(np.abs(scores)))
+print('Final XGB RMSE:", final_avg_rmse')
+
+
+# END-TO-END PIPELINE WITH XGBOOST EXAMPLE
+
+# We will have to use the library sklearn_pandas to "bridge the gap" between pandas and sklearn
+# It has a generic class called DataFrameMapper which allows for easy conversion between scikit learn
+# aware objects, or pure numpy arrays, and DataFrames
+
+# We will also use uncommon aspects of sklearn:
+# sklearn.impute: SimpleImputer class to fill in missing numerical and cagtegorial values
+# sklearn.pipeline: FeatureUnion class allows to combine separate pipeline outputs into
+#   a single output. For example, we would need to do this if we had one set of pre-processing
+#   steps on the categorical part of the dataset, and another one on the numerical part of the dataset
+
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_score
+
+X.LotFrontage = X.LotFrontage.fillna(0)
+
+# Setup the pipeline steps: steps
+steps = [("ohe_onestep", DictVectorizer(sparse=False)),
+         ("xgb_model", xgb.XGBRegressor(max_depth=2, objective="reg:linear"))]
+
+         # Create the pipeline: xgb_pipeline
+xgb_pipeline = Pipeline(steps)
+
+# Cross-validate the model
+cross_val_scores = cross_val_score(xgb_pipeline, X.to_dict('records'),
+y, cv=10, scoring="neg_mean_squared_error")
+
+# Print the 10-fold RMSE
+print("10-fold RMSE: ", np.mean(np.sqrt(np.abs(cross_val_scores))))ç
+
+# Kidney disease case study I: Categorical Imputer
+
+# You'll now continue your exploration of using pipelines with a dataset that requires significantly more wrangling. 
+# The chronic kidney disease dataset contains both categorical and numeric features, but contains lots of missing values.
+# The goal here is to predict who has chronic kidney disease given various blood indicators as features.
+
+# As Sergey mentioned in the video, you'll be introduced to a new library, sklearn_pandas, that allows you to chain many
+#  more processing steps inside of a pipeline than are currently supported in scikit-learn. Specifically, you'll be able
+#  to use the DataFrameMapper() class to apply any arbitrary sklearn-compatible transformer on DataFrame columns, where
+#  the resulting output can be either a NumPy array or DataFrame.
+
+# We've also created a transformer called a Dictifier that encapsulates converting a DataFrame using .to_dict("records")
+#  without you having to do it explicitly (and so that it works in a pipeline). Finally, we've also provided the list of
+#  feature names in kidney_feature_names, the target name in kidney_target_name, the features in X, and the target in y.
+
+# In this exercise, your task is to apply sklearn's SimpleImputer to impute all of the categorical columns in the dataset.
+#  You can refer to how the numeric imputation mapper was created as a template. Notice the keyword arguments 
+# input_df=True and df_out=True? This is so that you can work with DataFrames instead of arrays. By default, the 
+# transformers are passed a numpy array of the selected columns as input, and as a result, the output of the DataFrame
+#  mapper is also an array. Scikit-learn transformers have historically been designed to work with numpy arrays, 
+# not pandas DataFrames, even though their basic indexing interfaces are similar.
+
+from sklearn_pandas import DataFrameMapper
+from sklearn.impute import SimpleImputer
+
+# Check number of nulls in each feature column
+nulls_per_column = X.isnull().sum()
+print(nulls_per_column)
+
+# Create a boolean mask for categorical columns
+categorical_feature_mask = X.dtypes == object
+
+# Get list of categorical column names
+categorical_columns = X.columns[categorical_feature_mask].tolist()
+
+# Get list of non-categorical column names
+non_categorical_columns = X.columns[~categorical_feature_mask].tolist()
+
+# Apply numeric imputer
+numeric_imputation_mapper = DataFrameMapper(
+    [([numeric_feature], SimpleImputer(strategy="median")) for 
+    numeric_feature in non_categorical_columns],
+    input_df=True,
+    df_out=True
+    )
+
+# Apply categorical imputer
+categorical_imputation_mapper = DataFrameMapper(
+    [(category_feature, SimpleImputer(strategy="median")) for 
+    category_feature in categorical_columns],
+    input_df=True,
+    df_out=True
+    )
+
+# Having separately imputed numeric as well as categorical columns, your task is now to use scikit-learn's FeatureUnion 
+# to concatenate their results, which are contained in two separate transformer objects - numeric_imputation_mapper, 
+# and categorical_imputation_mapper, respectively.
+from sklearn.pipeline import FeatureUnion
+
+# Combine the numeric and categorical transformations
+numeric_categorical_union = FeatureUnion([
+    ("num_mapper", numeric_imputation_mapper),
+    ("cat_mapper", categorical_imputation_mapper)
+])
+
+# Create full pipeline
+pipeline = Pipeline([
+                     ("featureunion", numeric_categorical_union),
+                     ("dictifier", Dictifier()),
+                     ("vectorizer", DictVectorizer(sort=False)),
+                     ("clf", xgb.XGBClassifier(max_depth=3))
+                    ])
+
+# Perform cross-validation
+cross_val_scores = cross_val_score(pipeline, 
+kidney_data, y, scoring="roc_auc", cv=3)
+
+# Print avg. AUC
+print("3-fold AUC: ", np.mean(cross_val_scores))
+
+
+# HYPERPARAMETER TUNING
+# In order for the hyperparameters to be passed to the appropriate step, you have to name the parameters in the dictionary
+# with the name of the step being referenced, followed by two underscore signs and the name of the hyperparameter you
+# want to iterate over
+# Create the parameter grid
+gbm_param_grid = {
+    'clf__learning_rate': np.arange(0.05, 1, 0.05),
+    'clf__max_depth': np.arange(3, 10, 1),
+    'clf__n_estimators': np.arange(50, 200, 50)
+}
+
+# Perform RandomizedSearchCV
+randomized_roc_auc = RandomizedSearchCV(estimator=pipeline, 
+param_distributions=gbm_param_grid, scoring='roc_auc', n_iter=2, cv=2,
+verbose=1)
+
+# Fit the estimator
+randomized_roc_auc.fit(X, y)
+
+# Compute metrics
+print('Best estimator found: ', randomized_roc_auc.best_estimator_)
+print('Lowest RMSE found: ', randomized_roc_auc.best_score_)
+
+
+# WHAT THE COURSE LEFT OUT:
+# Using XGBoost for ranking/recommendation probmes (modify the loss function)
+# More powerful hyperparameter tuning strategies (like Bayesian Optimization)
+# Usign XGBoost as part of an ensemble of other models
+
+
+#%% PREPROCESSING FOR MACHINE LEARNING IN PYTHON
+
+# Ch1: INTRODUCTION TO DATA PREPROCESSING
+
+# Recap: data exploration with pandas
+import pandas as pd
+print(df.head())
+df.info() # number of columns and rows, columns, data type, non-missing values
+df.describe() # summary statistics
+df.var() # check variance of columns
+df.isna().sum() # count missing values
+df.dropna() # dro pall rows containing missing values
+df.drop("Col1", axis=1) # drop an entire column
+df.dropna(subset=["Col1"]) # keep all non-missing values according to a column
+df.dropna(thresh=2) # drop all rows with less than 2 non-missing values
+
+# Working with data types
+df['col'] = df['col'].astype("float") # convert data type to float
+print(df.dtypes)
+
+# Stratified sampling into train and test set
+# Make sure that the class distribution in the train and test sets are the same
+#   as the distribution of the original sample
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_State=123)
+
+
+# Ch2: STANDARDIZING DATA
+
+# Transform continuous data to appear normally distributed. This is often necessary
+# because models assume normally distributed data.
+
+# Scenarios where you would want to standardize data:
+# - Working with any kind of model that uses a linear distance metric, or operates
+#   in a linear space (kNN, linear regression, K-means Clustering)
+# - When features have a high variance, which could bias a model tha assumes data is normally distributed.
+#   If a feature in the data has a very high variance, this could impact the model's ability to learn from the other features.
+# - A lot of continuous features with different scales (e.g.: house price prediction).
+
+# However, there are models that have no problem working in a non-linear space, or do standardization in estimation.
+
+# LOG-NORMALIZATION: useful when you have features with high variance.
+# Applies logarithmic transformation to turn data into a scale that approximates normality
+import numpy as np
+df['col1'] = np.log(df['col1'])
+
+# SCALING DATA FOR FEATURE COMPARISON
+# Most useful when working with data with continuous features with different scales and
+# with models that operate in some sort of linear space (linear regression, kNN)
+# I transforms the features so that they have mean 0 and variance 1
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+df_scaled = pd.DataFrame(scaler.fit_transform(df), colums=df.columns)
+# Apply this into a workflow. E.g. kNN
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
+knn = KNeighborsClassifier()
+scaler = StandardScaler()
+# !!! It is very important to scale the data AFTER splitting it into train and test
+# Otherwise you are doing data-leakage
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test) # It is important to use the transform method
+# instead of fit_transform here so that the test features won't be used to fit the model.
+knn.fit(X_train_scaled, y_train)
+knn.score(X_test_scaled, y_test)
+
+
+# Ch3: FEATURE ENGINEERING
+
+# Extract and expand information from existing features to improve performance ad gain insights into relationships between features
+# It is very specific to each dataset
+
+# ENCODING CATEGORICAL VARIABLES
+
+# ENCODING A BINARY VARIABLE
+# with pandas
+df['col_enc'] = df['col'].apply(lambda val: 1 of val=='y' else 0)
+# with Sklearn
+# This is useful when the encoding is part of a scikit-learn pipeline. Creating a LabelEncoder
+# also allows us to use the same encoding in another data.
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['col_enc'] = le.fit_transform(df['col'])
+
+# ONE-HOT ENCODING: encodes categorical variables into 1s and 0s when there are more than
+# two values to encode. It transforms unique values of the column into an array, and
+# shows a 1 in the place of each unique value when a particular record has that value
+# You can turn this into dummy variables with pandas
+pd.get_dummies(df['cat_col'])
+
+# ENGINEERING NUMERICAL FEATURES
+# Aggregate statistics and dates
+# Average across columns
+df['mean_col'] = df.loc[:, 'day1':'day5'].mean(axis=1)
+# Reduce the granularity of a date variable
+df['date_converted'] = pd-to_datetime(df['date'])
+df['month'] = df['date_converted'].dt.month
+
+# ENGINEERING TEXT FEATURES
+# 1) EXTRACTION WITH REGEX
+import re
+my_string = 'temperature: 75.6 F'
+temp = re.search('\d+\.\d+', my_string)
+# \d is digits, + is to grab as many as possible, \. escape the decimal point
+
+# 2) VECTORIZING TEXT: transform text into a numerical input.
+# TF/IDF (term frequency/inverse document frequency): reflects how important a word
+# is in a document beyond how it frequently it occurs. Places the weight on words that are ultimately more significant
+# in the entire corpus of words.
+from sklearn.feature_extraction.text import TfidfVectorizer
+tfidf_vec = TfidfVectorizer()
+text_tfidf = tfidf_vec.fit_transform(documents)
+# Now that we have a vectorized version of the text, we can use it for classification using a Naive Bayes, for example
+
+
+# Ch4: SELECTING FEATURES MODELING
+
+# Remove correlated features by calculating Pearson's correlation coefficient
+print(df.corr())
+
+# SELECTING FEATURES USING TEXT VECTORS
+# If you have a tfid vector, you do not necessarily need to use it all. You
+#   could use a % of the words by looking the weights of the words.
+# After you vectorize the text, the vocabulary and weights will be stored in the
+#   vectorizer.
+# See vocabulary weights
+from sklearn.feature_extraction.text import TfidfVectorizer
+tfidf_vec = TfidfVectorizer()
+text_tfidf = tfidf_vec.fit_transform(documents)
+print(tfidf_vec.vocabulary_)
+# Access the weights of a row
+print(text_tfidf[3].data)
+# Access the indices of words that have been weighted
+print(text_tfidf[3].indices)
+# Reverse the key-balue pairs in the vocabulary dictionary
+vocab = {v:k for k,v in tfidf_vec.vocabulary_.items()}
+# Zip row indices and weights
+zipped_row = dict(zip(text_tfidf[3].indices,
+                      text_tfidf[3].data))
+# Or do it in a function (create mapping of words to weights)
+def return_weights(vocab, vector, vector_index):
+    zipped = dict(zip(vector[vector_index].indices, vector[vector_index].data))
+    return {vocab[i]:zipped[i] for i in vector[vector_index].indices}
+print(return_weights(vocab, text_tfidf, 3))
+
+# Ch5: PUTTING IT ALL TOGETHER
 
 
 #%% UNDERSTANDING DATA ENGINEERING
@@ -6259,7 +6699,7 @@ len( sel.xpath('//*') )
 # Get the HTML as a string (then we will see how to do this with scrapy only)
 import requests
 url = 'https://es.wikipedia.org/wiki/Web_scraping'
-html = reguests.get(url).content
+html = requests.get(url).content
 sel = Selector(text=html)
 
 
@@ -6340,7 +6780,7 @@ xpath = '//p[@id="p3"]/text()'
 # RESPONSE OBJECTS in Scrapy
 # The Response object has all the tools we learned in Selectors: xpaths and css
 # methods followed by extract() and extract_first() (actually the Selector
-# objectsw were an introduction to Respnse objects)
+# objects were an introduction to Response objects)
 # The advantage is that on top of this, these objects keeps track of which url
 # the html is from and hence gives us a tool to crawl between links on sites and
 # scrape multiple links automatically. 
@@ -6352,11 +6792,9 @@ response.follow(next_url)
 # SCRAPING AN EXAMPLE SITE (DATACAMP)
 # Scrape the course directory of DataCamp and create a list of link to the course
 # pages.
-from scrapy import Response
 import requests
 url = 'https://app.datacamp.com/learn/courses'
-html = reguests.get(url).content
-response = Response(text=html)
+# imagine there is a pre-loaded response
 course_divs = response.css('div.course-block')
 # amount of courses retreieved
 print(len(course_divs)) 
@@ -6388,23 +6826,194 @@ for el in crs_titles:
 
 # Ch4: SPIDERS
 
+# General form of the code:
 import scrapy
+from scrapy.crawler import CrawlerProcess
+    # Spider class. It must take scrapy.Spider as input to inherit all the methods from the scrapy.Spider class
+class SpiderClassName(scrapy.Spider):
+    name = "spider_name"
+    # the code for your spider
+    ...
+    # Run the spider
+process = CrawlerProcess()
+process.crawl(SpiderClassName)
+process.start()
+
+# Example spider to scrape the DataCamp course directory
 # Create the spider class, an pass the argument "scrapy.Spider" so that it
 # inherits the methods from a scrapy spider
-class YourSpider(scrapy.Spider):
-  name = "your_spider"
-  # start_requests method
-  def start_requests(self):
-    pass
-  # parse method
-  def parse(self, response):
-    pass
+class DCspider(scrapy.Spider): # you can call the class anything you want
 
-# Inspect Your Class
-inspect_class(YourSpider)
+    name = "dc_spider" # here you can assign any string, but it is more neat to be similar to the class name
+
+    # Method to define which site or sites to scrape, and where to send the information to be parsed
+    def start_requests(self):
+        urls = ['https://www.datacamp.com/courses/all']
+        for url in urls:
+            yield scrapy.Request(url = url, callback = self.parse)
+
+    # Method to take the html code and simply write it to a file
+    def parse(self, response):
+        # simple example: write out the html
+        html_file = 'DC_courses.html'
+        with open(html_file, 'wb') as fout:
+            fout.write(response.body)
+
+
+# START REQUESTS method
+def start_requests(self): # it cannot have a different name than this
+    urls = ['https://www.datacamp.com/courses/all']
+    for url in urls:
+        yield scrapy.Requests(url=url, callback=self.parse) # send a response 
+        # variable preloded with the HTML code from the url argument to the
+        # parsing function defined in the 'callback' argument (the method "parse")
+        # In other words, it sends a scrapy response object to a parsing function for processing.
+        # With the scrapy.Request, many things happen under the hood
+def parse(self, response): # response is the variable passed from the scrapy.Request call
+# simple example: write out the html
+    html_file = 'DC_courses.html'
+    with open(html_file, 'wb') as fout:
+        fout.write(response.body)
+
+# PARSE method
+# First example: extracts the links from the DataCamp course directory and
+#   saves these links to a file with one link per line
+class DCspider(scrapy.Spider):
+    name = "dc_spider"
+
+    def start_requests(self):
+        urls = ['https://www.datacamp.com/courses/all']
+        for url in urls:
+            yield scrapy.Request(url = url, callback = self.parse)
+
+    def parse(self, response):
+        links = response.css('div.course-block > a::aattr(href)').extract()
+        filepath = 'DC_link.csv'
+        with open(filepath, 'w') as f:
+            f.writelines( [link + 'n' for link in links] )
+
+# Second example: crawl between more than one site. First weextract the course
+#   links. Then, instead of printing them to a file, we make the spider follow
+#   those links and parse those new sites in a second parser.
+class DCspider(scrapy.Spider):
+    name = "dc_spider"
+
+    def start_requests(self):
+        urls = ['https://www.datacamp.com/courses/all']
+        for url in urls:
+            yield scrapy.Request(url = url, callback = self.parse)
+
+    def parse(self, response):
+        links = response.css('div.course-block > a::aattr(href)').extract()
+        for link in links:
+            yield response.follow(url=link, callback=self.parse2)
+            # instead of using scrapy.Request, we use the 'follow' method in the
+            #   response varaible itself
+    
+    def parse2(self, response):
+        # parse the course sites here
+
+# In this exercise, we have set up a spider class which, when finished, will retrieve the author names from a shortened 
+# version of the DataCamp course directory. The URL for the shortened version is stored in the variable url_short. 
+# Your job will be to create the list of extracted author names in the parse method of the spider
+import scrapy
+# Create the Spider class
+class DCspider( scrapy.Spider ):
+  name = 'dcspider'
+  # start_requests method
+  def start_requests( self ):
+    yield scrapy.Request( url = url_short, callback = self.parse )
+  # parse method
+  def parse( self, response ):
+    # Create an extracted list of course author names
+    author_names = response.css( 'p.course-block__author-name::text' ).extract()
+    # Here we will just return the list of Authors
+    return author_names
+
+#This will be your first chance to play with a spider which will crawl between sites (by first collecting links from one
+#  site, and following those links to parse new sites). This spider starts at the shortened DataCamp course directory, 
+# then extracts the links of the courses in the parse method; from there, it will follow those links to extract the 
+# course descriptions from each course page in the parse_descr method, and put these descriptions into the list 
+# course_descrs. Your job is to complete the code so that the spider runs as desired!
+import scrapy
+# Create the Spider class
+class DCdescr( scrapy.Spider ):
+  name = 'dcdescr'
+  # start_requests method
+  def start_requests( self ):
+    yield scrapy.Request( url = url_short, callback = self.parse )
+  
+  # First parse method
+  def parse( self, response ):
+    links = response.css( 'div.course-block > a::attr(href)' ).extract()
+    # Follow each of the extracted links
+    for link in links:
+      yield response.follow(url=link, callback=self.parse_descr)
+      
+  # Second parsing method
+  def parse_descr( self, response ):
+    # Extract course description
+    course_descr = response.css( 'p.course__description::text' ).extract_first()
+    # For now, just yield the course description
+    yield course_descr
+
+
+# CAPSTONE: create an entire spider from start to finish which will
+# - Collect all course links from the DataCamp directory
+# - Follow those links to extract the title and the title of the course chapters.
+# - Store the info in a dictionary
+# General structure
+import scrapy
+from scrapy.crawler import CrawlerProcess
+
+class DC_Chapter_Spider(scrapy.Spider):
+
+    name = 'dc_chapter_spider'
+
+    def start_request(self):
+        url = 'https://www.datacamp.com/courses/all'
+        yield scrapy.Request(url=url, callback=self.parse_front)
+
+    ## Method to parse the front courses page
+    def parse_front(self, response):
+        # Narrow in on the course blocks
+        coruse_blocks = response.css('div.course-block')
+        # Direct to the course links
+        course_links = course_blocks.xpath('./a/@href')
+        # Extract the links (as a list of strings)
+        links_to_follow = course_links.extract()
+        # Follow the links to the next parser
+        for url in links_to_follow:
+            yield response.follow(url=url, callback=self.parse_pages)
+
+    ## Method to parse course pages
+    def parse_pages(self, response):
+        # Direct to the course title text
+        crs_title = response.xpath('//h1[contains(@class, "title")]/text()')
+        # Extract and clean the course title text
+        crs_title_ext = crs_title.extract_first().strip()
+        # Direct to the chapter titles text
+        ch_titles = response.css('h4.chapter__title::text')
+        # Extract and clean the chapter titles text
+        ch_titles_ext = [t.strip() for t in ch_titles.extract()]
+        # Store this in a dictionary with course titles as keys and chapter titles as values
+        dc_dict[crs_title_ext] = ch_titles_ext
+
+# Initialize the dictionary **outside** of the Spider class
+dc_dict = dict()
+
+# Run the Spider
+process = CrawlerProcess()
+process.crawl(DC_Chapter_Spider)
+process.start()
+
+
 #%% END OF DATA CAMP ----------------------------------------------------------
 
 # %% USEFUL COMMANDS
+
+# Create a boolean mask that identifies the categorical columns of a data frame
+categorical_mask = (df.dtypes == 'object')
 
 # Creating a DataFrame from multiple equal-length lists
 import pandas as pd
