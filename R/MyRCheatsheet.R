@@ -312,6 +312,13 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Agregar coma para separar por miles en una variable numerica
+# Agregar un prefijo a una variable numerica / agregar signo pesos
+scales::comma(df$var, big.mark=".", decimal.mark = ",", prefix = "$")
+
+# Guardar un data frame como archivo Excel
+openxlsx::write.xlsx(df, "path.xlsx", colNames = TRUE)
+
 # Hacer un calculo por grupo y crear muchas variables a la vez con la misma funcion /
 # Agrupar una base y realizar una operacion en muchas columnas a la vez
 variables <- c("var1", "var2", "var3")
@@ -1585,6 +1592,12 @@ stringr::str_split("hola$chau", "\\$")
 # Graficos --------------------------------------------------
 
 
+# Mostrar las etiquetas de los ejes separadas por coma
+plot_ <- ggplot(data=df_aux, 
+                aes(x = v1, y = v2, fill=v3)) +
+    geom_bar(stat = "identity") +
+    scale_y_continuous(labels = scales::label_comma(big.mark=".", decimal.mark = ",")) +
+
 # Partir un título en más de una lína / añadir un line break en un título
 plot <- ggplot(data, aes(var1, var2)) +
     geom_bar(stat = "identity") +
@@ -1627,6 +1640,23 @@ GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(si
 
 
 # Datos espaciales --------------------------------
+
+# Agregar etiquetas estaticas a un mapa
+map_ <- mapview::mapview(
+    df,
+    zcol = "variable", 
+    col.regions=RColorBrewer::brewer.pal(9, "Reds"),
+    basemap = "CartoDB.Positron",
+    layer.name="Titulo" %>% 
+        
+        leafem::addStaticLabels(
+            label=df$etiqueta,
+            noHide = TRUE,
+            textOnly=FALSE, # si pones este true y sacas el style, sacas el rectangulo blanco
+            textsize = "7px",
+            style = list("background-color" = "white", "font-weight" = "bold")
+    )
+)
 
 # Encontrar los poligonos de un data frame que se superpongan
 # (con otros poligonos del data frame)
@@ -1785,7 +1815,7 @@ shape <- sf::st_read(path)
 df <- sf::st_as_sf(df, coords = c("LONGITUDE", "LATITUDE"), crs = 4326)
 
 # Convertir un geo data frame a un data frame / eliminar el componente espacial de un spatial data frame
-sf::st_drop_geometry(sp_df)
+sp_df <- sf::st_drop_geometry(sp_df)
 #  o sino ver esto
 df %>% sf::st_set_geometry(NULL)
 
@@ -2031,6 +2061,21 @@ spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.side
 
 # R Markdown --------------------------------------------------------------
 
+# A partir de un data frame, crear una tabla scrolleable
+kableExtra::scroll_box(
+    knitr::kable(tabla, format = "html", escape = FALSE) %>% kableExtra::kable_styling(), 
+    height = "600px")
+
+# Agregar referencias bibliograficas / agregar seccion con bibliografia
+title: "Model Results"
+output:
+    html_document:
+            ...
+bibliography: references.bib # guardar el archivo bib en la misma carpeta
+nocite: '@*' # esto es para que abajo figuren todos los papers en el bib, incluso
+#   los que no fueron citados
+link-citations: yes # agregar links a cada cita a la seccion bibliografica
+
 # Definir el formato de los diferentes elementos del html
 # Hay que crear un archivo .css en el mismo directorio que el markdown, 
 # que puede tener, por ejemplo, estos parámetros:
@@ -2063,6 +2108,7 @@ ol {
 output:
     html_document:
         css: styles.css
+# !!! Creo que esto mismo se puede poner en un chunk, ver https://community.rstudio.com/t/how-to-change-the-width-of-toc-in-rmarkdown/155326/2
 
 # Definir la fecha de manera automatica
 date: "`r format(Sys.time(), '%d %B, %Y')`" # al inicio del doc
