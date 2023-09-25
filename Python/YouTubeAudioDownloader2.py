@@ -1,7 +1,9 @@
 from pytube import YouTube
 import os
 import sys
-from tqdm import tqdm
+from mutagen.easyid3 import EasyID3  
+from mutagen.mp3 import MP3
+# from tqdm import tqdm
 
 def download_audio(url, dest_dir='.'):
     """
@@ -20,7 +22,7 @@ def download_audio(url, dest_dir='.'):
     while True:
         # Create a YouTube object
         try:
-            yt = YouTube(url)
+            yt = YouTube(url, use_oauth=True, allow_oauth_cache=True)
         except:
             print("Invalid URL or network error.")
             continue
@@ -35,7 +37,7 @@ def download_audio(url, dest_dir='.'):
         base, ext = os.path.splitext(out_file)
 
         # Option to define a new file name
-        new_title = input("Enter new file name in the format Artist - Song Name, or leave blank and use video's title: ")
+        new_title = input("Enter new file name in the format Artist - Song Name: ")
         if new_title:
             base = os.path.join(os.path.dirname(base), new_title)
 
@@ -45,9 +47,22 @@ def download_audio(url, dest_dir='.'):
         # Rename downloaded file
         os.rename(out_file, new_file)
 
+        # Set Title and Artist
+        Artist, Title  = new_title.split(" - ")
+        mp3file = MP3(new_file, ID3=EasyID3)
+        mp3file['title'] = [Title]
+        mp3file['artist'] = [Artist]
+        mp3file.save()
+
         # Report success
         print(f"{yt.title} has been successfully downloaded to {new_file}")
         print("\n")
+
+        # Ask whether to add the audio file to a playlist
+        answer = input("Do you want to add the audio file to a playlist? (y/n): ")
+        if answer.lower() == "y":
+            playlist_dir = input("Please provide the directory where the playlists are stored: ")
+            search_playlists(playlist_dir, Title, new_file)
 
         # Prompt to download another video
         download_another = input("Do you want to download audio from another video? (y/n): ")
@@ -57,6 +72,70 @@ def download_audio(url, dest_dir='.'):
             break
 
     return new_file
+
+
+def search_playlists(playlist_directory, audio_file_directory):
+    """
+    Search for playlists in the provided directory and prompt the user to select playlists
+    to which the audio file should be moved.
+
+    Args:
+        playlist_directory (str): The directory where the playlists are stored.
+        audio_file_directory (str): The directory of the downloaded audio file.
+
+    Returns:
+        None
+    """
+
+    playlists = []
+    for file in os.listdir(playlist_directory):
+        if file.endswith(".m3u"):
+            playlists.append(file)
+
+    print("Playlists in the provided directory:")
+    for playlist in playlists:
+        for i, playlist in enumerate(playlists, start=1):
+            print(f"{i}. {playlist}")
+        
+    playlist_numbers = input("Enter the playlist number where you want to move the audio file, or enter 'no' to not move it to any playlist: ")
+    
+    if playlist_numbers == 'no':
+        print("Audio file not moved to any playlist.")
+    else:
+        try:
+            selected_playlists = [int(num.strip()) for num in str(playlist_numbers).split(",")]
+            for playlist_number in selected_playlists:
+                if 1 <= playlist_number <= len(playlists):
+                    selected_playlist = playlists[playlist_number - 1]
+                    add_to_playlist(playlist_directory, selected_playlist, audio_file_directory)
+                else:
+                    print("Invalid playlist number!")
+        except ValueError:
+            print("Invalid playlist number!")
+
+
+def add_to_playlist(playlist_directory, playlist, audio_file_directory):
+    """
+    Appends the path of the downloaded audio file to the selected playlist.
+
+    Args:
+        playlist_directory (str): The directory where the playlists are stored.
+        playlist (str): The name of the selected playlist.
+        audio_file_directory (str): The directory of the downloaded audio file.
+
+    Returns:
+        None
+    """
+
+    playlist_path = os.path.join(playlist_directory, playlist)
+
+    # Append the path of the downloaded audio file to the selected playlist
+    audio_path = os.path.join(audio_file_directory)
+    with open(playlist_path, "a") as file:
+        file.write(audio_path + "\n")
+
+    print("Audio file added to the playlist:", playlist)
+
 
 if __name__ == '__main__':
     url = input("Enter video URL: ")

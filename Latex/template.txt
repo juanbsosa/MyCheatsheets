@@ -1,4 +1,4 @@
-documentclass[12pt]{article}
+\documentclass[12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
 \usepackage{amsmath}
@@ -137,3 +137,5 @@ Se estima el modelo especificado en las consignas.
 \end{equation*}
 
 \section*{Resultados de regresión}
+
+\end{document}

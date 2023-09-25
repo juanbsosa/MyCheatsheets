@@ -26,6 +26,9 @@ download Quick Replace In Selection extension
 pd.set_option('display.max_columns', None)
 pd.set_option('max_row', None) #I don't know what this one does
 
+# Fold all code chunks
+ctrl+k + ctrl+0
+
 # %% DATACAMP COURSES starting from here...
 
 # %% BASIC COMMANDS
@@ -7008,6 +7011,17 @@ process.crawl(DC_Chapter_Spider)
 process.start()
 
 
+#%% MACHINE LEARNING FOR TIME SERIES DATA IN PYTHON
+
+#  Covered: Feature extraction, model fitting, prediction and validation
+
+# Ch1: TIME SERIES AND MACHINE LEARNING PRIMER
+
+# Create an index for time
+
+Time Series as Inputs to a Model
+
+
 #%% END OF DATA CAMP ----------------------------------------------------------
 
 # %% USEFUL COMMANDS
@@ -7331,6 +7345,10 @@ for n in names:
 
 #Eliminar un (dos) elemento de la lista:
 lista[0:2]=[ ]
+
+# # Find all files with a specific pattern
+from glob import glob
+files = glob('direc/direc2/*.csv')
 
  
 #%% CURSO UNSAM

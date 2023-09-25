@@ -291,7 +291,7 @@ library(googledrive){
 # Addin para invertir las barras de un directorio, insertar un pipe %>%, y otra cosa más
 devtools::install_github("sfr/RStudio-Addin-Snippets", type = "source") # Instalar
     # Reiniciar R
-    # Puse el de "flip slash" como keyboard shortcut en CTRL+Shift+F (Tools->Modify Keyboard Shortcuts)
+    # Puse el de "Convert slash" como keyboard shortcut en CTRL+Shift+F (Tools->Modify Keyboard Shortcuts)
     
 # Abrir el archivo con los snippets y agregar snippets o modificar snippets
 usethis::edit_rstudio_snippets()
@@ -311,6 +311,9 @@ library(readr) #solo hay que correr eso y se define la variable
 
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
+
+# Guardar el resultado de la consola en un archivo
+sink("output_log.txt", append = FALSE, split=TRUE)
 
 # Agregar coma para separar por miles en una variable numerica
 # Agregar un prefijo a una variable numerica / agregar signo pesos
@@ -883,7 +886,7 @@ sum(is.na(base[['variable']]))
 list_na <- colnames(df)[apply(df, 2, anyNA)] #el num 2 dice que busque a lo largo de las columnas. si fuese uno busca los missing values por filas, identificado las observaciones. Ac? va identificar las variables con datos faltantes, no las observaciones
 
 # Mostar la cantidad de missing values por columna / variable
-sapply(airquality, function(x) sum(is.na(x)))
+sapply(df, function(x) sum(is.na(x)))
 
 #Eliminar todas las filas/observaciones con missing values (con la opción de elegir las variables que tienen missing values): (NO ME ANDUVO BIEN LA PRIMERA!!)
 base <- na.omit(base, cols="variable1", "variable2")
@@ -1636,7 +1639,7 @@ dev.off()
 data(flea)
 GGally::ggpairs(flea, columns = 2:4)
     # Cambiar el tamaño (y otra estetica) de los nombre de las variables en un correlograma
-GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=element_text(size=15))
+GGally::ggpairs(flea, columns = 2:4) + ggplot2::theme(strip.text=ggplot2::element_text(size=15))
 
 
 # Datos espaciales --------------------------------
@@ -2053,7 +2056,7 @@ pol.w <- mat2listw(matriz)
 # Libro increible: https://spatialanalysis.github.io/handsonspatialdata/index.html
 
 # Crear el rezago espacial de una variable (https://gist.github.com/chrishanretty/664e337c267a53a7de97)
-df$sp.lag <- spdep::lag.listw(df$var, matriz_w)
+df$sp.lag <- spdep::lag.listw(matriz_w, df$var)
 
 # Test I de Moran
 spdep::lm.morantest(modelo_mco, listw=matriz_como_lista, alternative = "two.sided")
