@@ -29,6 +29,14 @@ pd.set_option('max_row', None) #I don't know what this one does
 # Fold all code chunks
 ctrl+k + ctrl+0
 
+# %% GENERAL USEFUL CODE
+
+# Add all elements of a list to another list
+a = ['asd', 'asda']
+b = ['uu', 'afasd']
+a.extend(b)
+print(a)
+
 # %% DATACAMP COURSES starting from here...
 
 # %% BASIC COMMANDS
@@ -7019,7 +7027,360 @@ process.start()
 
 # Create an index for time
 
-Time Series as Inputs to a Model
+# Time Series as Inputs to a Model
+
+#%% PARALLEL PROGRAMMING WITH DASK IN PYTHON
+
+# Ch1: LAZY EVALUATION AND PARALLEL COMPUTING
+
+# "Thread of execution": processing each step of a script in order
+
+# MULTI-THREADING: If some steps in a script are independent to each other, you can split them along multiple threads. You can run these threads
+#   in parallel on different cores of the CPU. This is still done in a single instance of Python.
+# All threads use the same RAM space in the main session.
+# Take less time to start up
+# No memory transfer needed (all is done in the main session)
+# Limited by Python's GIL (Global interpreter lock), which only allows one thread at a time to read the code.
+
+
+# PARALLEL PROCESSING: takes each thread and runs it in a different instance of Python (like having it opened twice or more).
+# Each process has its own RAM space (separate memory pools).
+# Take more time to start up.
+# Very slow data transfer between themselves and the main session
+# Each process has its own GIL 
+
+# LAZY EVALUATION: computations are not run until the moment the result is needed. The steps required to compute the result are stored for later
+# Dask splits the tasks between threads or processes
+
+# Delay a function with dask
+from dask import delayed
+def my_square_function(x):
+    return x**2
+
+delayed_result = delayed(my_square_function)(4)
+
+real_result = delayed_result.compute() # The calculation happens here
+
+print(real_result)
+
+# Example: in this operation, we square each number and then add all together. The squaring operation con be done in parallel.
+X_list = [30, 85, 14, 12, 27, 62, 89, 15, 78, 0]
+sum_of_squares = 0
+for x in X_list:
+    # Square and add numbers
+    sum_of_squares += delayed(my_square_function)(x)
+
+result = sum_of_squares.compute() # With the compute method, Dask automatically splits tasks across threads or processes
+print(result)
+
+# Multi-threading vs Parallel processing:
+# For example, if you need to calculate the sum of two big arrays, parallel processing is slower because each array will be
+# copied to a new Python session, and then the result will be copied back to the main session.
+# On the contrary, multithreading occurs in the main Python session, so no copying is done.
+sum1 = delayed(np.sum)(big_array1)
+sum2 = delayed(np.sum)(big_array2)
+# Compute using threads
+dask.compute(sum1, sum2)
+
+# On a different example,
+# Python has a GIL (Global interpreter lock): only one thread an read the Python script at a time.
+# Parallel processing avoids this, since each process has its own GIL.
+def sum_to_n(n):
+    total = 0 
+    for i in range(n+1):
+        total += i
+    return total
+# Here, multithreading will not speed this up, because the threads will "lock" themselves
+# because of the GIL. But parallel processing will.
+sum1 = delayed(sum_to_n)(1000)
+sum2 = delayed(sum_to_n)(1000)
+
+# Some functions "release" the GIL so that other threads con read the code while that thread is waiting
+df1 = delayed(pd.read_csv)('file1.csv')
+df2 = delayed(pd.read_csv)('file2.csv')
+
+
+# Visualize process
+import dask
+from dask import delayed
+def summ(a,b):
+    return a + b
+month_1_costs = delayed(summ)(1,2)
+month_2_costs = delayed(summ)(1,4)
+# Add the two delayed month costs
+total_costs = month_1_costs+ month_2_costs
+# Calculate the fraction of total cost from month 1
+month_1_fraction = month_1_costs/total_costs
+# Calculate the fraction of total cost from month 2
+month_2_fraction = month_2_costs/total_costs
+# Plot the joint task graph used to calculate the fractions
+dask.visualize(month_1_fraction, month_2_fraction)
+
+# BUILDING DELAYED PIPELINES
+# Example: you have many csv files with songs, and you want to find the maximum track length across all songs
+# Thus us the traditional solution
+import pandas as pd
+maximums=[]
+for file in files:
+    df = pd.read_csv(file)
+    max_length=df['duration_ms'].max()
+    maximums.append(max_length)
+absolute_maximum = max(maximums)
+# Convert to lazy evaluation by delayed read_csv and max
+import pandas as pd
+maximums=[]
+for file in files:
+    df = delayed(pd.read_csv)(file)
+    max_length=df['duration_ms'].max() # this will be a delayed objecgt because df is a delayed object
+    maximums.append(max_length)
+absolute_maximum = delayed(max)(maximums)
+# Methods to delayed object are not evaluated until the .compute() method is run. So errors will apear only here.
+absolute_maximum.visualize()
+# Compute all the maximums for each file
+all_maximums = dask.compute(maximums)
+
+
+# Ch2: PARALLEL PROCESSING OF BIG, STRUCTURED DATA
+
+# Create DASK ARRAYS
+import dask.array as da
+x = da.ones((4000, 6000), chunks=(1000, 2000))
+print(x.sum().compute()) # by default it uses threads
+# Ypou can use the common numpy array methods (sum, min, max, mean)
+# Equivalent to
+import numpy as np
+x= np.ones((4000, 6000))
+
+# Loading arrays of IMAGES
+import dask.array as da
+importa da.image
+image_array = da.image.imread('images_dir/*.png')
+print(image_array)
+# Run a function on a chunk of the arrays
+def instagram_filter(image):
+    ...
+    return pretty_image
+pretty_image_array = image_array.map_blocks(instagram_filter)
+print(pretty_image_array)
+
+
+# DASK DATAFRAMES
+import dask.dataframe as dd
+# Load multiple file chunks of a bigger data set at once
+dask_df=dd.read_csv('dataset/*.csv') # This does not load any data yet
+dask.visualize(dask_df)
+# You can control the size of blocks (rather than be determined by the number of csvs)
+dask_df=dd.read_csv('dataset/*.csv', blocksize="10MB")
+# Most pandas commands work on dask dataframes
+col1 = dask_df['col1']
+dask_df.min()
+dd.to_datetime(dask_df['date'])
+print(dask_df.head()) # this does not need the compute method
+# Convert the lazy dask dataframe to in-memory pandas dataframe
+results_df = dask_df.compute()
+# If the result of the computation is still too large, you can tell dask to split the output
+dask_df.to_csv('answer/part-*.csv')
+# Read from PARQUET files
+dask_df = dd.read_parquet('dataset_parquet')
+dask_df.to_parquet('answer_parquet')
+
+# MULTIDIMENSIONAL ARRAYS: format HDF5 files
+# The data is arranged in folders and subfolders, but all inside one hdf5 file
+import dask.array as da
+import h5py
+file = h5py.File('data.hdf5')
+print(file.keys())
+dataset_a = file['/A']
+# Turn the dataset into a dask array
+a = da.from_array(dataset_a, chunks=(100,20,20))
+# ZARR format: hierarchical, built with chuning in mind, streaming over cloud computing services
+# Navigable file structure
+a = da.from_zarr('dataset.zarr', component='A') # atumatically chooses chunk size
+
+# XARRAYs
+# Applies index labels to high dimensional arrays
+import xarray as x_jitterds = xr.opne_zarr('data/era_eu.zarr')
+ds.sel(time='2021-01-01')
+ds.mean(dim='dim1')
+# Example with temperature from ERA5
+# Open the ERA5 dataset
+ds = xr.open_zarr("data/era_eu.zarr")
+# Select the zeroth time in the DataSet
+ds_sel = ds.isel(time=0)
+fig, (ax1, ax2) = plt.subplots(1,2, figsize=(8, 3))
+# Plot the zeroth temperature field on ax1
+ds_sel['temp'].plot(ax=ax1)
+# Plot the zeroth precipitation field on ax2
+ds_sel['precip'].plot(ax=ax2)
+plt.show()
+# Extract the months from the time coordinates
+months = ds['time'].dt.month
+# Select the temp DataArray and group by months
+monthly_groupby = ds['temp'].groupby(months)
+# Find the mean temp by month
+monthly_mean_temps = monthly_groupby.mean()
+# Compute the result
+monthly_mean_temps_computed = monthly_mean_temps.compute()
+monthly_mean_temps_computed.plot(col='month', col_wrap=4, add_colorbar=False)
+plt.show()
+# Open the ERA5 dataset
+ds = xr.open_zarr("data/era_eu.zarr")
+# Select the temperature dataset and take the latitude and longitude mean
+temp_timeseries = ds['temp'].mean(dim=('lat', 'lon'))
+# Calculate the 12 month rolling mean
+temp_rolling_mean = temp_timeseries.rolling(time=12).mean()
+# Plot the result
+temp_rolling_mean.plot()
+plt.show()
+
+
+# DASK BAGS FOR UNSTRUCTURED DATA
+# Example: text
+import dask.bag as db
+bag_example = db.from_sequence(string_list, npartitions=5)
+# Print single element
+print(bag_example.take(1))
+# Find how many elements are inside the bag
+n_elem = bag_example.count()
+print(n_elem.compute())
+
+# Loading text data
+text_data_bag = db.read_text('data/*.txt') # default: one partition per text file
+print(text_data_bag.take(1))
+# Convert the text to lower case
+text_data_bag.str.lower().take()
+# Replace words
+print(text_data_bag.str.replace('good', 'great')).take(1))
+# Count words
+print(text_data_bag.str.count('great')).take(3))
+
+# DASK BAG OPERATIONS
+import dask.bag as db
+# MAP METHOD
+# Example: count the number of words in multiple strings
+def number_of_words(s):
+    word_list = s.split(' ')
+    return len(word_list)
+string_list = [
+    'there are four words',
+    'but these are five words',
+    'and these are seven words in total'
+]
+# Create a bag from the list above
+string_bag = db.from_sequence(string_list)
+# Apply function to each element in bag
+word_count_bag = string_bag.map(number_of_words)
+print(word_count_bag.compute())
+
+# JSON DATA
+import json
+text_bag = db.read_text('example*.json')
+dict_bag = text_bag.map(json.loads) # convert to dictionary
+print(dict_bag.take(1))
+# Select elements in the bag which meet some condition
+def is_new(employee_dict):
+    return employee_dict['years_service']<1
+new_employee_bag = dict_bag.filter(is_new)
+# Alternative: use lambda function
+new_employee_bag = dict_bag.map(lambda x: x['years_service'] < 1)
+# Select one element of the dictionary: pluck method
+employement_bag = new_employee_bag.pluck('employment')
+print(employement_bag.take(1))
+# Find total number of jobs for each employee
+employement_bag.map(len)
+# Convert unstructured data to a DataFrame
+import json
+text_bag = db.read_text('example*.json')
+def add_number_of_jobs(employee_dict):
+    employee_dict['number_of_previous_jobs'] = len(employee_dict['employment'])
+    return employee_dict
+dict_bag = dict_bag.map(add_number_of_jobs)
+
+def delete_dictionary_entry(dictionary, key_to_drop):
+    del dictionary[key_to_drop]
+    return dictionary
+dict_bag = dict_bag.map(delete_dictionary_entry, key_to_drop='employment')
+df = dict_bag.to_dataframe().compute()
+
+# You can use any data in dask bags
+# video, audio, any object
+
+
+
+# Ch4: DASK MACHINE LEARNING AND FINAL PIECES
+
+# By default, dask arrays, dataframes, and delayed pipelines use threads, and dask bags use processes
+# But the default options are not always the best
+
+# How to determine whether to use threads or processes: using the scheduler argument
+result = x.compute(scheduler='threads')
+result = x.compute(scheduler='processes')
+# or
+import dask
+result = dask.compute(x, scheduler='threads')
+result = dask.compute(x, scheduler='processes')
+
+# CREATE A LOCAL CLUSTER TO USE THREADS AND PROCESSES TOGETHER
+from dask.distributed import LocalCluster
+# Create cluster object
+cluster = LocalCluster(
+    processes=True,
+    n_workers=2, # two processes
+    threads_per_worker=2 # two threads per process (total: 4)
+)
+# or
+cluster = LocalCluster(
+    processes=False,
+    n_workers=2, # two threads
+    threads_per_worker=2 # two threads per thread (total: 4)
+)
+# If you do not set n_workers, dask sets it on its own according to the computer's specifications
+# Create a client to use the cluster
+from dask.distributed import Client
+client = Client(cluster)
+# Or more directly, make the Client class create its own local cluster
+cluster = Client(
+    processes=True,
+    n_workers=2, 
+    threads_per_worker=2 
+)
+# Using the cluster
+# Once we created the client, dask will use it for all dask computations by default, no matter if they are bags, dataframes, etc.
+# But we can change this in the compute method
+results = x.compute(scheduler='threads')
+# We can also pass the computation explicitly to the client
+result = client.compute(x)
+
+# TRAINING MACHINE LEARNING MODELS ON BIG DATASETS
+import dask_ml
+
+# Linear regression with Dask
+from sklearn.linear_model import SGDRegressor
+model=SGDRegressor()
+# Import Dask-ML wrapper for model
+from dask_ml.wrappers import Incremental
+# Wrap model
+dask_model = Incremental(model, scoring='neg_mean_squared_error')
+# Fit model on Dask DataFrames or arrays
+dask_model.fit(dask_X, dask_y) # not lazy. Only loops through the dataset once (?)
+# Partial fit method
+for i in range(10):
+    dask_model.partial_fit(dask_X, dask_Y) # not lazy
+y_pred = dask_model.predict(dask_X)
+print(y_pred.compute())
+
+# PREPROCESSING BIG DATASETS
+
+# Scaling
+from dask_ml import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X) # this is not lazy
+standardized_X = scaler.transform(X) # performed lazily
+
+# Train-test split
+from dask_ml.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True, test_size=0.2)
+
 
 
 #%% END OF DATA CAMP ----------------------------------------------------------
@@ -7141,7 +7502,8 @@ df[df['var'].isnull()]
 df.drop_duplicates(subset=['var'])
 
 # Merge / unir dos data frames
-db1 = db1.merge(db2[['var_a_mergear']], how='left', on=[nombre de variable llave], indicator=True) #indicator te dice si agregar una columma que te diga el resultado del merge, ademas de true se le puede poner el strign que quieras
+db1 = db1.merge(db2[['var_a_mergear']], how='left', on=[nombre de variable llave], indicator=True) #indicator te dice si 
+# agregar una columma que te diga el resultado del merge, ademas de true se le puede poner el strign que quieras
 
 # Intertar una columna / variable al principio de un data frame
 df.insert(0, 'nombrevar', var)
