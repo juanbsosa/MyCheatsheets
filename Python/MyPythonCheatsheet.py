@@ -8035,4 +8035,14 @@ gdf.to_file("algo.shp")
 base_plot = poligono.plot()
 puntos.plot(ax=base_plot, color='blue');
 
+# Convert DMS (degrees, minute, seconds) coordiantes (with strings for cardinal points) to decimal degrees
+def dms_to_dd(dms, direction):
+    degrees = int(dms[:2])
+    minutes = int(dms[2:4])
+    seconds = int(dms[4:6])
+    dd = degrees + minutes/60 + seconds/3600
+    if direction in ['S', 'W']:
+        dd *= -1
+    return dd
+
 # See ipynb "arreglo_espacioal_estaciones_servicio"

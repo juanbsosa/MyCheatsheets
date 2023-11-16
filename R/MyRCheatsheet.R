@@ -312,6 +312,13 @@ library(readr) #solo hay que correr eso y se define la variable
 # CODIGO ÚTIL / COMANDOS UTILES -------------------------------------------------------------
 #(se lee de abajo para arriba)
 
+# Lidiar con API KEYs usando variables de ambiente (environment variables)
+# Primero crear un archivo de extension .env con la api key con este formato:
+"NOMBRE_QUE_ELEGIS_PARA_API_KEY"="A2F4V2456jfas(o lo que sea tu API KEY)"
+# Luego correr este codigo
+readRenviron("archivo.env")
+apikey <- Sys.getenv("NOMBRE_QUE_ELEGIS_PARA_API_KEY")
+
 # Guardar el resultado de la consola en un archivo
 sink("output_log.txt", append = FALSE, split=TRUE)
 

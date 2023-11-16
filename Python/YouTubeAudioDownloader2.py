@@ -5,7 +5,7 @@ from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 # from tqdm import tqdm
 
-def download_audio(url, dest_dir='.'):
+def download_audio(url, dest_dir, playlist_dir):
     """
     Download the audio from a YouTube video and save it as an MP3 file.
 
@@ -25,7 +25,7 @@ def download_audio(url, dest_dir='.'):
             yt = YouTube(url, use_oauth=True, allow_oauth_cache=True)
         except:
             print("Invalid URL or network error.")
-            continue
+            break
 
         # Extract audio from video
         audio = yt.streams.filter(only_audio=True).first()
@@ -47,12 +47,15 @@ def download_audio(url, dest_dir='.'):
         # Rename downloaded file
         os.rename(out_file, new_file)
 
-        # Set Title and Artist
-        Artist, Title  = new_title.split(" - ")
-        mp3file = MP3(new_file, ID3=EasyID3)
-        mp3file['title'] = [Title]
-        mp3file['artist'] = [Artist]
-        mp3file.save()
+        # Set Title and Artist (if allowed)
+        try:
+            Artist, Title  = new_title.split(" - ")
+            mp3file = MP3(new_file, ID3=EasyID3)
+            mp3file['title'] = [Title]
+            mp3file['artist'] = [Artist]
+            mp3file.save()
+        except:
+            pass
 
         # Report success
         print(f"{yt.title} has been successfully downloaded to {new_file}")
@@ -61,8 +64,9 @@ def download_audio(url, dest_dir='.'):
         # Ask whether to add the audio file to a playlist
         answer = input("Do you want to add the audio file to a playlist? (y/n): ")
         if answer.lower() == "y":
-            playlist_dir = input("Please provide the directory where the playlists are stored: ")
-            search_playlists(playlist_dir, Title, new_file)
+            # if playlist_dir is None:
+            #     playlist_dir = input("Please provide the directory where the playlists are stored: ")
+            search_playlists(playlist_dir, new_file)
 
         # Prompt to download another video
         download_another = input("Do you want to download audio from another video? (y/n): ")
@@ -70,9 +74,6 @@ def download_audio(url, dest_dir='.'):
             url = input("Enter video URL: ")
         else:
             break
-
-    return new_file
-
 
 def search_playlists(playlist_directory, audio_file_directory):
     """
@@ -93,11 +94,10 @@ def search_playlists(playlist_directory, audio_file_directory):
             playlists.append(file)
 
     print("Playlists in the provided directory:")
-    for playlist in playlists:
-        for i, playlist in enumerate(playlists, start=1):
+    for i, playlist in enumerate(playlists, start=1):
             print(f"{i}. {playlist}")
         
-    playlist_numbers = input("Enter the playlist number where you want to move the audio file, or enter 'no' to not move it to any playlist: ")
+    playlist_numbers = input("Enter the playlist number (or numbers seprated by a comma) where you want to move the audio file, or enter 'no' to not move it to any playlist: ")
     
     if playlist_numbers == 'no':
         print("Audio file not moved to any playlist.")
@@ -139,9 +139,10 @@ def add_to_playlist(playlist_directory, playlist, audio_file_directory):
 
 if __name__ == '__main__':
     url = input("Enter video URL: ")
-    dest_dir = input("Enter destination directory or leave blank for current directory: ") or "."
+    dest_dir = input("Enter destination directory or leave blank for default directory: ") or r"C:\Users\Usuario\Music\Musica JB\archivos de musica"
+    playlist_dir = input("Enter playlist directory or leave blank for default directory: ") or r"C:\Users\Usuario\Music\MusicBee\Playlists"
 
-    file_path = download_audio(url, dest_dir)
+    file_path = download_audio(url, dest_dir, playlist_dir)
 
     if not file_path:
         sys.exit(1)
