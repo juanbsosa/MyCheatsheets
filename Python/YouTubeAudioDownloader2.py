@@ -1,9 +1,9 @@
 from pytube import YouTube
 import os
 import sys
-from mutagen.easyid3 import EasyID3  
-from mutagen.mp3 import MP3
-# from tqdm import tqdm
+# from mutagen.easyid3 import EasyID3
+# from mutagen.mp3 import MP3
+from mutagen.mp4 import MP4
 
 def download_audio(url, dest_dir, playlist_dir):
     """
@@ -41,21 +41,28 @@ def download_audio(url, dest_dir, playlist_dir):
         if new_title:
             base = os.path.join(os.path.dirname(base), new_title)
 
-        # Change to .mp3
-        new_file = base + '.mp3'
+        # # Change to .mp3
+        # new_file = base + '.mp3'
+
+        # Change to .mp4
+        new_file = base + '.mp4'
 
         # Rename downloaded file
         os.rename(out_file, new_file)
 
         # Set Title and Artist (if allowed)
-        try:
-            Artist, Title  = new_title.split(" - ")
-            mp3file = MP3(new_file, ID3=EasyID3)
-            mp3file['title'] = [Title]
-            mp3file['artist'] = [Artist]
-            mp3file.save()
-        except:
-            pass
+        # !!! not working properly
+        # try:
+        Artist, Title  = new_title.split(" - ")
+        # mpfile = MP3(new_file, ID3=EasyID3)
+        mpfile = MP4(new_file)
+        # mpfile['title'] = Title
+        # mpfile['artist'] = Artist
+        mpfile['\xa9nam'] = Title
+        mpfile['\xa9ART'] = Artist
+        mpfile.save()
+        # except:
+        #     pass
 
         # Report success
         print(f"{yt.title} has been successfully downloaded to {new_file}")
