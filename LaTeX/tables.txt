@@ -1,0 +1,17 @@
+\FloatBarrier
+\begin{table}
+  \begin{center}
+  \resizebox{\textwidth}{!}{%
+    \begin{threeparttable}
+    \caption{bla bla bla}\label{tab:label_bla}
+      \input{Tables/path_to_tab}
+    \begin{adjustwidth}{-0.4cm}{-0.4cm} % Adjust the values to control left and right margins
+      \begin{tablenotes}[flushleft]
+      \item\textbf{Notes:} bla bla bla
+      \end{tablenotes}
+    \end{adjustwidth}
+    \end{threeparttable}
+  }
+  \end{center}
+\end{table}
+\FloatBarrier
