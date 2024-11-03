@@ -1,0 +1,22 @@
+python  -m venv name_of_env
+
+go to the directory and run
+
+name_of_env\Scripts\activate
+
+-- To see which python you have located
+where python
+
+-- To see which venv you are in, run in python
+import sys
+print(sys.prefix)
+
+-- Make sure pip is installed
+py -m pip install --upgrade pip
+py -m pip --version
+
+-- Set up requirements
+pip freeze > requirements.txt
+
+-Install requirements
+pip install -r requirements.txt

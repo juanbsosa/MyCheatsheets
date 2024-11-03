@@ -456,6 +456,29 @@ late_prop_samp = (late_shipments['col']=="value").mean()
 # Check whether all conditions are true
 (df['col']<1).all()
 
+# Check RAM memory
+import psutil
+
+# Get the virtual memory details
+memory_info = psutil.virtual_memory()
+
+# Extract total, used, and free memory
+total_memory = memory_info.total
+used_memory = memory_info.used
+free_memory = memory_info.available
+
+# Convert bytes to GB for a more readable format
+def convert_bytes_to_gb(bytes_value):
+    return bytes_value / (1024 ** 3)
+
+total_memory_gb = convert_bytes_to_gb(total_memory)
+used_memory_gb = convert_bytes_to_gb(used_memory)
+free_memory_gb = convert_bytes_to_gb(free_memory)
+
+print(f"Total Memory: {total_memory_gb:.2f} GB")
+print(f"Used Memory: {used_memory_gb:.2f} GB")
+print(f"Free Memory: {free_memory_gb:.2f} GB")
+
 
 # %% JOINING DATA - MUTATING JOINS - PANDAS
 

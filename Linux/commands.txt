@@ -1,0 +1,8 @@
+# Set directory
+cd
+
+# Open a script in a new window (in VSCode for example)
+code path_to_script.pycat /var/log/startup-script.log
+
+# Mount a file system into a directory
+sudo mount 10.160.168.162:/name-of-filestore directory-of-filestore

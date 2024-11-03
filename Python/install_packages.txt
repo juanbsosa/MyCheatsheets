@@ -27,8 +27,7 @@ C:\Users\juanb\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2
 
 
 ----------------------
-
-Ahora (feb 2022)
+ PIP
 
 !pip install paquete
 
@@ -36,3 +35,7 @@ Ahora (abr 2023)
 python -m pip install openpyxl
 
 ----------------------
+
+CONDA
+
+conda install -c conda-forge matplotlib

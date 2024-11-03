@@ -1,3 +1,18 @@
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+required_packages = ['pytube', 'mutagen']
+
+for package in required_packages:
+    try:
+        __import__(package)
+    except ImportError:
+        print(f"Package '{package}' is not installed. Installing...")
+        install(package)
+
 from pytube import YouTube
 import os
 import sys
