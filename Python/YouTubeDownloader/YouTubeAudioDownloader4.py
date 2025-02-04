@@ -1,9 +1,6 @@
 import subprocess
 import sys
-import pkg_resources
-from pkg_resources import parse_version
-
-
+import os
 
 def install(package, upgrade=False, from_github=False):
     if from_github:
@@ -48,110 +45,32 @@ for package in required_packages:
         install(package)
 
 # After ensuring all packages are installed, check and update pytube
-check_and_update_pytube()
+# check_and_update_pytube()
 
-from pytube import YouTube
-import os
-import sys
-# from mutagen.easyid3 import EasyID3
-# from mutagen.mp3 import MP3
-from mutagen.mp4 import MP4
-
-# def download_audio(url, dest_dir, playlist_dir):
-    # """
-    # Download the audio from a YouTube video and save it as an MP3 file.
-
-    # Args:
-    #     url (str): The URL of the YouTube video to download.
-    #     dest_dir (str): The destination directory to save the MP3 file.
-    #                     Defaults to the current directory.
-
-    # Returns:
-    #     str: The full path to the downloaded MP3 file.
-
-    # """
-
-    # while True:
-    #     # Create a YouTube object
-    #     try:
-    #         # yt = YouTube(url, use_oauth=True, allow_oauth_cache=True)
-    #         yt = YouTube(url)
-    #     except Exception as e:
-    #         print(f"An error occurred: {e}")
-    #         break
-
-    #     # Extract audio from video
-    #     audio = yt.streams.filter(only_audio=True).first()
-
-    #     # Download the audio file to dest_dir
-    #     out_file = audio.download(output_path=dest_dir)
-
-    #     # Split path into base and extension, to convert to .mp3
-    #     base, ext = os.path.splitext(out_file)
-
-    #     # Option to define a new file name
-    #     new_title = input("Enter new file name in the format Artist - Song Name: ")
-    #     if new_title:
-    #         base = os.path.join(os.path.dirname(base), new_title)
-
-    #     # # Change to .mp3
-    #     # new_file = base + '.mp3'
-
-    #     # Change to .mp4
-    #     new_file = base + '.mp4'
-
-    #     # Rename downloaded file
-    #     os.rename(out_file, new_file)
-
-    #     # Set Title and Artist (if allowed)
-    #     # !!! not working properly
-    #     # try:
-    #     Artist, Title  = new_title.split(" - ")
-    #     # mpfile = MP3(new_file, ID3=EasyID3)
-    #     mpfile = MP4(new_file)
-    #     # mpfile['title'] = Title
-    #     # mpfile['artist'] = Artist
-    #     mpfile['\xa9nam'] = Title
-    #     mpfile['\xa9ART'] = Artist
-    #     mpfile.save()
-    #     # except:
-    #     #     pass
-
-    #     # Report success
-    #     print(f"{yt.title} has been successfully downloaded to {new_file}")
-    #     print("\n")
-
-    #     # Ask whether to add the audio file to a playlist
-    #     answer = input("Do you want to add the audio file to a playlist? (y/n): ")
-    #     if answer.lower() == "y":
-    #         # if playlist_dir is None:
-    #         #     playlist_dir = input("Please provide the directory where the playlists are stored: ")
-    #         search_playlists(playlist_dir, new_file)
-
-    #     # Prompt to download another video
-    #     download_another = input("Do you want to download audio from another video? (y/n): ")
-    #     if download_another.lower() == 'y':
-    #         url = input("Enter video URL: ")
-    #     else:
-    #         break
+from pkg_resources import parse_version
+from yt_dlp import YoutubeDL
 
 def download_audio(url, dest_dir, playlist_dir):
     """
     Download the audio from a YouTube video and save it as an MP3 file.
     """
     
-    while True:
-        from yt_dlp import YoutubeDL
+    while True:        
 
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(dest_dir, '%(title)s.%(ext)s'),
             'ffmpeg_location': r'C:\ffmpeg\bin',
+            'cookiefile': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt'),
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
+            'format': '140',
+            'extract_flat': True,
+            'force_generic_extractor': True,
+            'verbose': True
             }
 
         with YoutubeDL(ydl_opts) as ydl:

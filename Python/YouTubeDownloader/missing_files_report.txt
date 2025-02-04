@@ -1,0 +1,228 @@
+
+Playlist: 70s_80s.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\70s_80s.m3u
+All files exist.
+
+Playlist: 90s Techno_Dance.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\90s Techno_Dance.m3u
+All files exist.
+
+Playlist: Acid.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Acid.m3u
+All files exist.
+
+Playlist: Africana.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Africana.m3u
+All files exist.
+
+Playlist: Ambient.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Ambient.m3u
+All files exist.
+
+Playlist: Aniadidas Recientemente.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Aniadidas Recientemente.m3u
+All files exist.
+
+Playlist: Arriba.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Arriba.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Oliver Koletzki - Iy√©waye.mp3
+
+Playlist: Aster Amanece Shh.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Aster Amanece Shh.m3u
+All files exist.
+
+Playlist: Bombas Rumanas.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Bombas Rumanas.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Ben Rau - Systï¿½me Solaire.mp3
+
+Playlist: Bossa Nova_Samba.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Bossa Nova_Samba.m3u
+All files exist.
+
+Playlist: Cachengue (_).m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Cachengue (_).m3u
+All files exist.
+
+Playlist: Castellano.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Castellano.m3u
+All files exist.
+
+Playlist: Chamán.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Chamán.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Huaira - ï¿½uka Shunku.mp3
+
+Playlist: Charly García.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Charly García.m3u
+All files exist.
+
+Playlist: Clásica.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Clásica.m3u
+All files exist.
+
+Playlist: Conga.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Conga.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Rafael Rodrï¿½guez - El Ritmo de Verda.mp3
+
+Playlist: Cuarteto.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Cuarteto.m3u
+All files exist.
+
+Playlist: Cumbia.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Cumbia.m3u
+All files exist.
+
+Playlist: Deep_House Luminoso.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Deep_House Luminoso.m3u
+All files exist.
+
+Playlist: DJ's Gone Disco.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\DJ's Gone Disco.m3u
+All files exist.
+
+Playlist: Duroscuro.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Duroscuro.m3u
+All files exist.
+
+Playlist: Electric Jazz.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Electric Jazz.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Andr√©s - Jazz Dance.mp3
+
+Playlist: Electro Cool _ Micro.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Electro Cool _ Micro.m3u
+All files exist.
+
+Playlist: Electro para el Recuerdo.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Electro para el Recuerdo.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Gigi DÂ´Agostino  - The Riddle.mp3
+
+Playlist: Electrónica (todo).m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Electrónica (todo).m3u
+All files exist.
+
+Playlist: Fanky.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Fanky.m3u
+All files exist.
+
+Playlist: Flashero.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Flashero.m3u
+All files exist.
+
+Playlist: Folclore.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Folclore.m3u
+All files exist.
+
+Playlist: Franchutes.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Franchutes.m3u
+All files exist.
+
+Playlist: Hard Rock.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Hard Rock.m3u
+All files exist.
+
+Playlist: House.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\House.m3u
+All files exist.
+
+Playlist: Inglés (viejas).m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Inglés (viejas).m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Bour√©e.mp3
+
+Playlist: Jazz_Blues.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Jazz_Blues.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Fats Fern√°ndez - Georgia On My Mind.mp3
+
+Playlist: Juan.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Juan.m3u
+All files exist.
+
+Playlist: Luis Alberto Spinetta.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Luis Alberto Spinetta.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Almendra -  Plegaria Para Un Niï¿½o Dormido.mp3
+
+Playlist: Matzi (campari, menetas y musiquita).m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Matzi (campari, menetas y musiquita).m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Andr√©s - Jazz Dance.mp3
+
+Playlist: Naviwep.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Naviwep.m3u
+All files exist.
+
+Playlist: Pacha 2013.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Pacha 2013.m3u
+All files exist.
+
+Playlist: Pala Energizante.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Pala Energizante.m3u
+All files exist.
+
+Playlist: Piano.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Piano.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Erik Satie - Gymnop√©die No.1.mp3
+
+Playlist: Pity Álvarez.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Pity Álvarez.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Seï¿½or Kioskero.mp3
+
+Playlist: Pop Wa.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Pop Wa.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Forever.mp3
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Ciudad Mï¿½gica.mp3
+
+Playlist: Prepara el ataque aereo.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Prepara el ataque aereo.m3u
+All files exist.
+
+Playlist: Progre.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Progre.m3u
+All files exist.
+
+Playlist: Rap_HipHop_R&B.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Rap_HipHop_R&B.m3u
+All files exist.
+
+Playlist: Reggae.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Reggae.m3u
+All files exist.
+
+Playlist: Relaje.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Relaje.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Erik Satie - Gymnopï¿½die No.1.mp3
+
+Playlist: Rock Alternativo.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Rock Alternativo.m3u
+All files exist.
+
+Playlist: Rock Nacional-ish.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Rock Nacional-ish.m3u
+All files exist.
+
+Playlist: Rock Progresivo.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Rock Progresivo.m3u
+All files exist.
+
+Playlist: Salsa_Cha_Tropical.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Salsa_Cha_Tropical.m3u
+All files exist.
+
+Playlist: Sets.m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\Sets.m3u
+Missing files:
+  C:\Users\Usuario\Music\Musica JB\archivos de musica\Julian PÃ©rez - Cadenza Podcast 066.mp3
+
+Playlist: sobra).m3u
+Full Path: C:\Users\Usuario\Music\Musica JB\itunes_playslist_for_android\in\sobra).m3u
+All files exist.
